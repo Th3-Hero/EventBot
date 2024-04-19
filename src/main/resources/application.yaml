@@ -1,0 +1,36 @@
+# Required configuration is commented
+# URL of where the admin rest API will be served
+app:
+  url:
+# Token for discord bot
+discord:
+  token:
+spring:
+  profiles:
+#   This can be changed to prod later
+    active: dev
+# DB info
+  datasource:
+    url:
+    username:
+    password:
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  quartz:
+    job-store-type: jdbc
+    properties:
+      org:
+        quartz:
+          scheduler:
+            idleWaitTime: 7500
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+springdoc:
+  swagger-ui:
+    use-root-path: true
