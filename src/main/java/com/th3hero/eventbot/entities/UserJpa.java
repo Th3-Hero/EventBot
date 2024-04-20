@@ -21,7 +21,7 @@ public class UserJpa implements Serializable {
     @NonNull
     @Column(name = "id")
     @Setter(AccessLevel.NONE)
-    private String id;
+    private Long id;
 
     @OneToMany
     private List<CourseJpa> courses;

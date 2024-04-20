@@ -5,6 +5,6 @@ import lombok.NonNull;
 import java.util.List;
 
 public record User(
-        @NonNull String id,
+        @NonNull Long id,
         List<Course> courses
 ) {}

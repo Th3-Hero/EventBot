@@ -1,27 +1,29 @@
 create extension if not exists "uuid-ossp";
 
+create sequence seq_course_id start with 1 increment by 1;
 create table course (
-    id uuid primary key,
+    id integer primary key,
     code text,
     name text,
     nickname text
 );
 
 create table "user" (
-    id varchar(20) not null primary key
+    id bigint not null primary key
 );
 
 create table user_courses (
-    courses_id uuid not null,
-    user_jpa_id varchar(20) not null,
+    courses_id integer not null,
+    user_jpa_id bigint not null,
     constraint fk_course_id foreign key (courses_id) references course(id),
     constraint fk_user_id foreign key (user_jpa_id) references "user"(id),
     constraint user_courses_pk primary key (courses_id, user_jpa_id)
 );
 
+create sequence seq_event_id start with 1 increment by 1;
 create table event (
-    id uuid primary key,
-    course_id uuid not null,
+    id integer primary key,
+    course_id integer not null,
     title text,
     description text,
     type varchar(20),

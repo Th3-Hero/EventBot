@@ -1,11 +1,9 @@
 package com.th3hero.eventbot.entities;
 
-import com.th3hero.eventbot.dto.Course;
-import com.th3hero.eventbot.dto.Event;
 import lombok.*;
 import jakarta.persistence.*;
+import com.th3hero.eventbot.dto.Event;
 
-import java.util.UUID;
 import java.util.Date;
 import java.io.Serializable;
 
@@ -22,9 +20,8 @@ public class EventJpa implements Serializable {
     @Id
     @NonNull
     @Setter(AccessLevel.NONE)
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
-    private UUID id;
+    private Integer id;
 
     @NonNull
     @Column
