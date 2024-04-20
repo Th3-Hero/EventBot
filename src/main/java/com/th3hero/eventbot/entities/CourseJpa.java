@@ -22,6 +22,7 @@ public class CourseJpa implements Serializable {
     @NonNull
     @Setter(AccessLevel.NONE)
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id")
     private UUID id;
 
     @NonNull

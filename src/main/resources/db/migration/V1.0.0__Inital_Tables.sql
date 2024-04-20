@@ -1,8 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-create table user (
-    id varchar(20) not null primary key
-);
+create extension if not exists "uuid-ossp";
 
 create table course (
     id uuid primary key,
@@ -11,12 +7,27 @@ create table course (
     nickname text
 );
 
+create table "user" (
+    id varchar(20) not null primary key
+);
+
+create table user_courses (
+    courses_id uuid not null,
+    user_jpa_id varchar(20) not null,
+    constraint fk_course_id foreign key (courses_id) references course(id),
+    constraint fk_user_id foreign key (user_jpa_id) references "user"(id),
+    constraint user_courses_pk primary key (courses_id, user_jpa_id)
+);
+
 create table event (
     id uuid primary key,
+    course_id uuid not null,
     title text,
     description text,
     type varchar(20),
-    datetime timestamp
+    datetime timestamp,
+    constraint event_fk foreign key (course_id)
+        references course(id)
 );
 
 create table qrtz_job_details (
@@ -48,7 +59,7 @@ create table qrtz_triggers (
     start_time bigint not null,
     end_time bigint null,
     calendar_name varchar(200) null,
-    misfire_instr SMALLINT null,
+    misfire_instr smallint null,
     job_data bytea null,
     primary key (sched_name, trigger_name, trigger_group),
     foreign key (sched_name, job_name, job_group)
@@ -85,12 +96,12 @@ create table qrtz_simprop_triggers (
     str_prop_1 varchar(512) null,
     str_prop_2 varchar(512) null,
     str_prop_3 varchar(512) null,
-    int_prop_1 INT null,
-    int_prop_2 INT null,
+    int_prop_1 int null,
+    int_prop_2 int null,
     long_prop_1 bigint null,
     long_prop_2 bigint null,
-    dec_prop_1 NUMERIC(13, 4) null,
-    dec_prop_2 NUMERIC(13, 4) null,
+    dec_prop_1 numeric(13, 4) null,
+    dec_prop_2 numeric(13, 4) null,
     bool_prop_1 boolean null,
     bool_prop_2 boolean null,
     primary key (sched_name, trigger_name, trigger_group),

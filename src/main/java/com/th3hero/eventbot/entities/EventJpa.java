@@ -14,6 +14,7 @@ import java.io.Serializable;
 @Entity
 @Builder
 @ToString
+@Table(name = "event")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class EventJpa implements Serializable {

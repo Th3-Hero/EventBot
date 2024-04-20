@@ -23,6 +23,6 @@ public class UserJpa implements Serializable {
     @Setter(AccessLevel.NONE)
     private String id;
 
-    @ManyToMany(mappedBy = "user")
+    @OneToMany
     private List<CourseJpa> courses;
 }
