@@ -4,9 +4,9 @@ import lombok.NonNull;
 import com.th3hero.eventbot.entities.CourseJpa;
 
 public record CourseUpload(
-        @NonNull String code,
-        @NonNull String name,
-        @NonNull String nickname
+    @NonNull String code,
+    @NonNull String name,
+    @NonNull String nickname
 ) {
     public CourseJpa toJpa() {
         return CourseJpa.builder()

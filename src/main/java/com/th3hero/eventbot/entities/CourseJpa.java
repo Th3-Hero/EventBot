@@ -18,7 +18,8 @@ import com.th3hero.eventbot.dto.Course;
 public class CourseJpa implements Serializable {
 
     @Id
-    @NonNull
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_course_id_generator")
+    @SequenceGenerator(name = "seq_course_id_generator", sequenceName = "seq_course_id", allocationSize = 1)
     @Setter(AccessLevel.NONE)
     @Column(name = "id")
     private Integer id;

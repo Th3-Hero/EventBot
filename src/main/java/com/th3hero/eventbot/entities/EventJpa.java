@@ -19,6 +19,8 @@ public class EventJpa implements Serializable {
 
     @Id
     @NonNull
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_event_id_generator")
+    @SequenceGenerator(name = "seq_event_id_generator", sequenceName = "seq_event_id", allocationSize = 1)
     @Setter(AccessLevel.NONE)
     @Column(name = "id")
     private Integer id;

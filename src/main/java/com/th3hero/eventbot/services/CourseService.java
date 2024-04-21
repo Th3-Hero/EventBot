@@ -3,6 +3,7 @@ package com.th3hero.eventbot.services;
 import com.kseth.development.util.CollectionUtils;
 import com.th3hero.eventbot.dto.Course;
 import com.th3hero.eventbot.dto.CourseUpload;
+import com.th3hero.eventbot.dto.CourseUploadUpdate;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.repositories.CourseRepository;
 import com.th3hero.eventbot.utils.HttpErrorUtil;
@@ -30,13 +31,22 @@ public class CourseService {
         return courseRepository.save(courseUpload.toJpa()).toDto();
     }
 
-//    public Course updateCourse(Integer courseId, CourseUpload courseUpload) {
-//        CourseJpa courseJpa = courseRepository.findById(courseId)
-//                .orElseThrow(() -> new EntityNotFoundException(HttpErrorUtil.MISSING_COURSE_WITH_ID));
-//
-//
-//    }
+    public Course updateCourse(Integer courseId, CourseUploadUpdate courseUpload) {
+        CourseJpa courseJpa = courseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException(HttpErrorUtil.MISSING_COURSE_WITH_ID));
 
+        if (courseUpload.code() != null) {
+            courseJpa.setCode(courseUpload.code());
+        }
+        if (courseUpload.name() != null) {
+            courseJpa.setName(courseUpload.name());
+        }
+        if (courseUpload.nickname() != null) {
+            courseJpa.setNickname(courseUpload.nickname());
+        }
+
+        return courseRepository.save(courseJpa).toDto();
+    }
 
     public void deleteCourseById(Integer courseId) {
         if (!courseRepository.existsById(courseId)) {
