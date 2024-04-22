@@ -1,4 +1,10 @@
-create extension if not exists "uuid-ossp";
+
+create sequence seq_config_id start with 1 increment by 1;
+create table config (
+    id integer not null primary key,
+    event_channel bigint not null,
+    term varchar(4) not null
+);
 
 create sequence seq_course_id start with 1 increment by 1;
 create table course (
@@ -8,16 +14,16 @@ create table course (
     nickname text
 );
 
-create table "user" (
+create table student (
     id bigint not null primary key
 );
 
-create table user_courses (
+create table student_courses (
     courses_id integer not null,
-    user_jpa_id bigint not null,
+    student_jpa_id bigint not null,
     constraint fk_course_id foreign key (courses_id) references course(id),
-    constraint fk_user_id foreign key (user_jpa_id) references "user"(id),
-    constraint user_courses_pk primary key (courses_id, user_jpa_id)
+    constraint fk_student_id foreign key (student_jpa_id) references student (id),
+    constraint student_courses_pk primary key (courses_id, student_jpa_id)
 );
 
 create sequence seq_event_id start with 1 increment by 1;

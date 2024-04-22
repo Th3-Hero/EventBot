@@ -1,4 +1,4 @@
-package com.th3hero.eventbot.dto;
+package com.th3hero.eventbot.dto.course;
 
 import com.th3hero.eventbot.entities.CourseJpa;
 

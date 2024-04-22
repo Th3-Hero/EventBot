@@ -1,6 +1,8 @@
-package com.th3hero.eventbot.controllers;
+package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.CommandRequest;
+import com.th3hero.eventbot.services.CourseService;
+import com.th3hero.eventbot.services.StudentService;
 import com.th3hero.eventbot.utils.EmbedBuilderFactory;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Controller;
 @Controller
 @RequiredArgsConstructor
 public class SlashCommandController extends ListenerAdapter {
+    private final CourseService courseService;
+    private final StudentService studentService;
 
     @Override
     public void onSlashCommandInteraction(@NonNull SlashCommandInteractionEvent event) {
@@ -29,6 +33,8 @@ public class SlashCommandController extends ListenerAdapter {
     public void commandHandler(@NotNull final CommandRequest request) {
         switch (request.command()) {
             case HELP -> request.event().replyEmbeds(EmbedBuilderFactory.help()).setEphemeral(true).queue();
+            case SELECT_COURSES -> courseService.sendCourseSelectionMenu(request);
+            case MY_COURSES -> studentService.myCourses(request);
         }
     }
 }

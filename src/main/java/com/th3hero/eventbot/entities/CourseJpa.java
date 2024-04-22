@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import lombok.*;
 import jakarta.persistence.*;
-import com.th3hero.eventbot.dto.Course;
+import com.th3hero.eventbot.dto.course.Course;
 
 
 @Getter

@@ -1,8 +1,8 @@
-package com.th3hero.eventbot.controllers;
+package com.th3hero.eventbot.controllers.rest;
 
-import com.th3hero.eventbot.dto.Course;
-import com.th3hero.eventbot.dto.CourseUpload;
-import com.th3hero.eventbot.dto.CourseUploadUpdate;
+import com.th3hero.eventbot.dto.course.Course;
+import com.th3hero.eventbot.dto.course.CourseUpload;
+import com.th3hero.eventbot.dto.course.CourseUploadUpdate;
 import com.th3hero.eventbot.services.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

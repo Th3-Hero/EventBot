@@ -1,5 +1,6 @@
 package com.th3hero.eventbot.dto;
 
+import com.th3hero.eventbot.dto.course.CourseUpload;
 import lombok.NonNull;
 import com.th3hero.eventbot.entities.EventJpa;
 

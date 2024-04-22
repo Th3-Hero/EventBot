@@ -1,4 +1,4 @@
-package com.th3hero.eventbot.dto;
+package com.th3hero.eventbot.dto.course;
 
 import lombok.NonNull;
 
