@@ -2,6 +2,7 @@ package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.SelectionRequest;
 import com.th3hero.eventbot.services.CourseService;
+import com.th3hero.eventbot.services.EventDraftService;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class SelectionController extends ListenerAdapter {
     private final CourseService courseService;
+    private final EventDraftService eventDraftService;
 
     @Override
     public void onStringSelectInteraction(@NonNull StringSelectInteractionEvent event) {
@@ -23,12 +25,21 @@ public class SelectionController extends ListenerAdapter {
             selectionHandler(request);
         } catch (Exception e) {
             log.error("onStringSelectInteraction", e);
+            event.reply(e.getMessage()).setEphemeral(true).queue();
+            throw e;
         }
     }
 
     public void selectionHandler(@NotNull final SelectionRequest request) {
-        switch (request.selection()) {
-            case SELECT_COURSES -> courseService.processCourseSelection(request);
+        try {
+            switch (request.selection()) {
+                case SELECT_COURSES -> courseService.processCourseSelection(request);
+                case DRAFT_CREATION, EDIT_DRAFT -> eventDraftService.addCoursesToDraft(request);
+            }
+        } catch (Exception e) {
+            request.interaction().reply(e.getMessage()).setEphemeral(true).queue();
+            log.error("Selection Handler", e);
+            throw e;
         }
     }
 }

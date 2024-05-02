@@ -22,7 +22,7 @@ import java.util.List;
 public class ConfigService {
     private final ConfigRepository configRepository;
 
-    public Config getConfig() {
+    public ConfigJpa getConfigJpa() {
         List<ConfigJpa> configList = configRepository.findAll();
         if (configList.isEmpty()) {
             throw new EntityNotFoundException("No existing config was found");
@@ -31,7 +31,11 @@ public class ConfigService {
             throw new InvalidStateException("The application has managed to reach an invalid state with multiple configurations. No clue how we got here ¯\\_(ツ)_/¯");
         }
 
-        return configList.get(0).toDto();
+        return configList.get(0);
+    }
+
+    public Config getConfig() {
+        return getConfigJpa().toDto();
     }
 
     public Config createConfig(ConfigUpload configUpload) {
@@ -54,4 +58,5 @@ public class ConfigService {
 
         return configRepository.save(configJpa).toDto();
     }
+
 }

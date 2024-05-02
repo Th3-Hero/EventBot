@@ -2,6 +2,7 @@ package com.th3hero.eventbot.commands;
 
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import lombok.AccessLevel;
 import lombok.Builder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
@@ -12,13 +13,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
 public record CommandRequest(
         SlashCommandInteractionEvent event,
         User requester,
         Guild server,
         Command command,
-        Map<String, String> arguments) {
+        Map<String, String> arguments
+) {
     public static CommandRequest create(final SlashCommandInteractionEvent event) {
         Command command = EnumUtils.valueOf(
                 Command.class,

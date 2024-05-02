@@ -4,5 +4,11 @@
       "name": "app.url",
       "type": "java.lang.String",
       "description": "Url of the web server eg. 'http://localhost:5555/'."
-  }
-] }
+    },
+    {
+      "name": "app.config.draft-cleanup-delay",
+      "type": "java.lang.Integer",
+      "description": "Delay in hours before unconfirmed drafts are cleaned up."
+    }
+  ]
+}

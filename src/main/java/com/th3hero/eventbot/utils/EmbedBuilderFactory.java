@@ -1,8 +1,9 @@
 package com.th3hero.eventbot.utils;
 
 import com.th3hero.eventbot.commands.Command;
-import com.th3hero.eventbot.dto.config.Config;
 import com.th3hero.eventbot.entities.CourseJpa;
+import com.th3hero.eventbot.entities.EventDraftJpa;
+import com.th3hero.eventbot.entities.EventJpa;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -10,10 +11,13 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.awt.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class EmbedBuilderFactory {
     private static final Color BLUE = new Color(3, 123, 252);
+    private static final Color GREEN = new Color(0, 255, 0);
+    private static final Color RED = new Color(255, 8, 0);
 
     public static MessageEmbed help() {
         EmbedBuilder embedBuilder =  new EmbedBuilder()
@@ -30,12 +34,15 @@ public class EmbedBuilderFactory {
 
         return embedBuilder.build();
     }
+    public static MessageEmbed coursePicker(String description) {
+        return coursePicker("Course Selection", description);
+    }
 
-    public static MessageEmbed coursePicker() {
+    public static MessageEmbed coursePicker(String title, String description) {
         return new EmbedBuilder()
                 .setColor(BLUE)
-                .setTitle("Course Selection")
-                .setDescription("Select Any courses you wish to receive notifications for.")
+                .setTitle(title)
+                .setDescription(description)
                 .build();
     }
 
@@ -53,5 +60,102 @@ public class EmbedBuilderFactory {
         }
 
         return embedBuilder.build();
+    }
+
+    public static List<MessageEmbed> displayEventDraft(EventDraftJpa eventDraftJpa, int draftCleanupDelay, String authorMention) {
+        MessageEmbed header = new EmbedBuilder()
+                .setColor(BLUE)
+                .setTitle("Event Draft Preview")
+                .setDescription("Preview the draft and make any edits before confirming.")
+                .setFooter("Note: Drafts that are not confirmed within %d hours will be deleted.".formatted(draftCleanupDelay))
+                .build();
+
+        String date = "%s (%s)".formatted(
+                Utils.formattedDateTime(eventDraftJpa.getDatetime()),
+                DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventDraftJpa.getDatetime())
+        );
+
+        MessageEmbed eventDraft = new EmbedBuilder()
+                .setColor(RED)
+                .setTitle(eventDraftJpa.getTitle())
+                .setDescription(eventDraftJpa.getNote())
+                .addField(
+                        "Date",
+                        date,
+                        false
+                )
+                .addField(
+                        "Type",
+                        eventDraftJpa.getType().displayName(),
+                        false
+                )
+                .addField(
+                        "Course(s)",
+                        eventDraftJpa.getCourses().stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
+                        false
+                )
+                .addField(
+                        "Author",
+                        authorMention,
+                        false
+                )
+                .build();
+
+        return List.of(header, eventDraft);
+    }
+
+    public static MessageEmbed editDraftMenu() {
+        return new EmbedBuilder()
+                .setColor(BLUE)
+                .setTitle("Edit Draft")
+                .setDescription("Select what about the draft you would like to edit.")
+                .build();
+    }
+
+    public static MessageEmbed reminderOffsets(List<Integer> offsets) {
+        return new EmbedBuilder()
+                .setColor(BLUE)
+                .setTitle("Your reminder offsets")
+                .setDescription("Reminder offsets are how many hours prior to an event you wish to be notified. You can have multiple offsets.")
+                .addField(
+                        "Your offsets:",
+                        offsets.stream().map(Long::toString).collect(Collectors.joining("\n")),
+                        true
+                )
+                .build();
+    }
+
+    public static MessageEmbed eventEmbed(EventJpa eventJpa, String authorMention) {
+        String date = "%s (%s)".formatted(
+                Utils.formattedDateTime(eventJpa.getDatetime()),
+                DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventJpa.getDatetime())
+        );
+
+        return new EmbedBuilder()
+                .setColor(GREEN)
+                .setTitle(eventJpa.getTitle())
+                .setDescription(eventJpa.getNote())
+                .addField(
+                        "Date",
+                        date,
+                        false
+                )
+                .addField(
+                        "Type",
+                        eventJpa.getType().displayName(),
+                        false
+                )
+                .addField(
+                        "Course(s)",
+                        eventJpa.getCourses().stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
+                        false
+                )
+                .addField(
+                        "Author",
+                        authorMention,
+                        false
+                )
+                .build();
+
     }
 }

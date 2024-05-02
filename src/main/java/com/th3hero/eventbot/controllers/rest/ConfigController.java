@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class ConfigController {
     private final ConfigService configService;
 
-    @GetMapping("/get")
+    @GetMapping
     @Operation(summary = "Returns an existing config")
     public Config getConfig() {
         return configService.getConfig();

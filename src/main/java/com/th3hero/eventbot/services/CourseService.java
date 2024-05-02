@@ -8,6 +8,8 @@ import com.th3hero.eventbot.dto.course.Course;
 import com.th3hero.eventbot.dto.course.CourseUpload;
 import com.th3hero.eventbot.dto.course.CourseUploadUpdate;
 import com.th3hero.eventbot.entities.CourseJpa;
+import com.th3hero.eventbot.entities.EventDraftJpa;
+import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.repositories.CourseRepository;
 import com.th3hero.eventbot.utils.EmbedBuilderFactory;
@@ -20,10 +22,8 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -40,11 +40,13 @@ public class CourseService {
         );
     }
 
-    public Course createCourse(CourseUpload courseUpload) {
-        return courseRepository.save(courseUpload.toJpa()).toDto();
+    public List<Course> createCourses(List<CourseUpload> courseUploads) {
+        return courseUploads.stream()
+                .map(course -> courseRepository.save(course.toJpa()).toDto())
+                .toList();
     }
 
-    public Course updateCourse(Integer courseId, CourseUploadUpdate courseUpload) {
+    public Course updateCourse(Long courseId, CourseUploadUpdate courseUpload) {
         CourseJpa courseJpa = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException(HttpErrorUtil.MISSING_COURSE_WITH_ID));
 
@@ -61,7 +63,7 @@ public class CourseService {
         return courseRepository.save(courseJpa).toDto();
     }
 
-    public void deleteCourseById(Integer courseId) {
+    public void deleteCourseById(Long courseId) {
         CourseJpa courseJpa = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException(HttpErrorUtil.MISSING_COURSE_WITH_ID));
 
@@ -73,55 +75,71 @@ public class CourseService {
         courseRepository.deleteById(courseId);
     }
 
-    private List<SelectOption> selectOptionsFromJpas(List<CourseJpa> courses) {
+    private List<SelectOption> selectOptionFromJpas(List<CourseJpa> courses) {
         return courses.stream()
                 .map(course -> SelectOption.of(course.getCode(), course.getCode()).withDescription(course.getName()))
                 .toList();
     }
 
-    public void sendCourseSelectionMenu(CommandRequest request) {
-        StudentJpa studentJpa = studentService.fetchStudent(request.requester().getIdLong());
-
-        List<SelectOption> options = selectOptionsFromJpas(courseRepository.findAll());
+    public StringSelectMenu createCourseSelector(String selectMenuId, List<CourseJpa> defaultOptions, String placeholder) {
+        List<SelectOption> options = selectOptionFromJpas(courseRepository.findAll());
         if (options.isEmpty()) {
-            request.event().reply("No courses are currently setup. Ask William.").setEphemeral(true).queue();
+            throw new EntityNotFoundException("No courses are currently setup. Ask William.");
         }
-
-        StringSelectMenu menu = StringSelectMenu.create(Selection.SELECT_COURSES.toString())
-                .setPlaceholder("Select Courses")
+        return StringSelectMenu.create(selectMenuId)
+                .setPlaceholder(placeholder)
                 .setMaxValues(options.size())
                 .addOptions(options)
-                .setDefaultValues(studentJpa.getCourses().stream().map(CourseJpa::getCode).toList())
+                .setDefaultValues(defaultOptions.stream().map(CourseJpa::getCode).toList())
                 .build();
+    }
 
-        request.event().replyEmbeds(EmbedBuilderFactory.coursePicker())
-                .addActionRow(menu)
+    public StringSelectMenu createCourseSelector(String selectMenuId, List<CourseJpa> defaultOptions) {
+        return createCourseSelector(selectMenuId, defaultOptions, "Select Courses");
+    }
+
+    public StringSelectMenu createStudentCourseSelector(String selectMenuId, Long studentId) {
+        return createCourseSelector(
+                selectMenuId,
+                studentService.fetchStudent(studentId).getCourses()
+        );
+    }
+
+    public void sendCourseSelectionMenu(CommandRequest request) {
+        request.event().replyEmbeds(EmbedBuilderFactory.coursePicker("Select Any courses you wish to receive notifications for."))
+                .addActionRow(
+                        createStudentCourseSelector(
+                                Selection.SELECT_COURSES.toString(),
+                                request.requester().getIdLong()
+                        )
+                )
                 .setEphemeral(true)
                 .queue();
+    }
+
+    public List<CourseJpa> coursesFromSelectionMenuValues(List<String> values) {
+        return values.stream()
+                .map(course ->
+                        courseRepository.findCourseJpaByCode(course).orElseThrow(() -> new EntityNotFoundException("One or more of the courses selected is not within the database."))
+                )
+                .toList();
     }
 
     public void processCourseSelection(SelectionRequest request) {
         StudentJpa studentJpa = studentService.fetchStudent(request.requester().getIdLong());
 
-        List<String> values = request.interaction().getValues();
-        List<CourseJpa> selectedCourseJpas = new ArrayList<>();
-        for (String courseCode : values) {
-            Optional<CourseJpa> course = courseRepository.findCourseJpaByCode(courseCode);
-            if (course.isEmpty()) {
-                request.interaction().reply("One or more of the courses selected is not within the database. Please use /select_courses for an updated selector.")
-                        .setEphemeral(true)
-                        .queue();
-                return;
-            }
-            selectedCourseJpas.add(course.get());
-        }
-
         studentJpa.getCourses().clear();
-        studentJpa.getCourses().addAll(selectedCourseJpas);
+        studentJpa.getCourses().addAll(coursesFromSelectionMenuValues(request.interaction().getValues()));
 
         request.interaction().replyEmbeds(EmbedBuilderFactory.selectedCourses(studentJpa.getCourses()))
                 .setEphemeral(true)
                 .queue();
+    }
+
+    public void scheduleEventForCourse(EventJpa eventJpa, CourseJpa targetCourse) {
+        List<StudentJpa> studentsWithCourse = studentService.fetchStudentsWithCourse(targetCourse);
+
+        studentsWithCourse.forEach(student -> studentService.scheduleStudentForEvent(eventJpa, student));
     }
 
 }

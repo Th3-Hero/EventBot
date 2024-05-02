@@ -8,7 +8,7 @@ create table config (
 
 create sequence seq_course_id start with 1 increment by 1;
 create table course (
-    id integer primary key,
+    id bigint primary key,
     code text,
     name text,
     nickname text
@@ -18,8 +18,15 @@ create table student (
     id bigint not null primary key
 );
 
+create table student_reminder_offsets (
+    student_id bigint not null,
+    offsets_times integer,
+    constraint fk_student_notification_times foreign key (student_id)
+        references student(id)
+);
+
 create table student_courses (
-    courses_id integer not null,
+    courses_id bigint not null,
     student_jpa_id bigint not null,
     constraint fk_course_id foreign key (courses_id) references course(id),
     constraint fk_student_id foreign key (student_jpa_id) references student (id),
@@ -28,16 +35,49 @@ create table student_courses (
 
 create sequence seq_event_id start with 1 increment by 1;
 create table event (
-    id integer primary key,
-    course_id integer not null,
+    id bigint primary key,
+    author_id bigint not null,
+    message_id bigint,
     title text,
-    description text,
-    type varchar(20),
-    datetime timestamp,
-    constraint event_fk foreign key (course_id)
-        references course(id)
+    note text,
+    datetime timestamp not null,
+    type varchar(20) not null
 );
 
+create table event_courses (
+    event_jpa_id bigint not null,
+    courses_id bigint not null,
+    constraint fk_event_id foreign key (event_jpa_id)
+        references event(id),
+    constraint fk_course_id foreign key (courses_id)
+        references course(id),
+    constraint event_courses_pk primary key (event_jpa_id, courses_id)
+);
+
+create sequence seq_event_draft_id start with 1 increment by 1;
+create table event_draft (
+    id bigint primary key,
+    author_id bigint not null,
+    title text,
+    note text,
+    datetime timestamp not null,
+    type varchar(20) not null,
+    draft_creation_time timestamp not null
+);
+
+create table event_draft_courses (
+    event_draft_jpa_id bigint not null,
+    courses_id bigint not null,
+    constraint fk_event_id foreign key (event_draft_jpa_id)
+        references event_draft(id),
+    constraint fk_course_id foreign key (courses_id)
+        references course(id),
+    constraint event_draft_courses_pk primary key (event_draft_jpa_id, courses_id)
+);
+
+----------------------------------------
+------------ Quartz tables -------------
+----------------------------------------
 create table qrtz_job_details (
     sched_name varchar(120) not null,
     job_name varchar(200) not null,

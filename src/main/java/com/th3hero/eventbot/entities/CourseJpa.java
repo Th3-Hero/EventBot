@@ -22,7 +22,7 @@ public class CourseJpa implements Serializable {
     @SequenceGenerator(name = "seq_course_id_generator", sequenceName = "seq_course_id", allocationSize = 1)
     @Setter(AccessLevel.NONE)
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @NonNull
     @Column

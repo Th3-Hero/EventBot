@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.List;
 
 @Validated
 @RestController
@@ -22,25 +23,25 @@ import java.util.Collection;
 public class CourseController {
     private final CourseService courseService;
 
-    @GetMapping("/list")
+    @GetMapping
     @Operation(summary = "Returns a list of all courses")
     public Collection<Course> listCourses() {
         return courseService.getAllCourses();
     }
 
     @PostMapping("/create")
-    @Operation(summary = "Create a new course")
+    @Operation(summary = "Create multiple courses at once")
     @ResponseStatus(HttpStatus.CREATED)
-    public Course createCourse(
-        @RequestBody @NotNull CourseUpload courseUpload
+    public List<Course> createCourses(
+            @RequestBody @NotNull List<CourseUpload> courseUploads
     ) {
-        return courseService.createCourse(courseUpload);
+        return courseService.createCourses(courseUploads);
     }
 
     @PostMapping("/{courseId}")
     @Operation(summary = "Update the information of an course")
     public Course updateCourse(
-        @PathVariable @NotNull Integer courseId,
+        @PathVariable @NotNull Long courseId,
         @RequestBody @NotNull CourseUploadUpdate courseUploadUpdate
     ) {
         return courseService.updateCourse(courseId, courseUploadUpdate);
@@ -50,7 +51,7 @@ public class CourseController {
     @Operation(summary = "Delete a Course by its id")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCourse(
-            @PathVariable @NotNull Integer courseId
+            @PathVariable @NotNull Long courseId
     ) {
         courseService.deleteCourseById(courseId);
     }

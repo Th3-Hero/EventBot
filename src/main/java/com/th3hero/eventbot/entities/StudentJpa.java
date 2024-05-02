@@ -1,11 +1,12 @@
 package com.th3hero.eventbot.entities;
 
-import java.util.List;
-import java.io.Serializable;
-
-import lombok.*;
 import jakarta.persistence.*;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Slf4j
 @Getter
@@ -24,8 +25,14 @@ public class StudentJpa implements Serializable {
     @Setter(AccessLevel.NONE)
     private Long id;
 
-    @OneToMany
+    @OrderBy("code ASC")
+    @ManyToMany
     private List<CourseJpa> courses;
+
+    @ElementCollection
+    @CollectionTable(name = "student_reminder_offsets", joinColumns = @JoinColumn(name = "student_id"))
+    @Column(name = "offsets_times")
+    private List<Integer> offsetTimes;
 
     public static StudentJpa create(
             Long studentId
@@ -33,6 +40,7 @@ public class StudentJpa implements Serializable {
         return StudentJpa.builder()
                 .id(studentId)
                 .courses(List.of())
+                .offsetTimes(List.of(24, 72))
                 .build();
     }
 }

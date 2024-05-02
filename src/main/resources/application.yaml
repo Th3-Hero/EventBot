@@ -1,7 +1,11 @@
-# Required configuration is commented
+# Required configuration with no defaults is commented
 # URL of where the admin rest API will be served
 app:
   url:
+  config:
+    draft-cleanup-delay: 24
+server:
+  port: 5555
 # Token for discord bot
 discord:
   token:
