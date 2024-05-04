@@ -9,6 +9,11 @@
       "name": "app.config.draft-cleanup-delay",
       "type": "java.lang.Integer",
       "description": "Delay in hours before unconfirmed drafts are cleaned up."
+    },
+    {
+      "name": "app.config.deleted-event-cleanup-delay",
+      "type": "java.lang.Integer",
+      "description": "Delay in hours before deleted events are cleaned up. Giving an opportunity to restore them."
     }
   ]
 }

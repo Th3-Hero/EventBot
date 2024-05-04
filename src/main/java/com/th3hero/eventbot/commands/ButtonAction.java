@@ -12,5 +12,6 @@ public enum ButtonAction {
     EDIT_EVENT_DETAILS,
     EDIT_EVENT_COURSES,
     DELETE_EVENT,
+    UNDO_EVENT_DELETION,
     MARK_COMPLETE;
 }

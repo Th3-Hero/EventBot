@@ -41,7 +41,8 @@ create table event (
     title text,
     note text,
     datetime timestamp not null,
-    type varchar(20) not null
+    type varchar(20) not null,
+    is_deleted boolean not null
 );
 
 create table event_courses (

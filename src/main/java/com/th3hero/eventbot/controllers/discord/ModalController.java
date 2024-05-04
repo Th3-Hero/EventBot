@@ -2,6 +2,7 @@ package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.ModalRequest;
 import com.th3hero.eventbot.services.EventDraftService;
+import com.th3hero.eventbot.services.EventService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class ModalController extends ListenerAdapter {
     private final EventDraftService eventDraftService;
+    private final EventService eventService;
 
     @Override
     public void onModalInteraction(@NonNull ModalInteractionEvent event) {
@@ -32,6 +34,7 @@ public class ModalController extends ListenerAdapter {
             switch (request.modalType()) {
                 case CREATE_EVENT_DRAFT -> eventDraftService.addTitleAndNote(request);
                 case EDIT_EVENT_DRAFT -> eventDraftService.updateDraftDetails(request);
+                case EVENT_DELETION_REASON -> eventService.deleteEvent(request);
             }
         } catch (Exception e) {
             request.interaction().reply(e.getMessage()).setEphemeral(true).queue();

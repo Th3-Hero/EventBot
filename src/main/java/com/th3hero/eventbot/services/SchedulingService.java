@@ -1,5 +1,6 @@
 package com.th3hero.eventbot.services;
 
+import com.th3hero.eventbot.jobs.DeletedEventCleanupJob;
 import com.th3hero.eventbot.jobs.DraftCleanupJob;
 import com.th3hero.eventbot.jobs.EventReminderJob;
 import com.th3hero.eventbot.utils.Utils;
@@ -12,6 +13,7 @@ import org.springframework.scheduling.SchedulingException;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -76,6 +78,10 @@ public class SchedulingService {
             String groupKey = "%d-%d".formatted(eventId, studentId);
             TriggerKey triggerKey = TriggerKey.triggerKey(additionalTriggerIdentifier.toString(), groupKey);
 
+            if (scheduler.checkExists(triggerKey)) {
+                return;
+            }
+
             Trigger reminderTrigger = TriggerBuilder.newTrigger()
                     .withIdentity(triggerKey)
                     .forJob(EventReminderJob.JOB_KEY)
@@ -93,16 +99,56 @@ public class SchedulingService {
         }
     }
 
-    public void removeEventReminderTriggers(Long eventId, Long studentId) {
+    public void stripReminderTriggers(Long eventId) {
         try {
-            String groupKey = "%d-%d".formatted(eventId, studentId);
-            Set<TriggerKey> triggers = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(groupKey));
-            for (TriggerKey triggerKey : triggers) {
-                scheduler.unscheduleJob(triggerKey);
-            }
-            log.info("Removed all reminder triggers for event: %d".formatted(eventId));
+            Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupStartsWith(eventId.toString()));
+            scheduler.unscheduleJobs(new ArrayList<>(keys));
         } catch (SchedulerException e) {
             log.error("Failed to remove reminder trigger for event: %d".formatted(eventId), e);
         }
     }
+
+    public void addDeletedEventCleanupTrigger(Long eventId, Long cleanupMessageId, LocalDateTime cleanupTime) {
+        try {
+            if (!scheduler.checkExists(DeletedEventCleanupJob.JOB_KEY)) {
+                JobDetail cleanupJob = JobBuilder.newJob(DeletedEventCleanupJob.class)
+                        .withIdentity(DeletedEventCleanupJob.JOB_KEY)
+                        .withDescription("Cleanup of deleted events")
+                        .storeDurably()
+                        .build();
+                scheduler.addJob(cleanupJob, true);
+                log.info("Added deleted event cleanup job");
+            }
+
+            TriggerKey key = TriggerKey.triggerKey(eventId.toString());
+            Trigger trigger = TriggerBuilder.newTrigger()
+                    .withIdentity(key)
+                    .usingJobData(DeletedEventCleanupJob.DELETION_MESSAGE_ID, cleanupMessageId)
+                    .forJob(DeletedEventCleanupJob.JOB_KEY)
+                    .startAt(Utils.toDate(cleanupTime))
+                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                            .withMisfireHandlingInstructionFireNow()
+                            .withRepeatCount(0))
+                    .build();
+
+            scheduler.scheduleJob(trigger);
+            log.info("Added cleanup trigger for deleted event with id: %d".formatted(eventId));
+        } catch (SchedulerException e) {
+            log.error("Failed to add cleanup trigger for deleted event id: %d".formatted(eventId), e);
+            throw new SchedulingException("Failed to schedule draft cleanup.");
+        }
+    }
+
+//    public void removeEventReminderTriggers(Long eventId, Long studentId) {
+//        try {
+//            String groupKey = "%d-%d".formatted(eventId, studentId);
+//            Set<TriggerKey> triggers = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(groupKey));
+//            for (TriggerKey triggerKey : triggers) {
+//                scheduler.unscheduleJob(triggerKey);
+//            }
+//            log.info("Removed all reminder triggers for event: %d".formatted(eventId));
+//        } catch (SchedulerException e) {
+//            log.error("Failed to remove reminder trigger for event: %d".formatted(eventId), e);
+//        }
+//    }
 }

@@ -2,6 +2,7 @@ package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.ButtonRequest;
 import com.th3hero.eventbot.services.EventDraftService;
+import com.th3hero.eventbot.services.EventService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class ButtonController extends ListenerAdapter {
     private final EventDraftService eventDraftService;
+    private final EventService eventService;
 
     public void onButtonInteraction(@NonNull ButtonInteractionEvent event) {
         try {
@@ -33,6 +35,7 @@ public class ButtonController extends ListenerAdapter {
                 case EDIT_DRAFT_COURSES -> eventDraftService.editDraftCourses(request);
                 case DELETE_DRAFT -> eventDraftService.deleteDraft(request);
                 case CONFIRM_DRAFT -> eventDraftService.confirmDraft(request);
+                case DELETE_EVENT -> eventService.sendDeleteConformation(request);
             }
         } catch (Exception e) {
             request.buttonInteractionEvent().reply(e.getMessage()).setEphemeral(true).queue();

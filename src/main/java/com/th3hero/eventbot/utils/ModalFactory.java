@@ -1,7 +1,9 @@
 package com.th3hero.eventbot.utils;
 
 import com.th3hero.eventbot.commands.ModalType;
+import com.th3hero.eventbot.config.DiscordFieldsConfig;
 import com.th3hero.eventbot.entities.EventDraftJpa;
+import com.th3hero.eventbot.entities.EventJpa;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -76,6 +78,20 @@ public class ModalFactory {
                         ActionRow.of(note),
                         ActionRow.of(date),
                         ActionRow.of(time)
+                )
+                .build();
+    }
+
+    public static Modal deleteDraftReasonModal(EventJpa eventJpa) {
+        TextInput reason = TextInput.create(REASON_ID, "Why are you deleting the event?", TextInputStyle.PARAGRAPH)
+                .setPlaceholder("Assignment was cancelled")
+                .setRequiredRange(MIN_REASON_LENGTH, MAX_REASON_LENGTH)
+                .setRequired(true)
+                .build();
+
+        return Modal.create(Utils.createInteractionIdString(ModalType.EVENT_DELETION_REASON, eventJpa.getId()), "Reason for event deletion")
+                .addComponents(
+                        ActionRow.of(reason)
                 )
                 .build();
     }

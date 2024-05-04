@@ -18,7 +18,7 @@ public class DraftCleanupJob implements Job {
     public void execute(JobExecutionContext executionContext) {
         Long draftId = Long.parseLong(executionContext.getTrigger().getKey().getName());
         if (!eventDraftRepository.existsById(draftId)) {
-            log.error("No existing draft for cleanup job. Draft id: %s".formatted(draftId));
+            log.warn("No existing draft for cleanup job. Draft id: %s".formatted(draftId));
             return;
         }
 

@@ -156,6 +156,28 @@ public class EmbedBuilderFactory {
                         false
                 )
                 .build();
+    }
 
+    public static MessageEmbed deleteEvent(String reason, String jumpUrl, String mention, int eventCleanupDelay) {
+        return new EmbedBuilder()
+                .setTitle("Event Deleted")
+                .setDescription("The following event has been deleted: %s".formatted(jumpUrl))
+                .addField(
+                        "This action has been taken by:",
+                        mention,
+                        false
+                )
+                .addField(
+                        "Reason",
+                        reason,
+                        false
+                )
+                .addField(
+                        "Information",
+                        "- Once an event has been deleted no reminders will be sent for the event.\n- The event can be recovered within the next %d hours using the undo button.\n- After %d hours, the event will be entirely cleaned up.".formatted(eventCleanupDelay, eventCleanupDelay),
+                        false
+                )
+                .setColor(BLUE)
+                .build();
     }
 }

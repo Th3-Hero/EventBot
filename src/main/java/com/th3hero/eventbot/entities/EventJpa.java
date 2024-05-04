@@ -53,6 +53,11 @@ public class EventJpa implements Serializable {
     @Column
     private EventType type;
 
+    @NonNull
+    @Builder.Default
+    @Column
+    private Boolean isDeleted = false;
+
     public enum EventType {
         ASSIGNMENT,
         LAB,
