@@ -174,7 +174,20 @@ public class EmbedBuilderFactory {
                 )
                 .addField(
                         "Information",
-                        "- Once an event has been deleted no reminders will be sent for the event.\n- The event can be recovered within the next %d hours using the undo button.\n- After %d hours, the event will be entirely cleaned up.".formatted(eventCleanupDelay, eventCleanupDelay),
+                        "- Once an event has been deleted no reminders will be sent for the event.%n- The event can be recovered within the next %d hours using the undo button.%n- After %d hours, the event will be entirely cleaned up.".formatted(eventCleanupDelay, eventCleanupDelay),
+                        false
+                )
+                .setColor(BLUE)
+                .build();
+    }
+
+    public static MessageEmbed eventRestored(String mention) {
+        return new EmbedBuilder()
+                .setTitle("Event Restored")
+                .setDescription("The event has been restored. Reminders will be sent out as scheduled.")
+                .addField(
+                        "The event was restored by:",
+                        mention,
                         false
                 )
                 .setColor(BLUE)

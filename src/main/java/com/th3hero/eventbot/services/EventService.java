@@ -18,13 +18,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.dv8tion.jda.api.requests.RestAction;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -47,9 +45,13 @@ public class EventService {
     @Value("${app.config.deleted-event-cleanup-delay}")
     private int deletedEventCleanupDelay;
 
-    public void eventFromDraft(ButtonRequest request, EventDraftJpa draftJpa) {
-        EventJpa eventJpa = eventRepository.save(EventJpa.create(draftJpa));
+    public void publishEvent(ButtonRequest request, EventDraftJpa draftJpa) {
+        publishEvent(request, eventRepository.save(EventJpa.create(draftJpa)));
+        eventDraftRepository.deleteById(draftJpa.getId());
+        schedulingService.removeDraftCleanupTrigger(draftJpa.getId());
+    }
 
+    public void publishEvent(ButtonRequest request, EventJpa eventJpa) {
         for (CourseJpa courseJpa : eventJpa.getCourses()) {
             courseService.scheduleEventForCourse(eventJpa, courseJpa);
         }
@@ -57,7 +59,7 @@ public class EventService {
         Long eventChannel = configService.getConfigJpa().getEventChannel();
         Optional<TextChannel> channel = Optional.ofNullable(request.buttonInteractionEvent().getJDA().getTextChannelById(eventChannel));
         if (channel.isEmpty()) {
-            throw new ConfigErrorException("The event channel could not be found. Please contact an administrator.");
+            throw new ConfigErrorException("The event channel could not be found. Please contact a bot administrator.");
         }
 
         channel.get().sendMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa, request.requester().getAsMention()))
@@ -72,8 +74,6 @@ public class EventService {
                     request.buttonInteractionEvent().reply("Event has been posted to the event channel. %s".formatted(success.getJumpUrl()))
                             .setEphemeral(true)
                             .queue();
-                    eventDraftRepository.deleteById(draftJpa.getId());
-                    schedulingService.removeDraftCleanupTrigger(draftJpa.getId());
                     log.info("New event published (id:%d) in channel %s".formatted(eventJpa.getId(), success.getChannel().getName()));
                 });
     }
@@ -143,6 +143,31 @@ public class EventService {
         }, new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> {
             request.interaction().reply("Failed to retrieve message tied to event.").setEphemeral(true).queue();
         }));
+    }
+
+    public void undoEventDeletion(ButtonRequest request) {
+        if (request.idArguments().isEmpty()) {
+            request.buttonInteraction().reply("Failed to parse identifier from button").setEphemeral(true).queue();
+            return;
+        }
+
+        EventJpa eventJpa = eventRepository.findById(Long.parseLong(request.idArguments().get(0)))
+                .orElseThrow(() -> new EntityNotFoundException("Failed to find event in the database. Event id: %s".formatted(request.idArguments().get(0))));
+        eventJpa.setIsDeleted(false);
+        schedulingService.removeDeletedEventCleanupTrigger(eventJpa.getId());
+
+        for (CourseJpa courseJpa : eventJpa.getCourses()) {
+            courseService.scheduleEventForCourse(eventJpa, courseJpa);
+        }
+
+        request.buttonInteraction().reply("Event has been restored").setEphemeral(true).queue();
+        request.buttonInteraction().getMessage().delete().queue();
+
+        request.buttonInteraction().getChannel().retrieveMessageById(eventJpa.getMessageId())
+                        .queue(message ->
+                                message.replyEmbeds(EmbedBuilderFactory.eventRestored(request.requester().getAsMention())).queue()
+                        );
+
     }
 
 }

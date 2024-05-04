@@ -47,7 +47,7 @@ public class SchedulingService {
                             .withRepeatCount(0))
                     .build();
             scheduler.scheduleJob(cleanupTrigger);
-            log.info("Added new draft cleanup trigger for draft: %d".formatted(draftId));
+            log.debug("Added new draft cleanup trigger for draft: %d".formatted(draftId));
         } catch (SchedulerException e) {
             log.error("Failed to add trigger for draft cleanup of draft: %d".formatted(draftId), e);
             throw new SchedulingException("Failed to schedule draft cleanup.");
@@ -57,7 +57,7 @@ public class SchedulingService {
     public void removeDraftCleanupTrigger(Long draftId) {
         try {
             scheduler.unscheduleJob(TriggerKey.triggerKey(draftId.toString()));
-            log.info("Removed cleanup trigger for draft: %s".formatted(draftId));
+            log.debug("Removed cleanup trigger for draft: %s".formatted(draftId));
         } catch (SchedulerException e) {
             log.error("Failed to remove cleanup trigger for draft: %d".formatted(draftId), e);
         }
@@ -91,7 +91,7 @@ public class SchedulingService {
                             .withRepeatCount(0))
                     .build();
             scheduler.scheduleJob(reminderTrigger);
-            log.info("Added new reminder trigger for event: %d".formatted(eventId));
+            log.debug("Added new reminder trigger for event: %d".formatted(eventId));
 
         } catch (SchedulerException e) {
             log.error("Failed to add trigger for event reminder: %d".formatted(eventId), e);
@@ -132,23 +132,21 @@ public class SchedulingService {
                     .build();
 
             scheduler.scheduleJob(trigger);
-            log.info("Added cleanup trigger for deleted event with id: %d".formatted(eventId));
+            log.debug("Added cleanup trigger for deleted event with id: %d".formatted(eventId));
         } catch (SchedulerException e) {
             log.error("Failed to add cleanup trigger for deleted event id: %d".formatted(eventId), e);
             throw new SchedulingException("Failed to schedule draft cleanup.");
         }
     }
 
-//    public void removeEventReminderTriggers(Long eventId, Long studentId) {
-//        try {
-//            String groupKey = "%d-%d".formatted(eventId, studentId);
-//            Set<TriggerKey> triggers = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(groupKey));
-//            for (TriggerKey triggerKey : triggers) {
-//                scheduler.unscheduleJob(triggerKey);
-//            }
-//            log.info("Removed all reminder triggers for event: %d".formatted(eventId));
-//        } catch (SchedulerException e) {
-//            log.error("Failed to remove reminder trigger for event: %d".formatted(eventId), e);
-//        }
-//    }
+    public void removeDeletedEventCleanupTrigger(Long eventId) {
+        try {
+            TriggerKey key = TriggerKey.triggerKey(eventId.toString());
+            scheduler.unscheduleJob(key);
+            log.debug("Removed cleanup trigger for deleted event with id: %d".formatted(eventId));
+        } catch (SchedulerException e) {
+            log.error("Failed to remove cleanup trigger for deleted event id: %d".formatted(eventId), e);
+        }
+    }
+
 }

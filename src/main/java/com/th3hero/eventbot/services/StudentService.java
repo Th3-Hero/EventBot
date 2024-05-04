@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.th3hero.eventbot.config.DiscordFieldsConfig.OFFSET_ID;
@@ -116,6 +117,9 @@ public class StudentService {
 
     public void scheduleStudentForEvent(EventJpa eventJpa, StudentJpa studentJpa) {
         for (Integer offset : studentJpa.getOffsetTimes()) {
+            if (eventJpa.getDatetime().minusHours(offset).isBefore(LocalDateTime.now())) {
+                continue;
+            }
             schedulingService.addEventReminderTrigger(
                     eventJpa.getId(),
                     studentJpa.getId(),

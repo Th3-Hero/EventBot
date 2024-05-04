@@ -258,6 +258,6 @@ public class EventDraftService {
         EventDraftJpa eventDraftJpa = eventDraftRepository.findById(Long.parseLong(request.idArguments().get(0)))
                 .orElseThrow(() -> new EntityNotFoundException("Failed to find draft."));
 
-        eventService.eventFromDraft(request, eventDraftJpa);
+        eventService.publishEvent(request, eventDraftJpa);
     }
 }

@@ -36,6 +36,7 @@ public class ButtonController extends ListenerAdapter {
                 case DELETE_DRAFT -> eventDraftService.deleteDraft(request);
                 case CONFIRM_DRAFT -> eventDraftService.confirmDraft(request);
                 case DELETE_EVENT -> eventService.sendDeleteConformation(request);
+                case UNDO_EVENT_DELETION -> eventService.undoEventDeletion(request);
             }
         } catch (Exception e) {
             request.buttonInteractionEvent().reply(e.getMessage()).setEphemeral(true).queue();

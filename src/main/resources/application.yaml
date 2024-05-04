@@ -39,3 +39,11 @@ spring:
 springdoc:
   swagger-ui:
     use-root-path: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: loggers
+  endpoint:
+    loggers:
+      enabled: true
