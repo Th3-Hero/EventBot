@@ -63,7 +63,7 @@ public class SchedulingService {
         }
     }
 
-    public void addEventReminderTrigger(Long eventId, Long studentId, Integer additionalTriggerIdentifier, LocalDateTime eventTime) {
+    public void addEventReminderTrigger(Long eventId, Long studentId, Integer offset, LocalDateTime eventTime) {
         try {
             if (!scheduler.checkExists(EventReminderJob.JOB_KEY)) {
                 JobDetail reminderJob = JobBuilder.newJob(EventReminderJob.class)
@@ -76,7 +76,7 @@ public class SchedulingService {
             }
 
             String groupKey = "%d-%d".formatted(eventId, studentId);
-            TriggerKey triggerKey = TriggerKey.triggerKey(additionalTriggerIdentifier.toString(), groupKey);
+            TriggerKey triggerKey = TriggerKey.triggerKey(offset.toString(), groupKey);
 
             if (scheduler.checkExists(triggerKey)) {
                 return;
@@ -84,6 +84,9 @@ public class SchedulingService {
 
             Trigger reminderTrigger = TriggerBuilder.newTrigger()
                     .withIdentity(triggerKey)
+                    .usingJobData(EventReminderJob.STUDENT_ID, studentId)
+                    .usingJobData(EventReminderJob.EVENT_ID, eventId)
+                    .usingJobData(EventReminderJob.OFFSET_ID, offset)
                     .forJob(EventReminderJob.JOB_KEY)
                     .startAt(Utils.toDate(eventTime))
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
