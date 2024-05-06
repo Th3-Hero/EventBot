@@ -1,7 +1,6 @@
 package com.th3hero.eventbot.utils;
 
 import com.th3hero.eventbot.commands.ModalType;
-import com.th3hero.eventbot.config.DiscordFieldsConfig;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import lombok.AccessLevel;
@@ -10,6 +9,8 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+
+import java.time.LocalDateTime;
 
 import static com.th3hero.eventbot.config.DiscordFieldsConfig.*;
 
@@ -38,7 +39,7 @@ public class ModalFactory {
                 .setRequired(false)
                 .build();
 
-        return Modal.create(Utils.createInteractionIdString(ModalType.CREATE_EVENT_DRAFT, eventDraftId), "Event Creation")
+        return Modal.create(Utils.createInteractionIdString(ModalType.CREATE_DRAFT, eventDraftId), "Event Creation")
                 .addComponents(
                         ActionRow.of(title),
                         ActionRow.of(note)
@@ -46,40 +47,55 @@ public class ModalFactory {
                 .build();
     }
 
-    public static Modal editDraftDetailsModal(EventDraftJpa draftJpa) {
-        TextInput title = TextInput.create(TITLE_ID, TITLE_LABEL, TextInputStyle.SHORT)
+    private static Modal editDetailsModal(
+            String modalTitle,
+            ModalType modalType,
+            Long id,
+            String title,
+            String note,
+            LocalDateTime dateTime
+    ) {
+        TextInput titleInput = TextInput.create(TITLE_ID, TITLE_LABEL, TextInputStyle.SHORT)
                 .setPlaceholder(TITLE_PLACEHOLDER)
-                .setValue(draftJpa.getTitle())
+                .setValue(title)
                 .setRequiredRange(MIN_TITLE_LENGTH, MAX_TITLE_LENGTH)
                 .setRequired(true)
                 .build();
-        TextInput note = TextInput.create(NOTE_ID, NOTE_LABEL, TextInputStyle.PARAGRAPH)
+        TextInput noteInput = TextInput.create(NOTE_ID, NOTE_LABEL, TextInputStyle.PARAGRAPH)
                 .setPlaceholder(NOTE_PLACEHOLDER)
-                .setValue(draftJpa.getNote())
+                .setValue(note)
                 .setMaxLength(MAX_NOTE_LENGTH)
                 .setRequired(false)
                 .build();
-        TextInput date = TextInput.create(DATE_ID, DATE_LABEL, TextInputStyle.SHORT)
+        TextInput dateInput = TextInput.create(DATE_ID, DATE_LABEL, TextInputStyle.SHORT)
                 .setPlaceholder(DATE_PLACEHOLDER)
                 .setRequiredRange(MIN_DATE_LENGTH, MAX_DATE_LENGTH)
-                .setValue(Utils.formattedDate(draftJpa.getDatetime()))
+                .setValue(Utils.formattedDate(dateTime))
                 .setRequired(true)
                 .build();
-        TextInput time = TextInput.create(TIME_ID, TIME_LABEL, TextInputStyle.SHORT)
+        TextInput timeInput = TextInput.create(TIME_ID, TIME_LABEL, TextInputStyle.SHORT)
                 .setPlaceholder(TIME_PLACEHOLDER)
                 .setRequiredRange(MIN_TIME_LENGTH, MAX_TIME_LENGTH)
-                .setValue(Utils.formattedTime(draftJpa.getDatetime()))
+                .setValue(Utils.formattedTime(dateTime))
                 .setRequired(true)
                 .build();
 
-        return Modal.create(Utils.createInteractionIdString(ModalType.EDIT_EVENT_DRAFT, draftJpa.getId()), "Event Creation")
+        return Modal.create(Utils.createInteractionIdString(modalType, id), modalTitle)
                 .addComponents(
-                        ActionRow.of(title),
-                        ActionRow.of(note),
-                        ActionRow.of(date),
-                        ActionRow.of(time)
+                        ActionRow.of(titleInput),
+                        ActionRow.of(noteInput),
+                        ActionRow.of(dateInput),
+                        ActionRow.of(timeInput)
                 )
                 .build();
+    }
+
+    public static Modal editDetailsModal(EventDraftJpa eventDraft) {
+        return editDetailsModal("Edit Draft Information", ModalType.EDIT_DRAFT_DETAILS, eventDraft.getId(), eventDraft.getTitle(), eventDraft.getNote(), eventDraft.getDatetime());
+    }
+
+    public static Modal editDetailsModal(EventJpa eventJpa) {
+        return editDetailsModal("Edit Event Information", ModalType.EDIT_EVENT_DETAILS, eventJpa.getId(), eventJpa.getTitle(), eventJpa.getNote(), eventJpa.getDatetime());
     }
 
     public static Modal deleteDraftReasonModal(EventJpa eventJpa) {

@@ -35,9 +35,9 @@ public class ButtonController extends ListenerAdapter {
                 case EDIT_DRAFT_COURSES -> eventDraftService.editDraftCourses(request);
                 case DELETE_DRAFT -> eventDraftService.deleteDraft(request);
                 case CONFIRM_DRAFT -> eventDraftService.confirmDraft(request);
-                case EDIT_EVENT -> log.info("Not yet added");
-                case EDIT_EVENT_DETAILS -> log.info("Not yet added");
-                case EDIT_EVENT_COURSES -> log.info("Not yet added");
+                case EDIT_EVENT -> eventService.sendEventEditOptions(request);
+                case EDIT_EVENT_DETAILS -> eventService.sendEditEventDetails(request);
+                case EDIT_EVENT_COURSES -> eventService.sendEventEditCourses(request);
                 case DELETE_EVENT -> eventService.sendDeleteConformation(request);
                 case UNDO_EVENT_DELETION -> eventService.undoEventDeletion(request);
                 case MARK_COMPLETE -> eventService.markEventComplete(request);

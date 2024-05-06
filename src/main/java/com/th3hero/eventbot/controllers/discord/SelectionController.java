@@ -3,6 +3,7 @@ package com.th3hero.eventbot.controllers.discord;
 import com.th3hero.eventbot.commands.SelectionRequest;
 import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.EventDraftService;
+import com.th3hero.eventbot.services.EventService;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Controller;
 public class SelectionController extends ListenerAdapter {
     private final CourseService courseService;
     private final EventDraftService eventDraftService;
+    private final EventService eventService;
 
     @Override
     public void onStringSelectInteraction(@NonNull StringSelectInteractionEvent event) {
@@ -34,7 +36,8 @@ public class SelectionController extends ListenerAdapter {
         try {
             switch (request.selection()) {
                 case SELECT_COURSES -> courseService.processCourseSelection(request);
-                case DRAFT_CREATION, EDIT_DRAFT -> eventDraftService.addCoursesToDraft(request);
+                case DRAFT_CREATION, EDIT_DRAFT_COURSES -> eventDraftService.addCoursesToDraft(request);
+                case EDIT_EVENT_COURSES -> eventService.editEventCourses(request);
             }
         } catch (Exception e) {
             request.interaction().reply(e.getMessage()).setEphemeral(true).queue();

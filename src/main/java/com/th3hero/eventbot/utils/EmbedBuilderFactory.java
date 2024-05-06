@@ -193,4 +193,11 @@ public class EmbedBuilderFactory {
                 .setColor(BLUE)
                 .build();
     }
+
+    public static EmbedBuilder eventEditsStarter() {
+        return new EmbedBuilder()
+                .setColor(BLUE)
+                .setTitle("Event has been edited.")
+                .setDescription("Find the changes below.");
+    }
 }

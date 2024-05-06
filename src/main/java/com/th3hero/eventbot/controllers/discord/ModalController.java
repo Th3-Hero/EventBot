@@ -32,9 +32,10 @@ public class ModalController extends ListenerAdapter {
     public void commandHandler(@NonNull final ModalRequest request) {
         try {
             switch (request.modalType()) {
-                case CREATE_EVENT_DRAFT -> eventDraftService.addTitleAndNote(request);
-                case EDIT_EVENT_DRAFT -> eventDraftService.updateDraftDetails(request);
+                case CREATE_DRAFT -> eventDraftService.addTitleAndNote(request);
+                case EDIT_DRAFT_DETAILS -> eventDraftService.updateDraftDetails(request);
                 case EVENT_DELETION_REASON -> eventService.deleteEvent(request);
+                case EDIT_EVENT_DETAILS -> eventService.editEventDetails(request);
             }
         } catch (Exception e) {
             request.interaction().reply(e.getMessage()).setEphemeral(true).queue();

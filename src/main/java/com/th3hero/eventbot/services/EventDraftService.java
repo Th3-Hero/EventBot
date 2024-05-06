@@ -156,7 +156,7 @@ public class EventDraftService {
                 .orElseThrow(() -> new EventParsingException("Failed to find draft from button identifier"));
 
         request.buttonInteraction().replyModal(
-                ModalFactory.editDraftDetailsModal(draftJpa)
+                ModalFactory.editDetailsModal(draftJpa)
         ).queue();
     }
 
@@ -224,7 +224,7 @@ public class EventDraftService {
         request.buttonInteraction().replyEmbeds(EmbedBuilderFactory.coursePicker("Select any courses the event is for(Eg. multiple sections)"))
                 .addActionRow(
                         courseService.createCourseSelector(
-                                Utils.createInteractionIdString(Selection.EDIT_DRAFT, eventDraftJpa.getId()),
+                                Utils.createInteractionIdString(Selection.EDIT_DRAFT_COURSES, eventDraftJpa.getId()),
                                 eventDraftJpa.getCourses()
                         )
                 )
