@@ -37,6 +37,22 @@ public class EventDraftService {
     @Value("${app.config.draft-cleanup-delay}")
     private static int draftCleanupDelay;
 
+    private void verifyArgs(ButtonRequest request) {
+        if (request.idArguments().isEmpty()) {
+            throw new EventParsingException("Failed to parse identifier from button");
+        }
+    }
+    private void verifyArgs(ModalRequest request) {
+        if (request.idArguments().isEmpty()) {
+            throw new EventParsingException("Failed to parse identifier from modal");
+        }
+    }
+    private void verifyArgs(SelectionRequest request) {
+        if (request.idArguments().isEmpty()) {
+            throw new EventParsingException("Failed to parse identifier from selection menu");
+        }
+    }
+
     public void createEventDraft(CommandRequest request) {
         String dateString = request.arguments().get(DATE_ID);
         String timeString = request.arguments().get(TIME_ID);
@@ -89,9 +105,7 @@ public class EventDraftService {
     }
 
     public void addTitleAndNote(ModalRequest request) {
-        if (request.idArguments().isEmpty()) {
-            throw new EventParsingException("Failed to parse identifier from modal");
-        }
+        verifyArgs(request);
 
         EventDraftJpa eventDraftJpa = eventDraftRepository.findById(Long.parseLong(request.idArguments().get(0)))
                 .orElseThrow(() -> new EventParsingException("Failed to find event draft for this modal"));
@@ -123,9 +137,7 @@ public class EventDraftService {
     }
 
     public void addCoursesToDraft(SelectionRequest request) {
-        if (request.idArguments().isEmpty()) {
-            throw new EventParsingException("Failed to parse identifier from selection menu");
-        }
+        verifyArgs(request);
 
         EventDraftJpa eventDraftJpa = eventDraftRepository.findById(Long.valueOf(request.idArguments().get(0)))
                 .orElseThrow(() -> new EntityNotFoundException("Failed to find the course draft."));
@@ -148,9 +160,7 @@ public class EventDraftService {
     }
 
     public void sendEditDraftDetailsModal(ButtonRequest request) {
-        if (request.idArguments().isEmpty()) {
-            throw new EventParsingException("Failed to parse identifier from modal");
-        }
+        verifyArgs(request);
         Long draftId = Long.parseLong(request.idArguments().get(0));
         EventDraftJpa draftJpa = eventDraftRepository.findById(draftId)
                 .orElseThrow(() -> new EventParsingException("Failed to find draft from button identifier"));
@@ -161,9 +171,7 @@ public class EventDraftService {
     }
 
     public void updateDraftDetails(ModalRequest request) {
-        if (request.idArguments().isEmpty()) {
-            throw new EventParsingException("Failed to parse identifier from modal");
-        }
+        verifyArgs(request);
 
         EventDraftJpa eventDraftJpa = eventDraftRepository.findById(Long.parseLong(request.idArguments().get(0)))
                 .orElseThrow(() -> new EventParsingException("Failed to find event draft for this modal"));
@@ -215,9 +223,7 @@ public class EventDraftService {
     }
 
     public void editDraftCourses(ButtonRequest request) {
-        if (request.idArguments().isEmpty()) {
-            throw new EventParsingException("Failed to parse identifier from button");
-        }
+        verifyArgs(request);
         EventDraftJpa eventDraftJpa = eventDraftRepository.findById(Long.valueOf(request.idArguments().get(0)))
                 .orElseThrow(() -> new EntityNotFoundException("Failed to find the course draft."));
 
@@ -233,9 +239,7 @@ public class EventDraftService {
     }
 
     public void deleteDraft(ButtonRequest request) {
-        if (request.idArguments().isEmpty()) {
-            throw new EventParsingException("Failed to parse identifier from button");
-        }
+        verifyArgs(request);
         Long draftId = Long.parseLong(request.idArguments().get(0));
         if (!eventDraftRepository.existsById(draftId)) {
             throw new EntityNotFoundException("Could not find an existing draft. Draft may have already been deleted.");
@@ -252,9 +256,7 @@ public class EventDraftService {
     }
 
     public void confirmDraft(ButtonRequest request) {
-        if (request.idArguments().isEmpty()) {
-            throw new EventParsingException("Failed to parse identifier from button");
-        }
+        verifyArgs(request);
         EventDraftJpa eventDraftJpa = eventDraftRepository.findById(Long.parseLong(request.idArguments().get(0)))
                 .orElseThrow(() -> new EntityNotFoundException("Failed to find draft."));
 
