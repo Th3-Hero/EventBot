@@ -1,9 +1,9 @@
 package com.th3hero.eventbot.services;
 
 import com.kseth.development.util.EnumUtils;
+import com.th3hero.eventbot.commands.ButtonRequest;
 import com.th3hero.eventbot.commands.CommandRequest;
 import com.th3hero.eventbot.entities.CourseJpa;
-import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
@@ -127,6 +127,14 @@ public class StudentService {
                     eventJpa.getDatetime().minusHours(offset)
             );
         }
+    }
+    public void unscheduleStudentForEvent(ButtonRequest request, Long eventId) {
+        StudentJpa studentJpa = fetchStudent(request.requester().getIdLong());
+        boolean removed = schedulingService.removeEventReminderTriggersForStudent(eventId, studentJpa.getId());
+        String message = removed ?
+                "All reminders have been removed for this event." :
+                "You have no reminders on this event.";
+        request.buttonInteractionEvent().reply(message).setEphemeral(true).queue();
     }
 
 

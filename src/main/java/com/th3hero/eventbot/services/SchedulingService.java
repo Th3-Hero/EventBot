@@ -102,6 +102,21 @@ public class SchedulingService {
         }
     }
 
+    public boolean removeEventReminderTriggersForStudent(Long eventId, Long studentId) {
+        try {
+            Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEndsWith(studentId.toString()));
+            if (keys.isEmpty()) {
+                return false;
+            }
+            scheduler.unscheduleJobs(new ArrayList<>(keys));
+            log.debug("Removed triggers on event %d for student %s".formatted(eventId, studentId));
+            return true;
+        } catch (SchedulerException e) {
+            log.error("Failed to remove trigger for event %d for student %d".formatted(eventId, studentId));
+            throw new SchedulingException("Failed to remove event reminders.");
+        }
+    }
+
     public void stripReminderTriggers(Long eventId) {
         try {
             Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupStartsWith(eventId.toString()));

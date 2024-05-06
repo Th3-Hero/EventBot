@@ -41,6 +41,7 @@ public class EventService {
     private final ConfigService configService;
     private final EventDraftRepository eventDraftRepository;
     private final SchedulingService schedulingService;
+    private final StudentService studentService;
 
     @Value("${app.config.deleted-event-cleanup-delay}")
     private int deletedEventCleanupDelay;
@@ -168,6 +169,22 @@ public class EventService {
                                 message.replyEmbeds(EmbedBuilderFactory.eventRestored(request.requester().getAsMention())).queue()
                         );
 
+    }
+
+    public void markEventComplete(ButtonRequest request) {
+        if (request.idArguments().isEmpty()) {
+            request.buttonInteraction().reply("Failed to parse identifier from button").setEphemeral(true).queue();
+            return;
+        }
+
+        Long eventId = Long.parseLong(request.idArguments().get(0));
+
+        if (!eventRepository.existsById(eventId)) {
+            request.buttonInteraction().reply("Failed to find event in the database").setEphemeral(true).queue();
+            return;
+        }
+
+        studentService.unscheduleStudentForEvent(request, eventId);
     }
 
 }
