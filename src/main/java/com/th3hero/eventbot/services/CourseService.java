@@ -12,18 +12,22 @@ import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.repositories.CourseRepository;
+import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.utils.EmbedBuilderFactory;
 import com.th3hero.eventbot.utils.HttpErrorUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -32,6 +36,7 @@ import java.util.List;
 public class CourseService {
     private final CourseRepository courseRepository;
     private final StudentService studentService;
+    private final EventRepository eventRepository;
 
     public Collection<Course> getAllCourses() {
         return CollectionUtils.transform(
@@ -128,8 +133,23 @@ public class CourseService {
     public void processCourseSelection(SelectionRequest request) {
         StudentJpa studentJpa = studentService.fetchStudent(request.requester().getIdLong());
 
+        List<CourseJpa> updatedCourses = coursesFromSelectionMenuValues(request.interaction().getValues());
+        List<CourseJpa> removedCourses = studentJpa.getCourses().stream()
+                .filter(course -> !updatedCourses.contains(course))
+                .toList();
+
+        List<EventJpa> eventsToRemove = eventRepository.findAllByCourse(removedCourses);
+        for (EventJpa event : eventsToRemove) {
+            studentService.unscheduleStudentForEvent(event, studentJpa);
+        }
+
         studentJpa.getCourses().clear();
-        studentJpa.getCourses().addAll(coursesFromSelectionMenuValues(request.interaction().getValues()));
+        studentJpa.getCourses().addAll(updatedCourses);
+
+        List<EventJpa> events =  eventRepository.findAllByCourse(studentJpa.getCourses());
+        for (EventJpa event : events) {
+            studentService.scheduleStudentForEvent(event, studentJpa);
+        }
 
         request.interaction().replyEmbeds(EmbedBuilderFactory.selectedCourses(studentJpa.getCourses()))
                 .setEphemeral(true)
@@ -140,6 +160,23 @@ public class CourseService {
         List<StudentJpa> studentsWithCourse = studentService.fetchStudentsWithCourse(targetCourse);
 
         studentsWithCourse.forEach(student -> studentService.scheduleStudentForEvent(eventJpa, student));
+    }
+
+    public void autoCompleteCourseOptions(CommandAutoCompleteInteractionEvent event) {
+        StudentJpa studentJpa = studentService.fetchStudent(event.getUser().getIdLong());
+
+        List<Command.Choice> choices = studentJpa.getCourses().stream()
+                .filter(course -> course.getCode().startsWith(event.getFocusedOption().getValue()))
+                .map(course -> new Command.Choice(course.getCode(), course.getCode()))
+                .toList();
+        event.replyChoices(choices).queue();
+    }
+
+    public Optional<CourseJpa> parseCourseCodeToCourseJpa(String courseCode) {
+        if (courseCode.isBlank()) {
+            return Optional.empty();
+        }
+        return courseRepository.findCourseJpaByCode(courseCode);
     }
 
 }

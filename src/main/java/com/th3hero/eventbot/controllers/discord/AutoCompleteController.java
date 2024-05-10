@@ -1,7 +1,9 @@
 package com.th3hero.eventbot.controllers.discord;
 
 import com.kseth.development.util.EnumUtils;
+import com.th3hero.eventbot.commands.Command;
 import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.StudentService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -15,23 +17,20 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 public class AutoCompleteController extends ListenerAdapter {
     private final StudentService studentService;
+    private final CourseService courseService;
 
     @Override
     public void onCommandAutoCompleteInteraction(@NonNull CommandAutoCompleteInteractionEvent event) {
-        SupportedAutoCompleteInteractions interaction = EnumUtils.valueOf(
-                SupportedAutoCompleteInteractions.class,
+        Command command = EnumUtils.valueOf(
+                Command.class,
                 event.getName(),
                 new UnsupportedInteractionException("Failed to parse auto complete interaction: %s".formatted(event.getName()))
         );
 
-        switch (interaction) {
+        switch (command) {
             case REMINDER_OFFSETS_CONFIG -> studentService.offsetAutoComplete(event);
+            case VIEW_EVENTS -> courseService.autoCompleteCourseOptions(event);
+            default -> log.warn("Received autocomplete event of unsupported type %s".formatted(event.getName()));
         }
     }
-
-
-    public enum SupportedAutoCompleteInteractions {
-        REMINDER_OFFSETS_CONFIG;
-    }
-
 }

@@ -128,6 +128,11 @@ public class StudentService {
             );
         }
     }
+
+    public void unscheduleStudentForEvent(EventJpa eventJpa, StudentJpa studentJpa) {
+        schedulingService.removeEventReminderTriggersForStudent(eventJpa.getId(), studentJpa.getId());
+    }
+
     public void unscheduleStudentForEvent(ButtonRequest request, Long eventId) {
         StudentJpa studentJpa = fetchStudent(request.requester().getIdLong());
         boolean removed = schedulingService.removeEventReminderTriggersForStudent(eventId, studentJpa.getId());

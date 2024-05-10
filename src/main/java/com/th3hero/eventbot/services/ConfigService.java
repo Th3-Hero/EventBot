@@ -25,7 +25,7 @@ public class ConfigService {
     public ConfigJpa getConfigJpa() {
         List<ConfigJpa> configList = configRepository.findAll();
         if (configList.isEmpty()) {
-            throw new EntityNotFoundException("No existing config was found");
+            throw new EntityNotFoundException("No existing config was found. Contact the bot owner to fix this issue.");
         }
         if (configList.size() > 1) {
             throw new InvalidStateException("The application has managed to reach an invalid state with multiple configurations. No clue how we got here ¯\\_(ツ)_/¯");
@@ -51,9 +51,6 @@ public class ConfigService {
 
         if (configUpload.eventChannel() != null) {
             configJpa.setEventChannel(configUpload.eventChannel());
-        }
-        if (configUpload.term() != null) {
-            configJpa.setTerm(configUpload.term());
         }
 
         return configRepository.save(configJpa).toDto();

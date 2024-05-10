@@ -12,6 +12,9 @@ public class DiscordFieldsConfig {
     public static final String TYPE_ID = "type";
     public static final String OFFSET_ID = "offset";
     public static final String REASON_ID = "reason";
+    public static final String UPCOMING_ID = "upcoming";
+    public static final String COURSE_ID = "course";
+    public static final String TIME_PERIOD_ID = "time_period";
 
     public static final int MIN_TITLE_LENGTH = 4;
     public static final int MAX_TITLE_LENGTH = 128;
@@ -24,4 +27,5 @@ public class DiscordFieldsConfig {
     public static final int MAX_REASON_LENGTH = 256;
 
     public static final int MIN_OFFSET_VALUE = 0;
+    public static final int MIN_FILTER_VALUE = 1;
 }

@@ -36,6 +36,7 @@ public class ModalController extends ListenerAdapter {
                 case EDIT_DRAFT_DETAILS -> eventDraftService.updateDraftDetails(request);
                 case EVENT_DELETION_REASON -> eventService.deleteEvent(request);
                 case EDIT_EVENT_DETAILS -> eventService.editEventDetails(request);
+                default -> log.warn("Received an unsupported modal type: {}", request.interaction().getModalId());
             }
         } catch (Exception e) {
             request.interaction().reply(e.getMessage()).setEphemeral(true).queue();

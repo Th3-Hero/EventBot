@@ -27,15 +27,10 @@ public class ConfigJpa implements Serializable {
     @Column
     private Long eventChannel;
 
-    @NotNull
-    @Column
-    private String term;
-
     public Config toDto() {
         return new Config(
                 this.getId(),
-                this.getEventChannel(),
-                this.getTerm()
+                this.getEventChannel()
         );
     }
 }

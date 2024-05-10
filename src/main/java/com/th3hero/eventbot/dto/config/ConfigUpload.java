@@ -7,13 +7,11 @@ import jakarta.validation.constraints.Size;
 import lombok.NonNull;
 
 public record ConfigUpload(
-        @NonNull Long eventChannel,
-        @NonNull @Size(min = 4, max = 4, message = "Term must be a 4 character string with year and term. Eg. Y1T2") String term
+        @NonNull Long eventChannel
 ) {
     public ConfigJpa toJpa() {
         return ConfigJpa.builder()
                 .eventChannel(eventChannel)
-                .term(term)
                 .build();
     }
 }

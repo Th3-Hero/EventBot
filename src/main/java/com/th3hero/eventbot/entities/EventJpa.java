@@ -11,6 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 @Entity
 @Builder
 @ToString
@@ -56,7 +57,7 @@ public class EventJpa implements Serializable {
     @NonNull
     @Builder.Default
     @Column
-    private Boolean isDeleted = false;
+    private Boolean deleted = false;
 
     public enum EventType {
         ASSIGNMENT,

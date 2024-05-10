@@ -58,6 +58,14 @@ public class SlashCommandConfig {
                                                         .setAutoComplete(true)
                                         )
 
+                ),
+                Commands.slash(Command.VIEW_EVENTS.getDisplayName(), Command.DESCRIPTIONS.get(Command.VIEW_EVENTS.getDisplayName())).addOptions(
+                        new OptionData(OptionType.INTEGER, UPCOMING_ID, "Get a list of the next X upcoming events.", false)
+                                .setMinValue(MIN_FILTER_VALUE),
+                        new OptionData(OptionType.INTEGER, TIME_PERIOD_ID, "Filter events to a certain time period in the next X days.", false)
+                                .setMinValue(MIN_FILTER_VALUE),
+                        new OptionData(OptionType.STRING, COURSE_ID, "Filter events for a certain course.", false)
+                                .setAutoComplete(true)
                 )
         ).queue();
     }

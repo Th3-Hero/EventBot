@@ -3,6 +3,7 @@ package com.th3hero.eventbot.controllers.discord;
 import com.th3hero.eventbot.commands.CommandRequest;
 import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.EventDraftService;
+import com.th3hero.eventbot.services.EventService;
 import com.th3hero.eventbot.services.StudentService;
 import com.th3hero.eventbot.utils.EmbedBuilderFactory;
 import lombok.NonNull;
@@ -20,6 +21,7 @@ public class SlashCommandController extends ListenerAdapter {
     private final CourseService courseService;
     private final StudentService studentService;
     private final EventDraftService eventDraftService;
+    private final EventService eventService;
 
     @Override
     public void onSlashCommandInteraction(@NonNull SlashCommandInteractionEvent event) {
@@ -42,6 +44,8 @@ public class SlashCommandController extends ListenerAdapter {
                 case MY_COURSES -> studentService.myCourses(request);
                 case CREATE_EVENT -> eventDraftService.createEventDraft(request);
                 case REMINDER_OFFSETS_CONFIG -> studentService.reminderOffsetsHandler(request);
+                case VIEW_EVENTS -> eventService.listEvents(request);
+                default -> log.warn("Received an unsupported command: {}", request.event().getName());
             }
         } catch (Exception e) {
             request.event().reply(e.getMessage()).setEphemeral(true).queue();

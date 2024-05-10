@@ -2,8 +2,7 @@
 create sequence seq_config_id start with 1 increment by 1;
 create table config (
     id integer not null primary key,
-    event_channel bigint not null,
-    term varchar(4) not null
+    event_channel bigint not null
 );
 
 create sequence seq_course_id start with 1 increment by 1;
@@ -38,11 +37,11 @@ create table event (
     id bigint primary key,
     author_id bigint not null,
     message_id bigint,
-    title text,
+    title text not null,
     note text,
     datetime timestamp not null,
     type varchar(20) not null,
-    is_deleted boolean not null
+    deleted boolean not null
 );
 
 create table event_courses (

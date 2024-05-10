@@ -4,7 +4,6 @@ import lombok.NonNull;
 
 public record Config(
         @NonNull Integer id,
-        @NonNull Long eventChannel,
-        @NonNull String term
+        @NonNull Long eventChannel
 ) {
 }

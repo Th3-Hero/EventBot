@@ -4,13 +4,18 @@ import com.th3hero.eventbot.commands.Command;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.StudentJpa;
+import com.th3hero.eventbot.services.StudentService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -199,5 +204,35 @@ public class EmbedBuilderFactory {
                 .setColor(BLUE)
                 .setTitle("Event has been edited.")
                 .setDescription("Find the changes below.");
+    }
+
+    private static String shortEventSummary(EventJpa eventJpa, String jumpUrl) {
+        String dateTimeString = Utils.formattedDateTime(eventJpa.getDatetime());
+        String relativeTimeString = DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventJpa.getDatetime());
+
+        String date = "%s (%s)%n".formatted(dateTimeString, relativeTimeString);
+
+        return "%s%s%s%s".formatted(
+                "**Date**\n",
+                date,
+                "**Link**\n",
+                jumpUrl
+        );
+    }
+
+    public static MessageEmbed eventList(Map<EventJpa, String> events) {
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+                .setColor(BLUE)
+                .setTitle("Upcoming Events");
+
+        for (Map.Entry<EventJpa, String> entry : events.entrySet()) {
+            embedBuilder.addField(
+                    entry.getKey().getTitle(),
+                    shortEventSummary(entry.getKey(), entry.getValue()),
+                    false
+            );
+        }
+
+        return embedBuilder.build();
     }
 }
