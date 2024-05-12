@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.controllers.discord;
 
 import com.kseth.development.util.EnumUtils;
-import com.th3hero.eventbot.commands.Command;
+import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
 import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.StudentService;

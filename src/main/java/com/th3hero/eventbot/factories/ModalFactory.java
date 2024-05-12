@@ -1,8 +1,10 @@
-package com.th3hero.eventbot.utils;
+package com.th3hero.eventbot.factories;
 
-import com.th3hero.eventbot.commands.ModalType;
+import com.th3hero.eventbot.commands.actions.ModalAction;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.formatting.DateFormatting;
+import com.th3hero.eventbot.formatting.InteractionArguments;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -39,7 +41,7 @@ public class ModalFactory {
                 .setRequired(false)
                 .build();
 
-        return Modal.create(Utils.createInteractionIdString(ModalType.CREATE_DRAFT, eventDraftId), "Event Creation")
+        return Modal.create(InteractionArguments.createInteractionIdString(ModalAction.CREATE_DRAFT, eventDraftId), "Event Creation")
                 .addComponents(
                         ActionRow.of(title),
                         ActionRow.of(note)
@@ -49,7 +51,7 @@ public class ModalFactory {
 
     private static Modal editDetailsModal(
             String modalTitle,
-            ModalType modalType,
+            ModalAction modalType,
             Long id,
             String title,
             String note,
@@ -70,17 +72,17 @@ public class ModalFactory {
         TextInput dateInput = TextInput.create(DATE_ID, DATE_LABEL, TextInputStyle.SHORT)
                 .setPlaceholder(DATE_PLACEHOLDER)
                 .setRequiredRange(MIN_DATE_LENGTH, MAX_DATE_LENGTH)
-                .setValue(Utils.formattedDate(dateTime))
+                .setValue(DateFormatting.formattedDate(dateTime))
                 .setRequired(true)
                 .build();
         TextInput timeInput = TextInput.create(TIME_ID, TIME_LABEL, TextInputStyle.SHORT)
                 .setPlaceholder(TIME_PLACEHOLDER)
                 .setRequiredRange(MIN_TIME_LENGTH, MAX_TIME_LENGTH)
-                .setValue(Utils.formattedTime(dateTime))
+                .setValue(DateFormatting.formattedTime(dateTime))
                 .setRequired(true)
                 .build();
 
-        return Modal.create(Utils.createInteractionIdString(modalType, id), modalTitle)
+        return Modal.create(InteractionArguments.createInteractionIdString(modalType, id), modalTitle)
                 .addComponents(
                         ActionRow.of(titleInput),
                         ActionRow.of(noteInput),
@@ -91,11 +93,11 @@ public class ModalFactory {
     }
 
     public static Modal editDetailsModal(EventDraftJpa eventDraft) {
-        return editDetailsModal("Edit Draft Information", ModalType.EDIT_DRAFT_DETAILS, eventDraft.getId(), eventDraft.getTitle(), eventDraft.getNote(), eventDraft.getDatetime());
+        return editDetailsModal("Edit Draft Information", ModalAction.EDIT_DRAFT_DETAILS, eventDraft.getId(), eventDraft.getTitle(), eventDraft.getNote(), eventDraft.getDatetime());
     }
 
     public static Modal editDetailsModal(EventJpa eventJpa) {
-        return editDetailsModal("Edit Event Information", ModalType.EDIT_EVENT_DETAILS, eventJpa.getId(), eventJpa.getTitle(), eventJpa.getNote(), eventJpa.getDatetime());
+        return editDetailsModal("Edit Event Information", ModalAction.EDIT_EVENT_DETAILS, eventJpa.getId(), eventJpa.getTitle(), eventJpa.getNote(), eventJpa.getDatetime());
     }
 
     public static Modal deleteDraftReasonModal(EventJpa eventJpa) {
@@ -105,7 +107,7 @@ public class ModalFactory {
                 .setRequired(true)
                 .build();
 
-        return Modal.create(Utils.createInteractionIdString(ModalType.EVENT_DELETION_REASON, eventJpa.getId()), "Reason for event deletion")
+        return Modal.create(InteractionArguments.createInteractionIdString(ModalAction.EVENT_DELETION_REASON, eventJpa.getId()), "Reason for event deletion")
                 .addComponents(
                         ActionRow.of(reason)
                 )

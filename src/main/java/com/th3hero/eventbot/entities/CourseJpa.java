@@ -1,10 +1,10 @@
 package com.th3hero.eventbot.entities;
 
-import java.io.Serializable;
-
-import lombok.*;
-import jakarta.persistence.*;
 import com.th3hero.eventbot.dto.course.Course;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.io.Serializable;
 
 
 @Getter

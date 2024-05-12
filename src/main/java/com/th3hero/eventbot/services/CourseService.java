@@ -1,28 +1,30 @@
 package com.th3hero.eventbot.services;
 
 import com.kseth.development.util.CollectionUtils;
-import com.th3hero.eventbot.commands.CommandRequest;
-import com.th3hero.eventbot.commands.Selection;
-import com.th3hero.eventbot.commands.SelectionRequest;
+import com.th3hero.eventbot.commands.actions.SelectionAction;
+import com.th3hero.eventbot.commands.requests.CommandRequest;
+import com.th3hero.eventbot.commands.requests.InteractionRequest;
+import com.th3hero.eventbot.commands.requests.SelectionRequest;
 import com.th3hero.eventbot.dto.course.Course;
 import com.th3hero.eventbot.dto.course.CourseUpload;
 import com.th3hero.eventbot.dto.course.CourseUploadUpdate;
 import com.th3hero.eventbot.entities.CourseJpa;
-import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
+import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.repositories.CourseRepository;
 import com.th3hero.eventbot.repositories.EventRepository;
-import com.th3hero.eventbot.utils.EmbedBuilderFactory;
 import com.th3hero.eventbot.utils.HttpErrorUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
-import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -111,15 +113,15 @@ public class CourseService {
     }
 
     public void sendCourseSelectionMenu(CommandRequest request) {
-        request.event().replyEmbeds(EmbedBuilderFactory.coursePicker("Select Any courses you wish to receive notifications for."))
+        MessageCreateData data = new MessageCreateBuilder()
+                .addEmbeds(EmbedBuilderFactory.coursePicker("Select Any courses you wish to receive notifications for."))
                 .addActionRow(
                         createStudentCourseSelector(
-                                Selection.SELECT_COURSES.toString(),
-                                request.requester().getIdLong()
+                                SelectionAction.SELECT_COURSES.toString(),
+                                request.getRequester().getIdLong()
                         )
-                )
-                .setEphemeral(true)
-                .queue();
+                ).build();
+        request.sendResponse(data, InteractionRequest.MessageMode.USER);
     }
 
     public List<CourseJpa> coursesFromSelectionMenuValues(List<String> values) {
@@ -131,9 +133,9 @@ public class CourseService {
     }
 
     public void processCourseSelection(SelectionRequest request) {
-        StudentJpa studentJpa = studentService.fetchStudent(request.requester().getIdLong());
+        StudentJpa studentJpa = studentService.fetchStudent(request.getRequester().getIdLong());
 
-        List<CourseJpa> updatedCourses = coursesFromSelectionMenuValues(request.interaction().getValues());
+        List<CourseJpa> updatedCourses = coursesFromSelectionMenuValues(request.getEvent().getValues());
         List<CourseJpa> removedCourses = studentJpa.getCourses().stream()
                 .filter(course -> !updatedCourses.contains(course))
                 .toList();
@@ -151,9 +153,10 @@ public class CourseService {
             studentService.scheduleStudentForEvent(event, studentJpa);
         }
 
-        request.interaction().replyEmbeds(EmbedBuilderFactory.selectedCourses(studentJpa.getCourses()))
-                .setEphemeral(true)
-                .queue();
+        request.sendResponse(
+                EmbedBuilderFactory.selectedCourses(studentJpa.getCourses()),
+                InteractionRequest.MessageMode.USER
+        );
     }
 
     public void scheduleEventForCourse(EventJpa eventJpa, CourseJpa targetCourse) {

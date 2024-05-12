@@ -3,7 +3,6 @@ package com.th3hero.eventbot.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.Serializable;
 import java.util.List;

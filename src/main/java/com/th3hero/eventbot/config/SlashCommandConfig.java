@@ -1,12 +1,12 @@
 package com.th3hero.eventbot.config;
 
-import com.th3hero.eventbot.commands.Command;
+import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.services.StudentService;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;

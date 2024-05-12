@@ -1,4 +1,4 @@
-package com.th3hero.eventbot.commands;
+package com.th3hero.eventbot.commands.actions;
 
 import lombok.Getter;
 

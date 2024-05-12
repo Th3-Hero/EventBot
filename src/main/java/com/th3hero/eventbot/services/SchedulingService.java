@@ -1,9 +1,9 @@
 package com.th3hero.eventbot.services;
 
+import com.th3hero.eventbot.formatting.DateFormatting;
 import com.th3hero.eventbot.jobs.DeletedEventCleanupJob;
 import com.th3hero.eventbot.jobs.DraftCleanupJob;
 import com.th3hero.eventbot.jobs.EventReminderJob;
-import com.th3hero.eventbot.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 @Slf4j
@@ -41,7 +40,7 @@ public class SchedulingService {
             Trigger cleanupTrigger = TriggerBuilder.newTrigger()
                     .withIdentity(key)
                     .forJob(DraftCleanupJob.JOB_KEY)
-                    .startAt(Utils.toDate(draftCreationDate.plusHours(draftCleanupDelay)))
+                    .startAt(DateFormatting.toDate(draftCreationDate.plusHours(draftCleanupDelay)))
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                             .withMisfireHandlingInstructionFireNow()
                             .withRepeatCount(0))
@@ -88,7 +87,7 @@ public class SchedulingService {
                     .usingJobData(EventReminderJob.EVENT_ID, eventId)
                     .usingJobData(EventReminderJob.OFFSET_ID, offset)
                     .forJob(EventReminderJob.JOB_KEY)
-                    .startAt(Utils.toDate(eventTime))
+                    .startAt(DateFormatting.toDate(eventTime))
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                             .withMisfireHandlingInstructionFireNow()
                             .withRepeatCount(0))
@@ -143,7 +142,7 @@ public class SchedulingService {
                     .withIdentity(key)
                     .usingJobData(DeletedEventCleanupJob.DELETION_MESSAGE_ID, cleanupMessageId)
                     .forJob(DeletedEventCleanupJob.JOB_KEY)
-                    .startAt(Utils.toDate(cleanupTime))
+                    .startAt(DateFormatting.toDate(cleanupTime))
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                             .withMisfireHandlingInstructionFireNow()
                             .withRepeatCount(0))

@@ -1,8 +1,10 @@
 package com.th3hero.eventbot.controllers.discord;
 
-import com.th3hero.eventbot.commands.ModalRequest;
+import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
+import com.th3hero.eventbot.commands.requests.ModalRequest;
 import com.th3hero.eventbot.services.EventDraftService;
 import com.th3hero.eventbot.services.EventService;
+import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,27 +22,27 @@ public class ModalController extends ListenerAdapter {
     @Override
     public void onModalInteraction(@NonNull ModalInteractionEvent event) {
         try {
-            final ModalRequest request = ModalRequest.create(event);
+            final ModalRequest request = ModalRequest.fromInteraction(event);
             commandHandler(request);
         } catch (Exception e) {
             log.error("onModalInteraction", e);
-            event.reply(e.getMessage()).setEphemeral(true).queue();
+            DiscordActionUtils.textResponse(event, e.getMessage(), true);
             throw e;
         }
     }
 
     public void commandHandler(@NonNull final ModalRequest request) {
         try {
-            switch (request.modalType()) {
+            switch (request.getAction()) {
                 case CREATE_DRAFT -> eventDraftService.addTitleAndNote(request);
                 case EDIT_DRAFT_DETAILS -> eventDraftService.updateDraftDetails(request);
                 case EVENT_DELETION_REASON -> eventService.deleteEvent(request);
                 case EDIT_EVENT_DETAILS -> eventService.editEventDetails(request);
-                default -> log.warn("Received an unsupported modal type: {}", request.interaction().getModalId());
+                default -> log.warn("Received an unsupported modal type: {}", request.getEvent().getModalId());
             }
         } catch (Exception e) {
-            request.interaction().reply(e.getMessage()).setEphemeral(true).queue();
             log.error("Modal Handler", e);
+            request.sendResponse(e.getMessage(), MessageMode.USER);
             throw e;
         }
     }

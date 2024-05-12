@@ -1,6 +1,5 @@
 package com.th3hero.eventbot.services;
 
-import com.kseth.development.util.CollectionUtils;
 import com.th3hero.eventbot.dto.config.Config;
 import com.th3hero.eventbot.dto.config.ConfigUpload;
 import com.th3hero.eventbot.dto.config.ConfigUploadUpdate;

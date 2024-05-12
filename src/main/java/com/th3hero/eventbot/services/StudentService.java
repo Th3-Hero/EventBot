@@ -1,14 +1,15 @@
 package com.th3hero.eventbot.services;
 
 import com.kseth.development.util.EnumUtils;
-import com.th3hero.eventbot.commands.ButtonRequest;
-import com.th3hero.eventbot.commands.CommandRequest;
+import com.th3hero.eventbot.commands.requests.ButtonRequest;
+import com.th3hero.eventbot.commands.requests.CommandRequest;
+import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.repositories.StudentRepository;
-import com.th3hero.eventbot.utils.EmbedBuilderFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,18 +49,14 @@ public class StudentService {
     }
 
     public void myCourses(CommandRequest request) {
-        List<CourseJpa> studentCourses = fetchStudentCourses(request.requester().getIdLong());
+        List<CourseJpa> studentCourses = fetchStudentCourses(request.getRequester().getIdLong());
 
         if (studentCourses.isEmpty()) {
-            request.event().reply("You currently have no selected courses. Please use the /select_courses command.")
-                    .setEphemeral(true)
-                    .queue();
+            request.sendResponse("You currently have no selected courses. Please use the /select_courses command.", MessageMode.USER);
             return;
         }
 
-        request.event().replyEmbeds(EmbedBuilderFactory.selectedCourses(studentCourses))
-                .setEphemeral(true)
-                .queue();
+        request.sendResponse(EmbedBuilderFactory.selectedCourses(studentCourses), MessageMode.USER);
     }
 
     public void offsetAutoComplete(CommandAutoCompleteInteractionEvent event) {
@@ -74,11 +71,11 @@ public class StudentService {
     public void reminderOffsetsHandler(CommandRequest request) {
         ReminderConfigOptions option = EnumUtils.valueOf(
                 ReminderConfigOptions.class,
-                request.arguments().get("sub_command"),
-                new UnsupportedInteractionException("Unknown sub command %s".formatted(request.arguments().get("sub_command")))
+                request.getArguments().get("sub_command"),
+                new UnsupportedInteractionException("Unknown sub command %s".formatted(request.getArguments().get("sub_command")))
         );
 
-        StudentJpa studentJpa = fetchStudent(request.requester().getIdLong());
+        StudentJpa studentJpa = fetchStudent(request.getRequester().getIdLong());
 
         switch (option) {
             case LIST -> listReminderOffsets(request, studentJpa);
@@ -89,27 +86,22 @@ public class StudentService {
 
     private void listReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
         studentJpa.getOffsetTimes().sort(null);
-        request.event().replyEmbeds(EmbedBuilderFactory.reminderOffsets(studentJpa.getOffsetTimes()))
-                .setEphemeral(true)
-                .queue();
+        request.sendResponse(EmbedBuilderFactory.reminderOffsets(studentJpa.getOffsetTimes()), MessageMode.USER);
     }
     private void addReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
-        Integer newOffset = Integer.parseInt(request.arguments().get(OFFSET_ID));
+        Integer newOffset = Integer.parseInt(request.getArguments().get(OFFSET_ID));
         if (studentJpa.getOffsetTimes().contains(newOffset)) {
-            request.event().reply("You already have an offset for %d".formatted(newOffset))
-                    .setEphemeral(true)
-                    .queue();
+            request.sendResponse("You already have an offset for %d".formatted(newOffset), MessageMode.USER);
             return;
         }
         studentJpa.getOffsetTimes().add(newOffset);
         studentJpa.getOffsetTimes().sort(null);
     }
     private void removeReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
-        Integer targetOffset = Integer.parseInt(request.arguments().get(OFFSET_ID));
+        Integer targetOffset = Integer.parseInt(request.getArguments().get(OFFSET_ID));
         if (!studentJpa.getOffsetTimes().contains(targetOffset)) {
-            request.event().reply("You have no offset for %d".formatted(targetOffset))
-                    .setEphemeral(true)
-                    .queue();
+            request.sendResponse("You have no offset for %d".formatted(targetOffset), MessageMode.USER);
+            return;
         }
         studentJpa.getOffsetTimes().remove(targetOffset);
         studentJpa.getOffsetTimes().sort(null);
@@ -134,15 +126,14 @@ public class StudentService {
     }
 
     public void unscheduleStudentForEvent(ButtonRequest request, Long eventId) {
-        StudentJpa studentJpa = fetchStudent(request.requester().getIdLong());
+        StudentJpa studentJpa = fetchStudent(request.getRequester().getIdLong());
         boolean removed = schedulingService.removeEventReminderTriggersForStudent(eventId, studentJpa.getId());
         String message = removed ?
                 "All reminders have been removed for this event." :
                 "You have no reminders on this event.";
-        request.buttonInteractionEvent().reply(message).setEphemeral(true).queue();
+
+        request.sendResponse(message, MessageMode.USER);
     }
-
-
 
     public enum ReminderConfigOptions {
         LIST,

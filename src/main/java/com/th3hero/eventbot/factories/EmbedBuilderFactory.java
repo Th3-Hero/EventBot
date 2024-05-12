@@ -1,16 +1,14 @@
-package com.th3hero.eventbot.utils;
+package com.th3hero.eventbot.factories;
 
-import com.th3hero.eventbot.commands.Command;
+import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
-import com.th3hero.eventbot.entities.StudentJpa;
-import com.th3hero.eventbot.services.StudentService;
-import jakarta.persistence.EntityNotFoundException;
+import com.th3hero.eventbot.formatting.DateFormatting;
+import com.th3hero.eventbot.utils.DiscordTimestamp;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.awt.*;
@@ -76,7 +74,7 @@ public class EmbedBuilderFactory {
                 .build();
 
         String date = "%s (%s)".formatted(
-                Utils.formattedDateTime(eventDraftJpa.getDatetime()),
+                DateFormatting.formattedDateTime(eventDraftJpa.getDatetime()),
                 DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventDraftJpa.getDatetime())
         );
 
@@ -132,7 +130,7 @@ public class EmbedBuilderFactory {
 
     public static MessageEmbed eventEmbed(EventJpa eventJpa, String authorMention) {
         String date = "%s (%s)".formatted(
-                Utils.formattedDateTime(eventJpa.getDatetime()),
+                DateFormatting.formattedDateTime(eventJpa.getDatetime()),
                 DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventJpa.getDatetime())
         );
 
@@ -207,7 +205,7 @@ public class EmbedBuilderFactory {
     }
 
     private static String shortEventSummary(EventJpa eventJpa, String jumpUrl) {
-        String dateTimeString = Utils.formattedDateTime(eventJpa.getDatetime());
+        String dateTimeString = DateFormatting.formattedDateTime(eventJpa.getDatetime());
         String relativeTimeString = DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventJpa.getDatetime());
 
         String date = "%s (%s)%n".formatted(dateTimeString, relativeTimeString);

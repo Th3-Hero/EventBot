@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.dto.course;
 
-import lombok.NonNull;
 import com.th3hero.eventbot.entities.CourseJpa;
+import lombok.NonNull;
 
 public record CourseUpload(
     @NonNull String code,

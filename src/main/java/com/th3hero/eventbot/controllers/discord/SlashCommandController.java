@@ -1,11 +1,14 @@
 package com.th3hero.eventbot.controllers.discord;
 
-import com.th3hero.eventbot.commands.CommandRequest;
+import com.th3hero.eventbot.commands.requests.CommandRequest;
+import com.th3hero.eventbot.exceptions.ArgumentMappingException;
+import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.EventDraftService;
 import com.th3hero.eventbot.services.EventService;
 import com.th3hero.eventbot.services.StudentService;
-import com.th3hero.eventbot.utils.EmbedBuilderFactory;
+import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,31 +28,33 @@ public class SlashCommandController extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(@NonNull SlashCommandInteractionEvent event) {
-
         try {
-            final CommandRequest request = CommandRequest.create(event);
+            final CommandRequest request = CommandRequest.fromInteraction(event);
             commandHandler(request);
+        } catch (UnsupportedInteractionException | ArgumentMappingException e) {
+            DiscordActionUtils.textResponse(event, e.getMessage(), true);
+            log.warn(e.getMessage());
         } catch (Exception e) {
             log.error("onSlashCommandInteraction", e);
-            event.reply(e.getMessage()).setEphemeral(true).queue();
+            DiscordActionUtils.textResponse(event, "An unexpected error occurred while processing your request.", true);
             throw e;
         }
     }
 
     public void commandHandler(@NotNull final CommandRequest request) {
         try {
-            switch (request.command()) {
-                case HELP -> request.event().replyEmbeds(EmbedBuilderFactory.help()).setEphemeral(true).queue();
+            switch (request.getCommand()) {
+                case HELP -> DiscordActionUtils.embedResponse(request.getEvent(), EmbedBuilderFactory.help(), true);
                 case SELECT_COURSES -> courseService.sendCourseSelectionMenu(request);
                 case MY_COURSES -> studentService.myCourses(request);
                 case CREATE_EVENT -> eventDraftService.createEventDraft(request);
                 case REMINDER_OFFSETS_CONFIG -> studentService.reminderOffsetsHandler(request);
                 case VIEW_EVENTS -> eventService.listEvents(request);
-                default -> log.warn("Received an unsupported command: {}", request.event().getName());
+                default -> log.warn("Received an unsupported command: {}", request.getEvent().getName());
             }
         } catch (Exception e) {
-            request.event().reply(e.getMessage()).setEphemeral(true).queue();
             log.error("Slash Command Handler", e);
+            DiscordActionUtils.textResponse(request.getEvent(), e.getMessage(), true);
             throw e;
         }
 
