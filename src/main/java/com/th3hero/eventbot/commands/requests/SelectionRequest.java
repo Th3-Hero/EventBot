@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionE
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -49,10 +48,12 @@ public class SelectionRequest extends InteractionRequest {
     }
 
     public static SelectionRequest fromInteraction(@NonNull final StringSelectInteractionEvent event) {
-        List<String> selectionIdArguments = Arrays.asList(event.getSelectMenu().getId().split("-"));
+        final List<String> selectionIdSplits = List.of(event.getSelectMenu().getId().split("-"));
+        final String selectionActionString = selectionIdSplits.getFirst();
+        final List<String> idArguments = selectionIdSplits.subList(1, selectionIdSplits.size());
         final SelectionAction action = EnumUtils.valueOf(
                 SelectionAction.class,
-                selectionIdArguments.removeFirst(),
+                selectionActionString,
                 new UnsupportedInteractionException("Unsupported interaction with selection menu %s".formatted(event.getSelectMenu().getId()))
         );
 
@@ -61,7 +62,7 @@ public class SelectionRequest extends InteractionRequest {
                 event,
                 event.getMember(),
                 event.getGuild(),
-                InteractionArguments.parseArguments(action, selectionIdArguments)
+                InteractionArguments.parseArguments(action, idArguments)
         );
     }
 

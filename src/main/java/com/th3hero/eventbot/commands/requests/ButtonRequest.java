@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -57,10 +56,12 @@ public class ButtonRequest extends InteractionRequest {
      * @see ButtonAction ButtonAtion for supported interactions
      */
     public static ButtonRequest fromInteraction(@NonNull final ButtonInteractionEvent event) throws UnsupportedInteractionException {
-        List<String> buttonIdArguments = Arrays.asList(event.getButton().getId().split("-"));
+        final List<String> buttonIdSplits = List.of(event.getButton().getId().split("-"));
+        final String buttonActionString = buttonIdSplits.subList(0, 1).getFirst();
+        final List<String> idArguments = buttonIdSplits.subList(1, buttonIdSplits.size());
         final ButtonAction action = EnumUtils.valueOf(
                 ButtonAction.class,
-                buttonIdArguments.removeFirst(),
+                buttonActionString,
                 new UnsupportedInteractionException("Unsupported interaction with button %s".formatted(event.getButton().getId()))
         );
 
@@ -69,7 +70,7 @@ public class ButtonRequest extends InteractionRequest {
                 event,
                 event.getMember(),
                 event.getGuild(),
-                InteractionArguments.parseArguments(action, buttonIdArguments)
+                InteractionArguments.parseArguments(action, idArguments)
         );
     }
 

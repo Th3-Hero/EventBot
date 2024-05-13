@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -55,10 +54,12 @@ public class ModalRequest extends InteractionRequest {
      * @see ModalAction ModalAction for supported interactions
      */
     public static ModalRequest fromInteraction(@NonNull final ModalInteractionEvent event) {
-        List<String> modalIdArguments = Arrays.asList(event.getModalId().split("-"));
+        final List<String> modalIdSplits = List.of(event.getModalId().split("-"));
+        final String modalActionString = modalIdSplits.subList(0, 1).getFirst();
+        final List<String> idArguments = modalIdSplits.subList(1, modalIdSplits.size());
         final ModalAction action = EnumUtils.valueOf(
                 ModalAction.class,
-                modalIdArguments.removeFirst(),
+                modalActionString,
                 new UnsupportedInteractionException("Unsupported interaction with modal %s".formatted(event.getModalId()))
         );
 
@@ -67,7 +68,7 @@ public class ModalRequest extends InteractionRequest {
                 event,
                 event.getMember(),
                 event.getGuild(),
-                InteractionArguments.parseArguments(action, modalIdArguments)
+                InteractionArguments.parseArguments(action, idArguments)
         );
     }
 
