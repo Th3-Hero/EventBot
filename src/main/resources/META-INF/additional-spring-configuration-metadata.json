@@ -14,6 +14,11 @@
       "name": "app.config.deleted-event-cleanup-delay",
       "type": "java.lang.Integer",
       "description": "Delay in hours before deleted events are cleaned up. Giving an opportunity to restore them."
+    },
+    {
+      "name": "app.config.bot-owner-id",
+      "type": "java.lang.Long",
+      "description": "User id of the bot owner."
     }
   ]
 }
