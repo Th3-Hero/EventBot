@@ -11,12 +11,13 @@ import org.quartz.JobKey;
 @RequiredArgsConstructor
 public class DraftCleanupJob implements Job {
     public static final JobKey JOB_KEY = JobKey.jobKey("draft_cleanup");
+    public static final String JOB_DRAFT_KEY = "draft_id";
 
     private final EventDraftRepository eventDraftRepository;
 
     @Override
     public void execute(JobExecutionContext executionContext) {
-        Long draftId = Long.parseLong(executionContext.getTrigger().getKey().getName());
+        Long draftId = executionContext.getTrigger().getJobDataMap().getLong(JOB_DRAFT_KEY);
         if (!eventDraftRepository.existsById(draftId)) {
             log.warn("No existing draft for cleanup job. Draft id: %s".formatted(draftId));
             return;

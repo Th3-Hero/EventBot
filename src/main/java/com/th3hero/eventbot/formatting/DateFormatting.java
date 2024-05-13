@@ -1,6 +1,8 @@
 package com.th3hero.eventbot.formatting;
 
 import com.th3hero.eventbot.exceptions.EventParsingException;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -8,7 +10,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DateFormatting {
+
+    private static final List<DateTimeFormatter> FORMATTERS = List.of(
+            DateTimeFormatter.ofPattern("yyyy-M-d H:mm"),
+            DateTimeFormatter.ofPattern("yyyy/M/d H:mm")
+    );
 
     public static Date toDate(LocalDateTime dateTime) {
         return Date.from(dateTime.atZone(ZoneId.of("America/New_York")).toInstant());
@@ -25,18 +33,13 @@ public class DateFormatting {
     }
 
     public static LocalDateTime parseDate(String dateString, String timeString) throws EventParsingException {
-        List<String> acceptedDateFormats = List.of(
-                "yyyy-M-d H:mm",
-                "yyyy/M/d H:mm"
-        );
+        String combinedDateTime = "%s %S".formatted(dateString, timeString);
 
-        for (String format : acceptedDateFormats) {
+        for (DateTimeFormatter formatter : FORMATTERS) {
             try {
-                String combinedDateTime = "%s %S".formatted(dateString, timeString);
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
                 return LocalDateTime.parse(combinedDateTime, formatter);
             } catch (Exception e) {
-                throw new EventParsingException("Unable to parse date and time");
+                // Do nothing
             }
         }
         throw new EventParsingException("Unable to parse date and time");

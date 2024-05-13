@@ -25,19 +25,19 @@ public class DeletedEventCleanupJob implements Job {
     public static final JobKey JOB_KEY = JobKey.jobKey("deleted_event_cleanup");
 
     public static final String DELETION_MESSAGE_ID = "deletion_message_id";
+    public static final String EVENT_ID = "event_id";
 
-    private final JdaFactory jdaFactory;
+    private final JDA jda;
     private final EventRepository eventRepository;
     private final ConfigService configService;
 
     @SneakyThrows
     @Override
     public void execute(JobExecutionContext executionContext) {
-        Long eventId = Long.parseLong(executionContext.getTrigger().getKey().getName());
+        Long eventId = executionContext.getTrigger().getJobDataMap().getLong(EVENT_ID);
         final EventJpa eventJpa = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Attempted to clean up deleted event that does not exist. Event id: %d".formatted(eventId)));
 
-        final JDA jda = jdaFactory.basicJdaClient().awaitReady();
         final ConfigJpa config = configService.getConfigJpa();
 
         eventRepository.delete(eventJpa);

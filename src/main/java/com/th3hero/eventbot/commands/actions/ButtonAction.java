@@ -24,5 +24,4 @@ public enum ButtonAction implements DiscordActionArguments {
     MARK_COMPLETE(List.of(EVENT_ID));
 
     private final List<String> requestKeys;
-
 }

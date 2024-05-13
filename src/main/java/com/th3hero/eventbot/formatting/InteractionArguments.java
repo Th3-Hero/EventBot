@@ -33,17 +33,6 @@ public class InteractionArguments {
         return "%s-%s".formatted(enumValue.name(), joinedIds);
     }
 
-
-//    public static <T extends Enum<T>> String createInteractionIdString(T enumValue, Long id) {
-//        return "%s-%s".formatted(enumValue.name(), id);
-//    }
-//    public static <T extends Enum<T>> String createInteractionIdString(T enumValue, List<Long> ids) {
-//        String joinedIds = ids.stream()
-//                .map(Objects::toString)
-//                .collect(Collectors.joining("-"));
-//        return "%s-%s".formatted(enumValue.name(), joinedIds);
-//    }
-
     public static List<Long> parseLongs(List<String> list) {
         return list.stream()
                 .map(Long::parseLong)
