@@ -2,6 +2,7 @@ package com.th3hero.eventbot.services;
 
 
 import com.th3hero.eventbot.commands.actions.ButtonAction;
+import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
@@ -15,7 +16,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -28,11 +28,15 @@ public class DeletionHandler {
     private final EventRepository eventRepository;
     private final ConfigService configService;
 
-    @Value("${app.config.bot-owner-id}")
-    private static Long botOwnerId;
 
     public void handleDeletedMessage(MessageDeleteEvent event) {
         Long deletedMessageId = event.getMessageIdLong();
+        ConfigJpa configJpa = configService.getConfigJpa();
+
+        // If the message isn't in the event channel, ignore it. No point searching all events in the database
+        if (!configJpa.getEventChannel().equals(event.getChannel().getIdLong())) {
+            return;
+        }
 
         if (!eventRepository.existsByMessageId(deletedMessageId)) {
             return;
@@ -40,7 +44,7 @@ public class DeletionHandler {
 
         EventJpa eventJpa = eventRepository.findEventJpaByMessageId(deletedMessageId)
                 .orElseThrow(() -> new EntityNotFoundException("Event with deleted message was not found in the database. Message id: %d".formatted(deletedMessageId)));
-        Long eventChannelId = configService.getConfigJpa().getEventChannel();
+        Long eventChannelId = configJpa.getEventChannel();
         Optional<TextChannel> channel = Optional.ofNullable(event.getJDA().getTextChannelById(eventChannelId));
         if (channel.isEmpty()) {
             throw new ConfigErrorException("Configured event channel does not exist. Make sure config is setup correctly");
@@ -62,13 +66,15 @@ public class DeletionHandler {
     }
 
     public void handleDeletedChannel(ChannelDeleteEvent event) {
-        Long eventChannelId = configService.getConfigJpa().getEventChannel();
+        ConfigJpa configJpa = configService.getConfigJpa();
+
+        Long eventChannelId = configJpa.getEventChannel();
         Long deletedChannelId = event.getChannel().getIdLong();
         if (!eventChannelId.equals(deletedChannelId)) {
             return;
         }
 
-        Optional.ofNullable(event.getJDA().getUserById(botOwnerId)).ifPresentOrElse(
+        Optional.ofNullable(event.getJDA().getUserById(configJpa.getBotOwnerId())).ifPresentOrElse(
                 user -> user.openPrivateChannel().queue(
                         channel -> channel.sendMessage("The event channel has been deleted. Please set a new event channel.").queue()
                 ),

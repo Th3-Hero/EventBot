@@ -7,7 +7,6 @@ import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.exceptions.ActionAlreadyPreformedException;
 import com.th3hero.eventbot.exceptions.InvalidStateException;
 import com.th3hero.eventbot.repositories.ConfigRepository;
-import com.th3hero.eventbot.utils.HttpErrorUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ public class ConfigService {
             throw new InvalidStateException("The application has managed to reach an invalid state with multiple configurations. No clue how we got here ¯\\_(ツ)_/¯");
         }
 
-        return configList.get(0);
+        return configList.getFirst();
     }
 
     public Config getConfig() {
@@ -41,15 +40,31 @@ public class ConfigService {
         if (!configRepository.findAll().isEmpty()) {
             throw new ActionAlreadyPreformedException("There is already an existing configuration. Please update it instead of creating a new configuration");
         }
-        return configRepository.save(configUpload.toJpa()).toDto();
+
+        ConfigJpa jpa = ConfigJpa.builder()
+                .eventChannel(configUpload.eventChannel())
+                .botOwnerId(configUpload.botOwnerId())
+                .deletedEventCleanupDelay(configUpload.deletedEventCleanupDelay() == null ? 48 : configUpload.deletedEventCleanupDelay())
+                .draftCleanupDelay(configUpload.draftCleanupDelay() == null ? 24 : configUpload.draftCleanupDelay())
+                .build();
+
+        return configRepository.save(jpa).toDto();
     }
 
-    public Config updateConfig(Long configId, ConfigUploadUpdate configUpload) {
-        ConfigJpa configJpa = configRepository.findById(configId)
-                .orElseThrow(() -> new EntityNotFoundException(HttpErrorUtil.MISSING_COURSE_WITH_ID));
+    public Config updateConfig(ConfigUploadUpdate configUpload) {
+        ConfigJpa configJpa = getConfigJpa();
 
         if (configUpload.eventChannel() != null) {
             configJpa.setEventChannel(configUpload.eventChannel());
+        }
+        if (configUpload.botOwnerId() != null) {
+            configJpa.setBotOwnerId(configUpload.botOwnerId());
+        }
+        if (configUpload.deletedEventCleanupDelay() != null) {
+            configJpa.setDeletedEventCleanupDelay(configUpload.deletedEventCleanupDelay());
+        }
+        if (configUpload.draftCleanupDelay() != null) {
+            configJpa.setDraftCleanupDelay(configUpload.draftCleanupDelay());
         }
 
         return configRepository.save(configJpa).toDto();

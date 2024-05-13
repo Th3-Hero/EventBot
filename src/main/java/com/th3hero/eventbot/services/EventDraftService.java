@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -42,9 +41,7 @@ public class EventDraftService {
     private final CourseService courseService;
     private final SchedulingService schedulingService;
     private final EventService eventService;
-
-    @Value("${app.config.draft-cleanup-delay}")
-    private static int draftCleanupDelay;
+    private final ConfigService configService;
 
     public void createEventDraft(CommandRequest request) {
         String dateString = request.getArguments().get(DATE_ID);
@@ -140,7 +137,7 @@ public class EventDraftService {
 
         request.sendResponse(
                 ResponseFactory.createResponse(
-                        EmbedBuilderFactory.displayEventDraft(eventDraftJpa, draftCleanupDelay, request.getRequester().getAsMention()),
+                        EmbedBuilderFactory.displayEventDraft(eventDraftJpa, configService.getConfigJpa().getDraftCleanupDelay(), request.getRequester().getAsMention()),
                         Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_DRAFT_DETAILS, eventDraftJpa.getId()), "Edit Details"),
                         Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_DRAFT_COURSES, eventDraftJpa.getId()), "Edit Courses"),
                         Button.danger(InteractionArguments.createInteractionIdString(ButtonAction.DELETE_DRAFT, eventDraftJpa.getId()), "Delete Draft"),
@@ -195,7 +192,7 @@ public class EventDraftService {
 
         request.sendResponse(
                 ResponseFactory.createResponse(
-                        EmbedBuilderFactory.displayEventDraft(eventDraftJpa, draftCleanupDelay, request.getRequester().getAsMention()),
+                        EmbedBuilderFactory.displayEventDraft(eventDraftJpa, configService.getConfigJpa().getDraftCleanupDelay(), request.getRequester().getAsMention()),
                         Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_DRAFT_DETAILS, eventDraftJpa.getId()), "Edit Details"),
                         Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_DRAFT_COURSES, eventDraftJpa.getId()), "Edit Courses"),
                         Button.danger(InteractionArguments.createInteractionIdString(ButtonAction.DELETE_DRAFT, eventDraftJpa.getId()), "Delete Draft"),

@@ -56,9 +56,6 @@ public class EventService {
     private final SchedulingService schedulingService;
     private final StudentService studentService;
 
-    @Value("${app.config.deleted-event-cleanup-delay}")
-    private int deletedEventCleanupDelay;
-
     private static final String UPDATED_EVENT_MESSAGE = "The event has been updated. %s";
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -130,6 +127,8 @@ public class EventService {
         String reason = Optional.ofNullable(request.getEvent().getValue(REASON_ID))
                 .map(ModalMapping::getAsString)
                 .orElseThrow(() -> new EventParsingException("Failed to parse field from modal"));
+
+        int deletedEventCleanupDelay = configService.getConfigJpa().getDeletedEventCleanupDelay();
 
         request.getEvent().getChannel().retrieveMessageById(eventJpa.getMessageId()).queue(message -> {
             String jumpUrl = message.getJumpUrl();

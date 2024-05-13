@@ -2,7 +2,10 @@
 create sequence seq_config_id start with 1 increment by 1;
 create table config (
     id integer not null primary key,
-    event_channel bigint not null
+    event_channel bigint not null,
+    bot_owner_id bigint not null,
+    deleted_event_cleanup_delay integer not null,
+    draft_cleanup_delay integer not null
 );
 
 create sequence seq_course_id start with 1 increment by 1;

@@ -35,12 +35,11 @@ public class ConfigController {
         return configService.createConfig(configUpload);
     }
 
-    @PostMapping("/{configId}")
+    @PostMapping
     @Operation(summary = "Update the existing config")
     public Config updateConfig(
-            @PathVariable @NotNull Long configId,
             @RequestBody @NotNull ConfigUploadUpdate configUploadUpdate
     ) {
-        return configService.updateConfig(configId, configUploadUpdate);
+        return configService.updateConfig(configUploadUpdate);
     }
 }

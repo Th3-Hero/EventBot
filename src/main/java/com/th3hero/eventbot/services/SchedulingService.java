@@ -21,9 +21,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class SchedulingService {
     private final Scheduler scheduler;
-
-    @Value("${app.config.draft-cleanup-delay}")
-    private int draftCleanupDelay;
+    private final ConfigService configService;
 
     public void addDraftCleanupTrigger(Long draftId, LocalDateTime draftCreationDate) {
         try {
@@ -41,7 +39,7 @@ public class SchedulingService {
                     .withIdentity(key)
                     .forJob(DraftCleanupJob.JOB_KEY)
                     .usingJobData(DraftCleanupJob.JOB_DRAFT_KEY, draftId)
-                    .startAt(DateFormatting.toDate(draftCreationDate.plusHours(draftCleanupDelay)))
+                    .startAt(DateFormatting.toDate(draftCreationDate.plusHours(configService.getConfigJpa().getDraftCleanupDelay())))
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                             .withMisfireHandlingInstructionFireNow()
                             .withRepeatCount(0))

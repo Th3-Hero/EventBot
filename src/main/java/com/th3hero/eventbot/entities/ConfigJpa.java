@@ -27,10 +27,25 @@ public class ConfigJpa implements Serializable {
     @Column
     private Long eventChannel;
 
+    @NotNull
+    @Column
+    private Long botOwnerId;
+
+    @Builder.Default
+    @Column
+    private Integer deletedEventCleanupDelay = 48;
+
+    @Builder.Default
+    @Column
+    private Integer draftCleanupDelay = 24;
+
     public Config toDto() {
         return new Config(
                 this.getId(),
-                this.getEventChannel()
+                this.getEventChannel(),
+                this.getBotOwnerId(),
+                this.getDeletedEventCleanupDelay(),
+                this.getDraftCleanupDelay()
         );
     }
 }
