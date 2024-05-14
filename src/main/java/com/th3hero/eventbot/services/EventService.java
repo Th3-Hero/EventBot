@@ -94,9 +94,7 @@ public class EventService {
                 .queue(success -> {
                     eventJpa.setMessageId(success.getIdLong());
                     eventRepository.save(eventJpa);
-                    request.getEvent().reply("Event has been posted to the event channel. %s".formatted(success.getJumpUrl()))
-                            .setEphemeral(true)
-                            .queue();
+                    request.sendResponse("Event has been posted to the event channel. %s".formatted(success.getJumpUrl()), MessageMode.USER);
                     log.info("New event published (id:%d) in channel %s".formatted(eventJpa.getId(), success.getChannel().getName()));
                 });
     }
@@ -152,9 +150,9 @@ public class EventService {
                                 LocalDateTime.now().plusHours(deletedEventCleanupDelay)
                     ));
 
-            request.getEvent().reply("Event has been deleted").setEphemeral(true).queue();
+            request.sendResponse("Event has been deleted. %s".formatted(jumpUrl), MessageMode.USER);
         }, new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> {
-            request.getEvent().reply("Failed to retrieve message tied to event.").setEphemeral(true).queue();
+            request.sendResponse("Failed to retrieve message tied to event.", MessageMode.USER);
         }));
     }
 

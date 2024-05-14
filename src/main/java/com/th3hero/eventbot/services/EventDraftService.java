@@ -47,7 +47,6 @@ public class EventDraftService {
         String dateString = request.getArguments().get(DATE_ID);
         String timeString = request.getArguments().get(TIME_ID);
 
-
         EventJpa.EventType eventType;
         try {
             eventType = EnumUtils.valueOf(
@@ -56,9 +55,7 @@ public class EventDraftService {
                     new IllegalArgumentException("Failed to parse event type.")
             );
         } catch (IllegalArgumentException e) {
-            request.getEvent().reply("Something unexpected went wrong. Failed to parse event type.")
-                    .setEphemeral(true)
-                    .queue();
+            request.sendResponse("Something unexpected went wrong. Failed to parse event type.", MessageMode.USER);
             return;
         }
 
@@ -69,9 +66,7 @@ public class EventDraftService {
         }
 
         if (eventDate.get().isBefore(LocalDateTime.now())) {
-            request.getEvent().reply("Event date cannot be in the past.")
-                    .setEphemeral(true)
-                    .queue();
+            request.sendResponse("Event date cannot be in the past.", MessageMode.USER);
             return;
         }
 
