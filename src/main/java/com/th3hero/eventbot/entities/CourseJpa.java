@@ -3,8 +3,10 @@ package com.th3hero.eventbot.entities;
 import com.th3hero.eventbot.dto.course.Course;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 
 @Getter
@@ -25,7 +27,7 @@ public class CourseJpa implements Serializable {
     private Long id;
 
     @NonNull
-    @Column
+    @Column(unique = true)
     private String code;
 
     @Column
@@ -41,5 +43,22 @@ public class CourseJpa implements Serializable {
                 this.getName(),
                 this.getNickname()
         );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        CourseJpa courseJpa = (CourseJpa) o;
+        return courseJpa.getCode().equals(code);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(code);
     }
 }

@@ -11,7 +11,7 @@ create table config (
 create sequence seq_course_id start with 1 increment by 1;
 create table course (
     id bigint primary key,
-    code text,
+    code text unique not null,
     name text,
     nickname text
 );

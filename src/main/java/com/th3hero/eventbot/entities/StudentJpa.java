@@ -3,9 +3,11 @@ package com.th3hero.eventbot.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Getter
@@ -41,5 +43,24 @@ public class StudentJpa implements Serializable {
                 .courses(List.of())
                 .offsetTimes(List.of(24, 72))
                 .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+
+        StudentJpa that = (StudentJpa) o;
+
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

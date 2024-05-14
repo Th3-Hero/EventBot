@@ -4,8 +4,10 @@ import com.th3hero.eventbot.dto.config.Config;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -15,6 +17,9 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class ConfigJpa implements Serializable {
+
+    public static final int DEFAULT_DRAFT_CLEANUP_DELAY = 24;
+    public static final int DEFAULT_DELETED_EVENT_CLEANUP_DELAY = 48;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_config_id_generator")
@@ -47,5 +52,22 @@ public class ConfigJpa implements Serializable {
                 this.getDeletedEventCleanupDelay(),
                 this.getDraftCleanupDelay()
         );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        ConfigJpa configJpa = (ConfigJpa) o;
+        return id.equals(configJpa.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

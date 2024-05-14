@@ -3,15 +3,16 @@ package com.th3hero.eventbot.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
-@EqualsAndHashCode
 @Entity
 @Builder
 @ToString
@@ -58,6 +59,23 @@ public class EventJpa implements Serializable {
     @Builder.Default
     @Column
     private Boolean deleted = false;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        EventJpa eventJpa = (EventJpa) o;
+        return id.equals(eventJpa.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 
     public enum EventType {
         ASSIGNMENT,

@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-import static com.th3hero.eventbot.formatting.InteractionArguments.*;
+import static com.th3hero.eventbot.formatting.InteractionArguments.DRAFT_ID;
+import static com.th3hero.eventbot.formatting.InteractionArguments.EVENT_ID;
 
 @Getter
 @RequiredArgsConstructor

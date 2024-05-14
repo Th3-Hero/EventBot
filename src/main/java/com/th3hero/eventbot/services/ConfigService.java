@@ -44,8 +44,8 @@ public class ConfigService {
         ConfigJpa jpa = ConfigJpa.builder()
                 .eventChannel(configUpload.eventChannel())
                 .botOwnerId(configUpload.botOwnerId())
-                .deletedEventCleanupDelay(configUpload.deletedEventCleanupDelay() == null ? 48 : configUpload.deletedEventCleanupDelay())
-                .draftCleanupDelay(configUpload.draftCleanupDelay() == null ? 24 : configUpload.draftCleanupDelay())
+                .deletedEventCleanupDelay(configUpload.deletedEventCleanupDelay() == null ? ConfigJpa.DEFAULT_DELETED_EVENT_CLEANUP_DELAY : configUpload.deletedEventCleanupDelay())
+                .draftCleanupDelay(configUpload.draftCleanupDelay() == null ? ConfigJpa.DEFAULT_DRAFT_CLEANUP_DELAY : configUpload.draftCleanupDelay())
                 .build();
 
         return configRepository.save(jpa).toDto();
