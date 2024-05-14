@@ -1,6 +1,5 @@
 package com.th3hero.eventbot.jobs;
 
-import com.kseth.development.discord.JdaFactory;
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.repositories.EventRepository;

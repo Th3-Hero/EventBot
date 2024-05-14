@@ -1,13 +1,12 @@
-package com.th3hero.eventbot.utils;
+package com.th3hero.eventbot.formatting;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-@Getter(AccessLevel.PRIVATE)
+@Getter
 @RequiredArgsConstructor
 public enum DiscordTimestamp {
     DEFAULT(""),
@@ -21,6 +20,12 @@ public enum DiscordTimestamp {
 
     private final String style;
 
+    /**
+     * @param style The style of the timestamp
+     * @param date The date to format
+     * @return A formatted timestamp string
+     * @see <a href="https://discord.com/developers/docs/reference#message-formatting-timestamp-styles">Discord Timestamp Styles</a>
+     */
     public static String create(DiscordTimestamp style, LocalDateTime date) {
         return "<t:%d%s>".formatted(
                 date.atZone(ZoneId.of("America/New_York")).toEpochSecond(),

@@ -74,10 +74,7 @@ public class CourseService {
         CourseJpa courseJpa = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException(HttpErrorUtil.MISSING_COURSE_WITH_ID));
 
-        List<StudentJpa> students = studentService.fetchAllStudents();
-        for (StudentJpa student : students) {
-            student.getCourses().remove(courseJpa);
-        }
+        studentService.removeCourseFromAllStudents(courseJpa);
 
         courseRepository.deleteById(courseId);
     }

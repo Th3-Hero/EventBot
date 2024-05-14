@@ -4,8 +4,8 @@ import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.exceptions.DiscordConstraintException;
 import com.th3hero.eventbot.formatting.DateFormatting;
-import com.th3hero.eventbot.utils.DiscordTimestamp;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -18,10 +18,16 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class EmbedBuilderFactory {
+    public static int MAX_EMBED_FIELDS = 25;
+
     private static final Color BLUE = new Color(3, 123, 252);
     private static final Color GREEN = new Color(0, 255, 0);
     private static final Color RED = new Color(255, 8, 0);
 
+
+    /**
+     * @return A help embed with all the commands and their descriptions.
+     */
     public static MessageEmbed help() {
         EmbedBuilder embedBuilder =  new EmbedBuilder()
                 .setColor(BLUE)
@@ -37,6 +43,7 @@ public class EmbedBuilderFactory {
 
         return embedBuilder.build();
     }
+
     public static MessageEmbed coursePicker(String description) {
         return coursePicker("Course Selection", description);
     }
@@ -50,6 +57,9 @@ public class EmbedBuilderFactory {
     }
 
     public static MessageEmbed selectedCourses(List<CourseJpa> courses) {
+        if (courses.size() > MAX_EMBED_FIELDS) {
+            throw new DiscordConstraintException("Too many courses selected. Discord limits to %d fields.".formatted(MAX_EMBED_FIELDS));
+        }
         EmbedBuilder embedBuilder = new EmbedBuilder()
                 .setColor(BLUE)
                 .setTitle("Your Courses");
@@ -65,23 +75,11 @@ public class EmbedBuilderFactory {
         return embedBuilder.build();
     }
 
-    public static List<MessageEmbed> displayEventDraft(EventDraftJpa eventDraftJpa, int draftCleanupDelay, String authorMention) {
-        MessageEmbed header = new EmbedBuilder()
-                .setColor(BLUE)
-                .setTitle("Event Draft Preview")
-                .setDescription("Preview the draft and make any edits before confirming.")
-                .setFooter("Note: Drafts that are not confirmed within %d hours will be deleted.".formatted(draftCleanupDelay))
-                .build();
-
-        String date = "%s (%s)".formatted(
-                DateFormatting.formattedDateTime(eventDraftJpa.getDatetime()),
-                DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventDraftJpa.getDatetime())
-        );
-
-        MessageEmbed eventDraft = new EmbedBuilder()
-                .setColor(RED)
-                .setTitle(eventDraftJpa.getTitle())
-                .setDescription(eventDraftJpa.getNote())
+    private static MessageEmbed draftLayout(String title, String note, String type, String date, List<CourseJpa> courses, String authorMention) {
+        return new EmbedBuilder()
+                .setColor(GREEN)
+                .setTitle(title)
+                .setDescription(note)
                 .addField(
                         "Date",
                         date,
@@ -89,12 +87,12 @@ public class EmbedBuilderFactory {
                 )
                 .addField(
                         "Type",
-                        eventDraftJpa.getType().displayName(),
+                        type,
                         false
                 )
                 .addField(
                         "Course(s)",
-                        eventDraftJpa.getCourses().stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
+                        courses.stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
                         false
                 )
                 .addField(
@@ -103,16 +101,28 @@ public class EmbedBuilderFactory {
                         false
                 )
                 .build();
-
-        return List.of(header, eventDraft);
     }
 
-    public static MessageEmbed editDraftMenu() {
-        return new EmbedBuilder()
+    public static List<MessageEmbed> displayEventDraft(EventDraftJpa eventDraftJpa, int draftCleanupDelay, String authorMention) {
+        MessageEmbed header = new EmbedBuilder()
                 .setColor(BLUE)
-                .setTitle("Edit Draft")
-                .setDescription("Select what about the draft you would like to edit.")
+                .setTitle("Event Draft Preview")
+                .setDescription("Preview the draft and make any edits before confirming.")
+                .setFooter("Note: Drafts that are not confirmed within %d hours will be deleted.".formatted(draftCleanupDelay))
                 .build();
+
+        String date = DateFormatting.formattedDateTimeWithTimestamp(eventDraftJpa.getDatetime());
+
+        MessageEmbed eventDraft = draftLayout(
+                eventDraftJpa.getTitle(),
+                eventDraftJpa.getNote(),
+                eventDraftJpa.getType().displayName(),
+                date,
+                eventDraftJpa.getCourses(),
+                authorMention
+        );
+
+        return List.of(header, eventDraft);
     }
 
     public static MessageEmbed reminderOffsets(List<Integer> offsets) {
@@ -129,36 +139,16 @@ public class EmbedBuilderFactory {
     }
 
     public static MessageEmbed eventEmbed(EventJpa eventJpa, String authorMention) {
-        String date = "%s (%s)".formatted(
-                DateFormatting.formattedDateTime(eventJpa.getDatetime()),
-                DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventJpa.getDatetime())
-        );
+        String date = DateFormatting.formattedDateTimeWithTimestamp(eventJpa.getDatetime());
 
-        return new EmbedBuilder()
-                .setColor(GREEN)
-                .setTitle(eventJpa.getTitle())
-                .setDescription(eventJpa.getNote())
-                .addField(
-                        "Date",
-                        date,
-                        false
-                )
-                .addField(
-                        "Type",
-                        eventJpa.getType().displayName(),
-                        false
-                )
-                .addField(
-                        "Course(s)",
-                        eventJpa.getCourses().stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
-                        false
-                )
-                .addField(
-                        "Author",
-                        authorMention,
-                        false
-                )
-                .build();
+        return draftLayout(
+                eventJpa.getTitle(),
+                eventJpa.getNote(),
+                eventJpa.getType().displayName(),
+                date,
+                eventJpa.getCourses(),
+                authorMention
+        );
     }
 
     public static MessageEmbed deleteEvent(String reason, String jumpUrl, String mention, int eventCleanupDelay) {
@@ -205,14 +195,11 @@ public class EmbedBuilderFactory {
     }
 
     private static String shortEventSummary(EventJpa eventJpa, String jumpUrl) {
-        String dateTimeString = DateFormatting.formattedDateTime(eventJpa.getDatetime());
-        String relativeTimeString = DiscordTimestamp.create(DiscordTimestamp.RELATIVE, eventJpa.getDatetime());
-
-        String date = "%s (%s)%n".formatted(dateTimeString, relativeTimeString);
+        String date = DateFormatting.formattedDateTimeWithTimestamp(eventJpa.getDatetime());
 
         return "%s%s%s%s".formatted(
                 "**Date**\n",
-                date,
+                "%s%n".formatted(date),
                 "**Link**\n",
                 jumpUrl
         );

@@ -23,5 +23,9 @@ public enum ButtonAction implements DiscordActionArguments {
     UNDO_EVENT_DELETION(List.of(EVENT_ID)),
     MARK_COMPLETE(List.of(EVENT_ID));
 
+
+    /**
+     * The keys that the request should contain
+     */
     private final List<String> requestKeys;
 }

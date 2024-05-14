@@ -32,6 +32,13 @@ public class DateFormatting {
         return dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
+    public static String formattedDateTimeWithTimestamp(LocalDateTime dateTime) {
+        return "%s (%s)".formatted(
+                formattedDateTime(dateTime),
+                DiscordTimestamp.create(DiscordTimestamp.RELATIVE, dateTime)
+        );
+    }
+
     public static LocalDateTime parseDate(String dateString, String timeString) throws EventParsingException {
         String combinedDateTime = "%s %S".formatted(dateString, timeString);
 

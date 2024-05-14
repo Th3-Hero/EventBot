@@ -3,6 +3,10 @@ package com.th3hero.eventbot.config;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+/**
+ * Provides a set of keys to be used for field identification in Discord messages.
+ * Along with a set of constraints for field sizes and values.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DiscordFieldsConfig {
     public static final String TITLE_ID = "title";

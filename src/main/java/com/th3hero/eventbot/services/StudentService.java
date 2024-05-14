@@ -10,6 +10,7 @@ import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.repositories.StudentRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,34 +32,44 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final SchedulingService schedulingService;
 
+    /**
+     * Fetches a student based on the provided studentId or creates a new student if one does not exist.
+     *
+     * @param studentId The ID of the student to fetch.
+     * @return The StudentJpa object corresponding to the provided studentId.
+     */
     public StudentJpa fetchStudent(Long studentId) {
         return studentRepository.findById(studentId)
                 .orElseGet(() -> studentRepository.save(StudentJpa.create(studentId)));
     }
 
-    public List<StudentJpa> fetchAllStudents() {
-        return studentRepository.findAll();
-    }
-
-    public List<CourseJpa> fetchStudentCourses(Long studentId) {
-        return fetchStudent(studentId).getCourses();
-    }
-
+    /**
+     * Fetches a student based on the provided course.
+     *
+     * @param courseJpa The course to fetch students for.
+     * @return List of students that are enrolled in the provided course.
+     */
     public List<StudentJpa> fetchStudentsWithCourse(CourseJpa courseJpa) {
         return studentRepository.findAllByCoursesContains(courseJpa);
     }
 
     public void myCourses(CommandRequest request) {
-        List<CourseJpa> studentCourses = fetchStudentCourses(request.getRequester().getIdLong());
+        StudentJpa studentJpa = studentRepository.findById(request.getRequester().getIdLong())
+                .orElseThrow(() -> new EntityNotFoundException("Student with ID %d not found".formatted(request.getRequester().getIdLong())));
 
-        if (studentCourses.isEmpty()) {
+        if (studentJpa.getCourses().isEmpty()) {
             request.sendResponse("You currently have no selected courses. Please use the /select_courses command.", MessageMode.USER);
             return;
         }
 
-        request.sendResponse(EmbedBuilderFactory.selectedCourses(studentCourses), MessageMode.USER);
+        request.sendResponse(EmbedBuilderFactory.selectedCourses(studentJpa.getCourses()), MessageMode.USER);
     }
 
+    /**
+     * Handles the command auto complete event for the offset times of a student.
+     *
+     * @param event the command auto complete event
+     */
     public void offsetAutoComplete(CommandAutoCompleteInteractionEvent event) {
         StudentJpa studentJpa = fetchStudent(event.getUser().getIdLong());
         List<Command.Choice> choices = studentJpa.getOffsetTimes().stream()
@@ -68,6 +79,11 @@ public class StudentService {
         event.replyChoices(choices).queue();
     }
 
+    /**
+     * Handles the reminder offset command and distributing the subcommand.
+     *
+     * @param request the command request
+     */
     public void reminderOffsetsHandler(CommandRequest request) {
         ReminderConfigOptions option = EnumUtils.valueOf(
                 ReminderConfigOptions.class,
@@ -83,6 +99,7 @@ public class StudentService {
             case REMOVE -> removeReminderOffsets(request, studentJpa);
         }
     }
+
 
     private void listReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
         studentJpa.getOffsetTimes().sort(null);
@@ -133,6 +150,10 @@ public class StudentService {
                 "You have no reminders on this event.";
 
         request.sendResponse(message, MessageMode.USER);
+    }
+
+    public void removeCourseFromAllStudents(CourseJpa courseJpa) {
+        studentRepository.findAllByCoursesContains(courseJpa).forEach(studentJpa -> studentJpa.getCourses().remove(courseJpa));
     }
 
     public enum ReminderConfigOptions {

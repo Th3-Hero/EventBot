@@ -16,5 +16,8 @@ public enum ModalAction implements DiscordActionArguments{
     EVENT_DELETION_REASON(List.of(EVENT_ID)),
     EDIT_EVENT_DETAILS(List.of(EVENT_ID));
 
+    /**
+     * The keys that the request should contain
+     */
     private final List<String> requestKeys;
 }

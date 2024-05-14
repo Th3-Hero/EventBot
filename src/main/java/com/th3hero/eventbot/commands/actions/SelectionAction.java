@@ -16,5 +16,8 @@ public enum SelectionAction implements DiscordActionArguments {
     EDIT_DRAFT_COURSES(List.of(DRAFT_ID)),
     EDIT_EVENT_COURSES(List.of(EVENT_ID));
 
+    /**
+     * The keys that the request should contain
+     */
     private final List<String> requestKeys;
 }

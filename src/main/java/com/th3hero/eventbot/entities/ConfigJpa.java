@@ -36,10 +36,16 @@ public class ConfigJpa implements Serializable {
     @Column
     private Long botOwnerId;
 
+    /**
+     * The number of hours to wait before cleaning up an event that has been deleted by the user.
+     */
     @Builder.Default
     @Column
     private Integer deletedEventCleanupDelay = 48;
 
+    /**
+     * The number of hours to wait before cleaning up an unconfirmed draft event.
+     */
     @Builder.Default
     @Column
     private Integer draftCleanupDelay = 24;
