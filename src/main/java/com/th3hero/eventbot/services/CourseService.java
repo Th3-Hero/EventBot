@@ -85,37 +85,26 @@ public class CourseService {
                 .toList();
     }
 
-    public StringSelectMenu createCourseSelector(String selectMenuId, List<CourseJpa> defaultOptions, String placeholder) {
+    public StringSelectMenu createCourseSelector(String selectMenuId, List<CourseJpa> defaultOptions) {
         List<SelectOption> options = selectOptionFromJpas(courseRepository.findAll());
         if (options.isEmpty()) {
-            throw new EntityNotFoundException("No courses are currently setup. Ask William.");
+            throw new EntityNotFoundException("No courses are currently setup. Contact the bot owner.");
         }
         return StringSelectMenu.create(selectMenuId)
-                .setPlaceholder(placeholder)
+                .setPlaceholder("Select Courses")
                 .setMaxValues(options.size())
                 .addOptions(options)
                 .setDefaultValues(defaultOptions.stream().map(CourseJpa::getCode).toList())
                 .build();
     }
 
-    public StringSelectMenu createCourseSelector(String selectMenuId, List<CourseJpa> defaultOptions) {
-        return createCourseSelector(selectMenuId, defaultOptions, "Select Courses");
-    }
-
-    public StringSelectMenu createStudentCourseSelector(String selectMenuId, Long studentId) {
-        return createCourseSelector(
-                selectMenuId,
-                studentService.fetchStudent(studentId).getCourses()
-        );
-    }
-
     public void sendCourseSelectionMenu(CommandRequest request) {
         MessageCreateData data = new MessageCreateBuilder()
                 .addEmbeds(EmbedBuilderFactory.coursePicker("Select Any courses you wish to receive notifications for."))
                 .addActionRow(
-                        createStudentCourseSelector(
+                        createCourseSelector(
                                 SelectionAction.SELECT_COURSES.toString(),
-                                request.getRequester().getIdLong()
+                                studentService.fetchStudent(request.getRequester().getIdLong()).getCourses()
                         )
                 ).build();
         request.sendResponse(data, InteractionRequest.MessageMode.USER);

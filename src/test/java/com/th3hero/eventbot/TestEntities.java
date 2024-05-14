@@ -4,10 +4,21 @@ import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.dv8tion.jda.internal.JDAImpl;
+import net.dv8tion.jda.internal.entities.GuildImpl;
+import net.dv8tion.jda.internal.entities.MemberImpl;
+import net.dv8tion.jda.internal.entities.UserImpl;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+
+import static org.mockito.Mockito.*;
 
 public class TestEntities {
 
@@ -55,5 +66,26 @@ public class TestEntities {
                 .offsetTimes(List.of(24, 72))
                 .courses(new ArrayList<>(courses))
                 .build();
+    }
+
+    public static Guild guild() {
+        return guild(1);
+    }
+    // Ignored for mocking reasons. I don't actually care what value it takes on, so long as it does not NPE
+    public static Guild guild(final int id) {
+        final JDAImpl jda = mock(JDAImpl.class);
+
+        when(jda.getCacheFlags())
+                .thenReturn(EnumSet.noneOf(CacheFlag.class));
+
+        return spy(new GuildImpl(jda, id));
+    }
+
+    private static User user() {
+        return new UserImpl(1, mock(JDAImpl.class)).setName("user").setGlobalName("test_user").setBot(false);
+    }
+
+    public static Member member(final Guild guild) {
+        return new MemberImpl((GuildImpl) guild, user());
     }
 }

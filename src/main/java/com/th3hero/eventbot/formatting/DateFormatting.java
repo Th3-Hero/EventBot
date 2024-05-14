@@ -9,9 +9,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DateFormatting {
+
+    public static final ZoneId ZONE_ID = ZoneId.of("America/New_York");
 
     private static final List<DateTimeFormatter> FORMATTERS = List.of(
             DateTimeFormatter.ofPattern("yyyy-M-d H:mm"),
@@ -19,7 +22,7 @@ public class DateFormatting {
     );
 
     public static Date toDate(LocalDateTime dateTime) {
-        return Date.from(dateTime.atZone(ZoneId.of("America/New_York")).toInstant());
+        return Date.from(dateTime.atZone(ZONE_ID).toInstant());
     }
 
     public static String formattedDateTime(LocalDateTime dateTime) {
@@ -39,16 +42,16 @@ public class DateFormatting {
         );
     }
 
-    public static LocalDateTime parseDate(String dateString, String timeString) throws EventParsingException {
+    public static Optional<LocalDateTime> parseDate(String dateString, String timeString){
         String combinedDateTime = "%s %S".formatted(dateString, timeString);
 
         for (DateTimeFormatter formatter : FORMATTERS) {
             try {
-                return LocalDateTime.parse(combinedDateTime, formatter);
+                return Optional.of(LocalDateTime.parse(combinedDateTime, formatter));
             } catch (Exception e) {
                 // Do nothing
             }
         }
-        throw new EventParsingException("Unable to parse date and time");
+        return Optional.empty();
     }
 }

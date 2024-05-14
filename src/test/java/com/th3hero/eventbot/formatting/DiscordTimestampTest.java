@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DiscordTimestampTest {
     private static final LocalDateTime DATE = LocalDateTime.of(2024, 5, 13, 21, 33);
-    private static final Long TIMESTAMP = DATE.atZone(ZoneId.of("America/New_York")).toEpochSecond();
+    private static final Long TIMESTAMP = DATE.atZone(DateFormatting.ZONE_ID).toEpochSecond();
 
     @ParameterizedTest
     @EnumSource(DiscordTimestamp.class)

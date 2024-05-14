@@ -62,17 +62,13 @@ public class EventDraftService {
             return;
         }
 
-        LocalDateTime eventDate;
-        try {
-            eventDate = DateFormatting.parseDate(dateString, timeString);
-        } catch (EventParsingException e) {
-            request.getEvent().reply(e.getMessage())
-                    .setEphemeral(true)
-                    .queue();
+        Optional<LocalDateTime> eventDate = DateFormatting.parseDate(dateString, timeString);
+        if (eventDate.isEmpty()) {
+            request.sendResponse("Failed to parse date and time.", MessageMode.USER);
             return;
         }
 
-        if (eventDate.isBefore(LocalDateTime.now())) {
+        if (eventDate.get().isBefore(LocalDateTime.now())) {
             request.getEvent().reply("Event date cannot be in the past.")
                     .setEphemeral(true)
                     .queue();
@@ -81,7 +77,7 @@ public class EventDraftService {
 
         EventDraftJpa eventDraft = EventDraftJpa.create(
                 request.getRequester().getIdLong(),
-                eventDate,
+                eventDate.get(),
                 eventType
         );
 
@@ -178,17 +174,15 @@ public class EventDraftService {
                 .map(ModalMapping::getAsString)
                 .orElseThrow(() -> new EventParsingException("Failed to get time from modal"));
 
-        LocalDateTime eventDate;
-        try {
-            eventDate = DateFormatting.parseDate(dateString, timeString);
-        } catch (EventParsingException e) {
-            request.sendResponse(e.getMessage(), MessageMode.USER);
+        Optional<LocalDateTime> eventDate = DateFormatting.parseDate(dateString, timeString);
+        if (eventDate.isEmpty()) {
+            request.sendResponse("Failed to parse date and time.", MessageMode.USER);
             return;
         }
 
         eventDraftJpa.setTitle(title);
         eventDraftJpa.setNote(StringUtils.isBlank(note) ? null : note);
-        eventDraftJpa.setDatetime(eventDate);
+        eventDraftJpa.setDatetime(eventDate.get());
 
         request.sendResponse(
                 ResponseFactory.createResponse(

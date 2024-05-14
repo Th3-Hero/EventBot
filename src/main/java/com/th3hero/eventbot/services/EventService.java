@@ -251,11 +251,9 @@ public class EventService {
                 .map(ModalMapping::getAsString)
                 .orElseThrow(() -> new EventParsingException("Failed to parse time from modal"));
 
-        LocalDateTime eventDate;
-        try {
-            eventDate = DateFormatting.parseDate(dateString, timeString);
-        } catch (EventParsingException e) {
-            request.sendResponse(e.getMessage(), MessageMode.USER);
+        Optional<LocalDateTime> eventDate = DateFormatting.parseDate(dateString, timeString);
+        if (eventDate.isEmpty()) {
+            request.sendResponse("Failed to parse date and time", MessageMode.USER);
             return;
         }
 
@@ -293,17 +291,17 @@ public class EventService {
             }
             eventJpa.setNote(StringUtils.isBlank(note) ? null : note);
         }
-        if (!eventDate.equals(eventJpa.getDatetime())) {
+        if (!eventDate.get().equals(eventJpa.getDatetime())) {
             embedBuilder.addField(
                     "Original Date",
                     DateFormatting.formattedDateTime(eventJpa.getDatetime()),
                     false
             ).addField(
                     "Updated Date",
-                    DateFormatting.formattedDateTime(eventDate),
+                    DateFormatting.formattedDateTime(eventDate.get()),
                     false
             );
-            eventJpa.setDatetime(eventDate);
+            eventJpa.setDatetime(eventDate.get());
             schedulingService.stripReminderTriggers(eventJpa.getId());
             for (CourseJpa courseJpa : eventJpa.getCourses()) {
                 courseService.scheduleEventForCourse(eventJpa, courseJpa);

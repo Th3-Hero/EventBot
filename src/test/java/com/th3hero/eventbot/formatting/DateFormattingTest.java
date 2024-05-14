@@ -47,7 +47,7 @@ class DateFormattingTest {
 
     @Test
     void formattedDateTimeWithTimestamp() {
-        var dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(1715649720L), ZoneId.of("America/New_York"));
+        var dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(1715649720L), DateFormatting.ZONE_ID);
         var result = DateFormatting.formattedDateTimeWithTimestamp(dateTime);
         assertThat(result).isEqualTo("2024-05-13 21:22 (<t:1715649720:R>)");
     }
@@ -67,14 +67,16 @@ class DateFormattingTest {
     @MethodSource("parseDateArguments")
     void parseDate(String date, String time, LocalDateTime expected) throws EventParsingException {
         var result = DateFormatting.parseDate(date, time);
-        assertThat(result).isEqualTo(expected);
+        assertThat(result).isPresent();
+        assertThat(result).contains(expected);
     }
 
     @Test
     void parseDate_invalidDate() {
         var dateString = "2024-555-3123";
         var timeString = "14:30";
-        assertThatExceptionOfType(EventParsingException.class).isThrownBy(() -> DateFormatting.parseDate(dateString, timeString));
+        var result = DateFormatting.parseDate(dateString, timeString);
+        assertThat(result).isEmpty();
     }
 
 }

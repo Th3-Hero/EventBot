@@ -19,6 +19,7 @@ public class ButtonController extends ListenerAdapter {
     private final EventDraftService eventDraftService;
     private final EventService eventService;
 
+    @Override
     public void onButtonInteraction(@NonNull ButtonInteractionEvent event) {
         try {
             final ButtonRequest request = ButtonRequest.fromInteraction(event);
