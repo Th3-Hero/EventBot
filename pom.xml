@@ -3,13 +3,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-
 	<parent>
 		<groupId>com.kseth</groupId>
 		<artifactId>development-starter-parent</artifactId>
 		<version>2.2.2</version>
 	</parent>
-
 
 	<groupId>com.th3hero</groupId>
 	<artifactId>event-bot</artifactId>
@@ -17,20 +15,11 @@
 	<name>EventBot for Discord</name>
 	<description>Demo project for Spring Boot</description>
 
-
 	<properties>
 		<java.version>21</java.version>
 	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>com.kseth</groupId>
-			<artifactId>development-starter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.kseth</groupId>
-			<artifactId>development-starter-test</artifactId>
-		</dependency>
 
+	<dependencies>
 		<dependency>
 			<groupId>com.kseth</groupId>
 			<artifactId>development-starter-discord</artifactId>

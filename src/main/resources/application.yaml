@@ -1,10 +1,3 @@
-# Required configuration with no defaults is commented
-# URL of where the admin rest API will be served
-app:
-  url:
-  config:
-    deleted-event-cleanup-delay: 48
-    draft-cleanup-delay: 24
 server:
   port: 5555
 # Token for discord bot
