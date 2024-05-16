@@ -10,7 +10,7 @@ import static com.th3hero.eventbot.formatting.InteractionArguments.EVENT_ID;
 
 @Getter
 @RequiredArgsConstructor
-public enum ModalAction implements DiscordActionArguments{
+public enum ModalAction implements DiscordActionArguments {
     CREATE_DRAFT(List.of(DRAFT_ID)),
     EDIT_DRAFT_DETAILS(List.of(DRAFT_ID)),
     EVENT_DELETION_REASON(List.of(EVENT_ID)),

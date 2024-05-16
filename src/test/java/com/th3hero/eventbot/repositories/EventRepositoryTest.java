@@ -67,6 +67,7 @@ class EventRepositoryTest {
 
         assertThat(events).usingRecursiveComparison().isEqualTo(List.of(eventOne, eventTwo));
     }
+
     @Test
     void findAllByCourse_noEventForCourse() {
         CourseJpa courseOne = TestEntities.courseJpa(1);
@@ -84,8 +85,8 @@ class EventRepositoryTest {
         List<EventJpa> events = eventRepository.findAllByCourse(List.of(target));
 
         assertThat(events)
-                .isNotNull()
-                .isEmpty();
+            .isNotNull()
+            .isEmpty();
     }
 
     @Test
@@ -133,8 +134,8 @@ class EventRepositoryTest {
         Optional<EventJpa> event = eventRepository.findEventJpaByMessageId(targetEventId);
 
         assertThat(event).isPresent()
-                .usingRecursiveComparison()
-                .isEqualTo(Optional.of(eventTwo));
+            .usingRecursiveComparison()
+            .isEqualTo(Optional.of(eventTwo));
     }
 
     @Test

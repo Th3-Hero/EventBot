@@ -36,13 +36,13 @@ public class StudentJpa implements Serializable {
     private List<Integer> offsetTimes;
 
     public static StudentJpa create(
-            Long studentId
+        Long studentId
     ) {
         return StudentJpa.builder()
-                .id(studentId)
-                .courses(List.of())
-                .offsetTimes(List.of(24, 72))
-                .build();
+            .id(studentId)
+            .courses(List.of())
+            .offsetTimes(List.of(24, 72))
+            .build();
     }
 
     @Override

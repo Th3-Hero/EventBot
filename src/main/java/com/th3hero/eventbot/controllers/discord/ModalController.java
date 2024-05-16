@@ -2,9 +2,11 @@ package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.commands.requests.ModalRequest;
+import com.th3hero.eventbot.exceptions.InformationRetrievalException;
 import com.th3hero.eventbot.services.EventDraftService;
 import com.th3hero.eventbot.services.EventService;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Controller;
 public class ModalController extends ListenerAdapter {
     private final EventDraftService eventDraftService;
     private final EventService eventService;
+
+    private static final String DEFAULT_ERROR_RESPONSE = "An unexpected error occurred";
 
     @Override
     public void onModalInteraction(@NonNull ModalInteractionEvent event) {
@@ -40,9 +44,15 @@ public class ModalController extends ListenerAdapter {
                 case EDIT_EVENT_DETAILS -> eventService.editEventDetails(request);
                 default -> log.warn("Received an unsupported modal type: {}", request.getEvent().getModalId());
             }
+        } catch (EntityNotFoundException e) {
+            request.sendResponse(e.getMessage(), MessageMode.USER);
+            log.debug(e.getMessage());
+        } catch (InformationRetrievalException e) {
+            request.sendResponse(e.getMessage(), MessageMode.USER);
+            log.error(e.getMessage(), e);
         } catch (Exception e) {
             log.error("Modal Handler", e);
-            request.sendResponse(e.getMessage(), MessageMode.USER);
+            request.sendResponse(DEFAULT_ERROR_RESPONSE, MessageMode.USER);
             throw e;
         }
     }

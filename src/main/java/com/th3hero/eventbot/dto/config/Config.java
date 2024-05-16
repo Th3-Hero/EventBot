@@ -13,9 +13,10 @@ import lombok.NonNull;
  * @param draftCleanupDelay delay in hours before drafts are removed from the database
  */
 public record Config(
-        @NonNull Integer id,
-        @NonNull Long eventChannel,
-        @NonNull Long botOwnerId,
-        @NonNull Integer deletedEventCleanupDelay,
-        @NonNull Integer draftCleanupDelay
-) {}
+    @NonNull Integer id,
+    @NonNull Long eventChannel,
+    @NonNull Long botOwnerId,
+    @NonNull Integer deletedEventCleanupDelay,
+    @NonNull Integer draftCleanupDelay
+) {
+}

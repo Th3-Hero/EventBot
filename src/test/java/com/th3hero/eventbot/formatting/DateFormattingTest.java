@@ -1,6 +1,5 @@
 package com.th3hero.eventbot.formatting;
 
-import com.th3hero.eventbot.exceptions.EventParsingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -8,11 +7,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 class DateFormattingTest {
 
@@ -55,17 +52,17 @@ class DateFormattingTest {
     static Stream<Arguments> parseDateArguments() {
         final var targetDateTime = LocalDateTime.of(2024, 5, 20, 4, 30);
         return Stream.of(
-                Arguments.of("2024-05-20", "04:30", targetDateTime),
-                Arguments.of("2024-05-20", "4:30", targetDateTime),
-                Arguments.of("2024-5-20", "04:30", targetDateTime),
-                Arguments.of("2024/05/20", "04:30", targetDateTime),
-                Arguments.of("2024/5/20", "04:30", targetDateTime)
+            Arguments.of("2024-05-20", "04:30", targetDateTime),
+            Arguments.of("2024-05-20", "4:30", targetDateTime),
+            Arguments.of("2024-5-20", "04:30", targetDateTime),
+            Arguments.of("2024/05/20", "04:30", targetDateTime),
+            Arguments.of("2024/5/20", "04:30", targetDateTime)
         );
     }
 
     @ParameterizedTest
     @MethodSource("parseDateArguments")
-    void parseDate(String date, String time, LocalDateTime expected) throws EventParsingException {
+    void parseDate(String date, String time, LocalDateTime expected) {
         var result = DateFormatting.parseDate(date, time);
         assertThat(result).isPresent();
         assertThat(result).contains(expected);

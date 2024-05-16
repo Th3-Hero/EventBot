@@ -43,7 +43,7 @@ public class DeletionHandler {
         }
 
         EventJpa eventJpa = eventRepository.findEventJpaByMessageId(deletedMessageId)
-                .orElseThrow(() -> new EntityNotFoundException("Event with deleted message was not found in the database. Message id: %d".formatted(deletedMessageId)));
+            .orElseThrow(() -> new EntityNotFoundException("Event with deleted message was not found in the database. Message id: %d".formatted(deletedMessageId)));
         Long eventChannelId = configJpa.getEventChannel();
         Optional<TextChannel> channel = Optional.ofNullable(event.getJDA().getTextChannelById(eventChannelId));
         if (channel.isEmpty()) {
@@ -53,15 +53,15 @@ public class DeletionHandler {
         String author = event.getJDA().getUserById(eventJpa.getAuthorId()).getAsMention();
 
         channel.get().sendMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa, author))
-                .addActionRow(
-                        Button.success(InteractionArguments.createInteractionIdString(ButtonAction.MARK_COMPLETE, eventJpa.getId()), "Mark Complete"),
-                        Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_EVENT, eventJpa.getId()), "Edit Event"),
-                        Button.danger(InteractionArguments.createInteractionIdString(ButtonAction.DELETE_EVENT, eventJpa.getId()), "Delete Event")
-                )
-                .queue(success -> {
-                    eventJpa.setMessageId(success.getIdLong());
-                    eventRepository.save(eventJpa);
-                });
+            .addActionRow(
+                Button.success(InteractionArguments.createInteractionIdString(ButtonAction.MARK_COMPLETE, eventJpa.getId()), "Mark Complete"),
+                Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_EVENT, eventJpa.getId()), "Edit Event"),
+                Button.danger(InteractionArguments.createInteractionIdString(ButtonAction.DELETE_EVENT, eventJpa.getId()), "Delete Event")
+            )
+            .queue(success -> {
+                eventJpa.setMessageId(success.getIdLong());
+                eventRepository.save(eventJpa);
+            });
         channel.get().sendMessage("Event messages cannot be deleted directly. You must use the delete button on the message.").queue();
     }
 
@@ -75,10 +75,10 @@ public class DeletionHandler {
         }
 
         Optional.ofNullable(event.getJDA().getUserById(configJpa.getBotOwnerId())).ifPresentOrElse(
-                user -> user.openPrivateChannel().queue(
-                        channel -> channel.sendMessage("The event channel has been deleted. Please set a new event channel.").queue()
-                ),
-                () -> log.error("Failed to find bot owner with configured id. The event channel has been deleted.")
+            user -> user.openPrivateChannel().queue(
+                channel -> channel.sendMessage("The event channel has been deleted. Please set a new event channel.").queue()
+            ),
+            () -> log.error("Failed to find bot owner with configured id. The event channel has been deleted.")
         );
     }
 }

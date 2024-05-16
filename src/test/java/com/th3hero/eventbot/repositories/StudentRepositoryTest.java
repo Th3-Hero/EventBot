@@ -44,8 +44,8 @@ class StudentRepositoryTest {
         List<StudentJpa> students = studentRepository.findAllByCoursesContains(courseTwo);
 
         assertThat(students)
-                .usingRecursiveComparison()
-                .isEqualTo(List.of(studentTwo, studentThree, studentFive));
+            .usingRecursiveComparison()
+            .isEqualTo(List.of(studentTwo, studentThree, studentFive));
     }
 
     @Test

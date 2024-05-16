@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.formatting;
 
 import com.th3hero.eventbot.exceptions.ArgumentMappingException;
-import com.th3hero.eventbot.exceptions.EventParsingException;
+import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -87,7 +87,7 @@ class InteractionArgumentsTest {
     void parseArguments_nonLong() {
         var action = TestInteractionEnum.TEST_INTERACTION_TWO;
         List<String> idArguments = List.of("1", "a");
-        assertThatExceptionOfType(EventParsingException.class).isThrownBy(() -> {
+        assertThatExceptionOfType(UnsupportedInteractionException.class).isThrownBy(() -> {
             InteractionArguments.parseArguments(action, idArguments);
         });
     }

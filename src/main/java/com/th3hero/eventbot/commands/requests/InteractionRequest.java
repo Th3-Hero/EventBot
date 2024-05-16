@@ -43,9 +43,9 @@ public abstract class InteractionRequest {
      * @param success A callback to execute on response success
      */
     public abstract void sendResponse(
-            @NonNull final Object response,
-            final MessageMode mode,
-            final Consumer<Message> success
+        @NonNull final Object response,
+        final MessageMode mode,
+        final Consumer<Message> success
     );
 
     /**
@@ -70,7 +70,7 @@ public abstract class InteractionRequest {
             throw new InvalidStateException("No event channel was found on the request. Make sure to addEventChannel");
         }
         return Optional.ofNullable(server.getTextChannelById(eventChannelId))
-                .orElseThrow(() -> new ConfigErrorException("Unable to find event channel %d".formatted(eventChannelId)));
+            .orElseThrow(() -> new ConfigErrorException("Unable to find event channel %d".formatted(eventChannelId)));
     }
 
 

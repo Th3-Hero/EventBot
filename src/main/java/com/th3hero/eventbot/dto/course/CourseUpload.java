@@ -10,9 +10,9 @@ public record CourseUpload(
 ) {
     public CourseJpa toJpa() {
         return CourseJpa.builder()
-                .code(code)
-                .name(name)
-                .nickname(nickname)
-                .build();
+            .code(code)
+            .name(name)
+            .nickname(nickname)
+            .build();
     }
 }

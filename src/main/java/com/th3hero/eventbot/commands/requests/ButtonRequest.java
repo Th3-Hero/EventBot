@@ -34,13 +34,7 @@ public class ButtonRequest extends InteractionRequest {
 
     private static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
 
-    private ButtonRequest(
-            @NonNull ButtonAction action,
-            @NonNull ButtonInteractionEvent event,
-            @NonNull Member requester,
-            @NonNull Guild server,
-            @NonNull Map<String, Long> arguments
-    ) {
+    private ButtonRequest(@NonNull ButtonAction action, @NonNull ButtonInteractionEvent event, @NonNull Member requester, @NonNull Guild server, @NonNull Map<String, Long> arguments) {
         super(requester, server);
         this.action = action;
         this.event = event;
@@ -51,6 +45,7 @@ public class ButtonRequest extends InteractionRequest {
      * Create a button request from a button interaction event
      *
      * @param event The event to create the button request from
+     *
      * @return The created button request
      * @throws UnsupportedInteractionException If the interaction is not supported
      * @see ButtonAction ButtonAtion for supported interactions
@@ -59,19 +54,9 @@ public class ButtonRequest extends InteractionRequest {
         final List<String> buttonIdSplits = List.of(event.getButton().getId().split("-"));
         final String buttonActionString = buttonIdSplits.subList(0, 1).getFirst();
         final List<String> idArguments = buttonIdSplits.subList(1, buttonIdSplits.size());
-        final ButtonAction action = EnumUtils.valueOf(
-                ButtonAction.class,
-                buttonActionString,
-                new UnsupportedInteractionException("Unsupported interaction with button %s".formatted(event.getButton().getId()))
-        );
+        final ButtonAction action = EnumUtils.valueOf(ButtonAction.class, buttonActionString, new UnsupportedInteractionException("Unsupported interaction with button %s".formatted(event.getButton().getId())));
 
-        return new ButtonRequest(
-                action,
-                event,
-                event.getMember(),
-                event.getGuild(),
-                InteractionArguments.parseArguments(action, idArguments)
-        );
+        return new ButtonRequest(action, event, event.getMember(), event.getGuild(), InteractionArguments.parseArguments(action, idArguments));
     }
 
     /**
@@ -85,6 +70,7 @@ public class ButtonRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
+     *
      * @throws UnsupportedInteractionException If given unsupported interaction
      */
     @Override
@@ -94,7 +80,8 @@ public class ButtonRequest extends InteractionRequest {
             case MessageEmbed embed -> sendEmbedResponse(embed, mode, success);
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
-            default -> throw new UnsupportedInteractionException("Unsupported button event response type %s".formatted(response.getClass().getSimpleName()));
+            default ->
+                throw new UnsupportedInteractionException("Unsupported button event response type %s".formatted(response.getClass().getSimpleName()));
         }
     }
 

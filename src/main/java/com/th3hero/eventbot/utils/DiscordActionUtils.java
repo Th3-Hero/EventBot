@@ -3,11 +3,19 @@ package com.th3hero.eventbot.utils;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
+
+import java.util.function.Consumer;
 
 @NoArgsConstructor(access = AccessLevel.NONE)
 public final class DiscordActionUtils {
@@ -20,9 +28,9 @@ public final class DiscordActionUtils {
      * @param isUserReply If the response should be ephemeral
      */
     public static <T extends IReplyCallback> void textResponse(
-            final T event,
-            final String text,
-            final boolean isUserReply
+        final T event,
+        final String text,
+        final boolean isUserReply
     ) {
         if (event.isAcknowledged()) {
             event.getHook().sendMessage(text).setEphemeral(isUserReply).queue();
@@ -39,9 +47,9 @@ public final class DiscordActionUtils {
      * @param isUserReply If the response should be ephemeral
      */
     public static <T extends IReplyCallback> void embedResponse(
-            final T event,
-            final MessageEmbed embed,
-            final boolean isUserReply
+        final T event,
+        final MessageEmbed embed,
+        final boolean isUserReply
     ) {
         if (event.isAcknowledged()) {
             event.getHook().sendMessageEmbeds(embed).setEphemeral(isUserReply).queue();
@@ -55,6 +63,7 @@ public final class DiscordActionUtils {
      *
      * @param event The event to respond to
      * @param modal The modal to send
+     *
      * @throws IllegalInteractionException If the event is already acknowledged
      */
     public static <T extends IModalCallback> void modalResponse(final T event, final Modal modal) {
@@ -72,9 +81,9 @@ public final class DiscordActionUtils {
      * @param isUserReply If the response should be ephemeral
      */
     public static <T extends IReplyCallback> void messageCreateDataResponse(
-            final T event,
-            final MessageCreateData data,
-            final boolean isUserReply
+        final T event,
+        final MessageCreateData data,
+        final boolean isUserReply
     ) {
         if (event.isAcknowledged()) {
             event.getHook().sendMessage(data).setEphemeral(isUserReply).queue();
@@ -95,5 +104,46 @@ public final class DiscordActionUtils {
         }
     }
 
+    public static void retrieveMessage(
+        final MessageChannel channel,
+        final Long messageId,
+        final Consumer<Message> success,
+        final Consumer<? super ErrorResponseException> error
+    ) {
+        channel.retrieveMessageById(messageId).queue(
+            success,
+            new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, error)
+        );
+    }
+
+    public static void editMessage(
+        final MessageChannel channel,
+        final Long messageId,
+        final MessageEditData data,
+        final Consumer<Message> success,
+        final Consumer<? super ErrorResponseException> error
+    ) {
+        retrieveMessage(
+            channel,
+            messageId,
+            message -> message.editMessage(data).queue(success),
+            error
+        );
+    }
+
+
+    public static void deleteMessage(
+        final MessageChannel channel,
+        final Long messageId,
+        final Consumer<Void> success,
+        final Consumer<? super ErrorResponseException> error
+    ) {
+        retrieveMessage(
+            channel,
+            messageId,
+            message -> message.delete().queue(success),
+            error
+        );
+    }
 
 }

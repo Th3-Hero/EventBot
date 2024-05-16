@@ -12,17 +12,17 @@ import lombok.NonNull;
  * @param draftCleanupDelay delay in hours before drafts are removed from the database
  */
 public record ConfigUpload(
-        @NonNull Long eventChannel,
-        @NonNull Long botOwnerId,
-        Integer deletedEventCleanupDelay,
-        Integer draftCleanupDelay
+    @NonNull Long eventChannel,
+    @NonNull Long botOwnerId,
+    Integer deletedEventCleanupDelay,
+    Integer draftCleanupDelay
 ) {
     public ConfigJpa toJpa() {
         return ConfigJpa.builder()
-                .eventChannel(eventChannel)
-                .botOwnerId(botOwnerId)
-                .deletedEventCleanupDelay(deletedEventCleanupDelay)
-                .draftCleanupDelay(draftCleanupDelay)
-                .build();
+            .eventChannel(eventChannel)
+            .botOwnerId(botOwnerId)
+            .deletedEventCleanupDelay(deletedEventCleanupDelay)
+            .draftCleanupDelay(draftCleanupDelay)
+            .build();
     }
 }

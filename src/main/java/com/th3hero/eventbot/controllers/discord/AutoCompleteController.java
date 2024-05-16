@@ -22,9 +22,9 @@ public class AutoCompleteController extends ListenerAdapter {
     @Override
     public void onCommandAutoCompleteInteraction(@NonNull CommandAutoCompleteInteractionEvent event) {
         Command command = EnumUtils.valueOf(
-                Command.class,
-                event.getName(),
-                new UnsupportedInteractionException("Failed to parse auto complete interaction: %s".formatted(event.getName()))
+            Command.class,
+            event.getName(),
+            new UnsupportedInteractionException("Failed to parse auto complete interaction: %s".formatted(event.getName()))
         );
 
         switch (command) {

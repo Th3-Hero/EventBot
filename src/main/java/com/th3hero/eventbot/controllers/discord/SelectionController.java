@@ -6,6 +6,7 @@ import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.EventDraftService;
 import com.th3hero.eventbot.services.EventService;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,9 @@ public class SelectionController extends ListenerAdapter {
                 case EDIT_EVENT_COURSES -> eventService.editEventCourses(request);
                 default -> log.warn("Received an unsupported selection type: {}", request.getEvent().getSelectMenu().getId());
             }
+        } catch (EntityNotFoundException e) {
+            request.sendResponse(e.getMessage(), MessageMode.USER);
+            log.debug(e.getMessage(), e);
         } catch (Exception e) {
             log.error("Selection Handler", e);
             request.sendResponse(e.getMessage(), MessageMode.USER);

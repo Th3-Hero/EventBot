@@ -26,23 +26,23 @@ public class SchedulingService {
         try {
             if (!scheduler.checkExists(DraftCleanupJob.JOB_KEY)) {
                 JobDetail cleanupJob = JobBuilder.newJob(DraftCleanupJob.class)
-                        .withIdentity(DraftCleanupJob.JOB_KEY)
-                        .withDescription("Automated cleanup of abandoned jobs")
-                        .storeDurably()
-                        .build();
+                    .withIdentity(DraftCleanupJob.JOB_KEY)
+                    .withDescription("Automated cleanup of abandoned jobs")
+                    .storeDurably()
+                    .build();
                 scheduler.addJob(cleanupJob, true);
                 log.info("Added cleanup job");
             }
             TriggerKey key = TriggerKey.triggerKey(draftId.toString());
             Trigger cleanupTrigger = TriggerBuilder.newTrigger()
-                    .withIdentity(key)
-                    .forJob(DraftCleanupJob.JOB_KEY)
-                    .usingJobData(DraftCleanupJob.JOB_DRAFT_KEY, draftId)
-                    .startAt(DateFormatting.toDate(draftCreationDate.plusHours(configService.getConfigJpa().getDraftCleanupDelay())))
-                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withMisfireHandlingInstructionFireNow()
-                            .withRepeatCount(0))
-                    .build();
+                .withIdentity(key)
+                .forJob(DraftCleanupJob.JOB_KEY)
+                .usingJobData(DraftCleanupJob.JOB_DRAFT_KEY, draftId)
+                .startAt(DateFormatting.toDate(draftCreationDate.plusHours(configService.getConfigJpa().getDraftCleanupDelay())))
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                    .withMisfireHandlingInstructionFireNow()
+                    .withRepeatCount(0))
+                .build();
             scheduler.scheduleJob(cleanupTrigger);
             log.debug("Added new draft cleanup trigger for draft: %d".formatted(draftId));
         } catch (SchedulerException e) {
@@ -64,10 +64,10 @@ public class SchedulingService {
         try {
             if (!scheduler.checkExists(EventReminderJob.JOB_KEY)) {
                 JobDetail reminderJob = JobBuilder.newJob(EventReminderJob.class)
-                        .withIdentity(EventReminderJob.JOB_KEY)
-                        .withDescription("Reminder notifications for events")
-                        .storeDurably()
-                        .build();
+                    .withIdentity(EventReminderJob.JOB_KEY)
+                    .withDescription("Reminder notifications for events")
+                    .storeDurably()
+                    .build();
                 scheduler.addJob(reminderJob, true);
                 log.info("Added reminder job");
             }
@@ -80,16 +80,16 @@ public class SchedulingService {
             }
 
             Trigger reminderTrigger = TriggerBuilder.newTrigger()
-                    .withIdentity(triggerKey)
-                    .usingJobData(EventReminderJob.STUDENT_ID, studentId)
-                    .usingJobData(EventReminderJob.EVENT_ID, eventId)
-                    .usingJobData(EventReminderJob.OFFSET_ID, offset)
-                    .forJob(EventReminderJob.JOB_KEY)
-                    .startAt(DateFormatting.toDate(eventTime))
-                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withMisfireHandlingInstructionFireNow()
-                            .withRepeatCount(0))
-                    .build();
+                .withIdentity(triggerKey)
+                .usingJobData(EventReminderJob.STUDENT_ID, studentId)
+                .usingJobData(EventReminderJob.EVENT_ID, eventId)
+                .usingJobData(EventReminderJob.OFFSET_ID, offset)
+                .forJob(EventReminderJob.JOB_KEY)
+                .startAt(DateFormatting.toDate(eventTime))
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                    .withMisfireHandlingInstructionFireNow()
+                    .withRepeatCount(0))
+                .build();
             scheduler.scheduleJob(reminderTrigger);
             log.debug("Added new reminder trigger for event: %d".formatted(eventId));
 
@@ -127,25 +127,25 @@ public class SchedulingService {
         try {
             if (!scheduler.checkExists(DeletedEventCleanupJob.JOB_KEY)) {
                 JobDetail cleanupJob = JobBuilder.newJob(DeletedEventCleanupJob.class)
-                        .withIdentity(DeletedEventCleanupJob.JOB_KEY)
-                        .withDescription("Cleanup of deleted events")
-                        .storeDurably()
-                        .build();
+                    .withIdentity(DeletedEventCleanupJob.JOB_KEY)
+                    .withDescription("Cleanup of deleted events")
+                    .storeDurably()
+                    .build();
                 scheduler.addJob(cleanupJob, true);
                 log.info("Added deleted event cleanup job");
             }
 
             TriggerKey key = TriggerKey.triggerKey(eventId.toString());
             Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity(key)
-                    .usingJobData(DeletedEventCleanupJob.DELETION_MESSAGE_ID, cleanupMessageId)
-                    .usingJobData(DeletedEventCleanupJob.EVENT_ID, eventId)
-                    .forJob(DeletedEventCleanupJob.JOB_KEY)
-                    .startAt(DateFormatting.toDate(cleanupTime))
-                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withMisfireHandlingInstructionFireNow()
-                            .withRepeatCount(0))
-                    .build();
+                .withIdentity(key)
+                .usingJobData(DeletedEventCleanupJob.DELETION_MESSAGE_ID, cleanupMessageId)
+                .usingJobData(DeletedEventCleanupJob.EVENT_ID, eventId)
+                .forJob(DeletedEventCleanupJob.JOB_KEY)
+                .startAt(DateFormatting.toDate(cleanupTime))
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                    .withMisfireHandlingInstructionFireNow()
+                    .withRepeatCount(0))
+                .build();
 
             scheduler.scheduleJob(trigger);
             log.debug("Added cleanup trigger for deleted event with id: %d".formatted(eventId));

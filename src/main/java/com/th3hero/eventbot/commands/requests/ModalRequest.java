@@ -33,11 +33,11 @@ public class ModalRequest extends InteractionRequest {
     private static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
 
     private ModalRequest(
-            @NonNull ModalAction action,
-            @NonNull ModalInteractionEvent event,
-            @NonNull Member requester,
-            @NonNull Guild server,
-            @NonNull Map<String, Long> arguments
+        @NonNull ModalAction action,
+        @NonNull ModalInteractionEvent event,
+        @NonNull Member requester,
+        @NonNull Guild server,
+        @NonNull Map<String, Long> arguments
     ) {
         super(requester, server);
         this.action = action;
@@ -49,6 +49,7 @@ public class ModalRequest extends InteractionRequest {
      * Create a modal request from a modal interaction event
      *
      * @param event The event to create the modal request from
+     *
      * @return The created modal request
      * @throws UnsupportedInteractionException If the interaction is not supported
      * @see ModalAction ModalAction for supported interactions
@@ -58,17 +59,17 @@ public class ModalRequest extends InteractionRequest {
         final String modalActionString = modalIdSplits.subList(0, 1).getFirst();
         final List<String> idArguments = modalIdSplits.subList(1, modalIdSplits.size());
         final ModalAction action = EnumUtils.valueOf(
-                ModalAction.class,
-                modalActionString,
-                new UnsupportedInteractionException("Unsupported interaction with modal %s".formatted(event.getModalId()))
+            ModalAction.class,
+            modalActionString,
+            new UnsupportedInteractionException("Unsupported interaction with modal %s".formatted(event.getModalId()))
         );
 
         return new ModalRequest(
-                action,
-                event,
-                event.getMember(),
-                event.getGuild(),
-                InteractionArguments.parseArguments(action, idArguments)
+            action,
+            event,
+            event.getMember(),
+            event.getGuild(),
+            InteractionArguments.parseArguments(action, idArguments)
         );
     }
 
@@ -82,6 +83,7 @@ public class ModalRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
+     *
      * @throws UnsupportedInteractionException If given unsupported interaction
      */
     @Override
@@ -90,7 +92,8 @@ public class ModalRequest extends InteractionRequest {
             case String text -> sendTextResponse(text, mode, success);
             case MessageEmbed embed -> sendEmbedResponse(embed, mode, success);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
-            default -> throw new UnsupportedInteractionException("Unable to process response of type '%s' for modal interactions".formatted(response.getClass().getSimpleName()));
+            default ->
+                throw new UnsupportedInteractionException("Unable to process response of type '%s' for modal interactions".formatted(response.getClass().getSimpleName()));
         }
     }
 

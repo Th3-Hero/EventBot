@@ -35,11 +35,11 @@ public class SelectionRequest extends InteractionRequest {
     private static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
 
     private SelectionRequest(
-            @NonNull SelectionAction action,
-            @NonNull StringSelectInteractionEvent event,
-            @NonNull Member requester,
-            @NonNull Guild server,
-            @NonNull Map<String, Long> arguments
+        @NonNull SelectionAction action,
+        @NonNull StringSelectInteractionEvent event,
+        @NonNull Member requester,
+        @NonNull Guild server,
+        @NonNull Map<String, Long> arguments
     ) {
         super(requester, server);
         this.action = action;
@@ -52,17 +52,17 @@ public class SelectionRequest extends InteractionRequest {
         final String selectionActionString = selectionIdSplits.getFirst();
         final List<String> idArguments = selectionIdSplits.subList(1, selectionIdSplits.size());
         final SelectionAction action = EnumUtils.valueOf(
-                SelectionAction.class,
-                selectionActionString,
-                new UnsupportedInteractionException("Unsupported interaction with selection menu %s".formatted(event.getSelectMenu().getId()))
+            SelectionAction.class,
+            selectionActionString,
+            new UnsupportedInteractionException("Unsupported interaction with selection menu %s".formatted(event.getSelectMenu().getId()))
         );
 
         return new SelectionRequest(
-                action,
-                event,
-                event.getMember(),
-                event.getGuild(),
-                InteractionArguments.parseArguments(action, idArguments)
+            action,
+            event,
+            event.getMember(),
+            event.getGuild(),
+            InteractionArguments.parseArguments(action, idArguments)
         );
     }
 
@@ -73,7 +73,8 @@ public class SelectionRequest extends InteractionRequest {
             case MessageEmbed embed -> sendEmbedResponse(embed, mode, success);
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
-            default -> throw new UnsupportedInteractionException("Unsupported selection event response type %s".formatted(response.getClass().getSimpleName()));
+            default ->
+                throw new UnsupportedInteractionException("Unsupported selection event response type %s".formatted(response.getClass().getSimpleName()));
         }
     }
 

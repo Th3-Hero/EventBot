@@ -10,4 +10,5 @@ public interface DiscordActionArguments {
      * @return A list of the keys that the request should contain
      */
     List<String> getRequestKeys();
+
 }

@@ -27,7 +27,7 @@ class AutoCompleteControllerTest {
     @Test
     void onCommandAutoCompleteInteraction_reminderOffsets() {
         when(event.getName())
-                .thenReturn(Command.REMINDER_OFFSETS_CONFIG.name());
+            .thenReturn(Command.REMINDER_OFFSETS_CONFIG.name());
 
         autoCompleteController.onCommandAutoCompleteInteraction(event);
 
@@ -38,7 +38,7 @@ class AutoCompleteControllerTest {
     @Test
     void onCommandAutoCompleteInteraction_viewEvents() {
         when(event.getName())
-                .thenReturn(Command.VIEW_EVENTS.name());
+            .thenReturn(Command.VIEW_EVENTS.name());
 
         autoCompleteController.onCommandAutoCompleteInteraction(event);
 
@@ -49,7 +49,7 @@ class AutoCompleteControllerTest {
     @Test
     void onCommandAutoCompleteInteraction_unsupportedAutocomplete() {
         when(event.getName())
-                .thenReturn(Command.MY_COURSES.name());
+            .thenReturn(Command.MY_COURSES.name());
 
         autoCompleteController.onCommandAutoCompleteInteraction(event);
 

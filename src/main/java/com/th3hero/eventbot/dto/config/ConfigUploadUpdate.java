@@ -10,8 +10,9 @@ package com.th3hero.eventbot.dto.config;
  * @param draftCleanupDelay delay in hours before drafts are removed from the database
  */
 public record ConfigUploadUpdate(
-        Long eventChannel,
-        Long botOwnerId,
-        Integer deletedEventCleanupDelay,
-        Integer draftCleanupDelay
-) {}
+    Long eventChannel,
+    Long botOwnerId,
+    Integer deletedEventCleanupDelay,
+    Integer draftCleanupDelay
+) {
+}

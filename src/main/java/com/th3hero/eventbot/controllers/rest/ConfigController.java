@@ -30,7 +30,7 @@ public class ConfigController {
     @Operation(summary = "Create a new config if non exists")
     @ResponseStatus(HttpStatus.CREATED)
     public Config createConfig(
-            @RequestBody @NotNull ConfigUpload configUpload
+        @RequestBody @NotNull ConfigUpload configUpload
     ) {
         return configService.createConfig(configUpload);
     }
@@ -38,7 +38,7 @@ public class ConfigController {
     @PostMapping
     @Operation(summary = "Update the existing config")
     public Config updateConfig(
-            @RequestBody @NotNull ConfigUploadUpdate configUploadUpdate
+        @RequestBody @NotNull ConfigUploadUpdate configUploadUpdate
     ) {
         return configService.updateConfig(configUploadUpdate);
     }

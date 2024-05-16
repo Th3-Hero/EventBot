@@ -38,10 +38,10 @@ public class CourseJpa implements Serializable {
 
     public Course toDto() {
         return new Course(
-                this.getId(),
-                this.getCode(),
-                this.getName(),
-                this.getNickname()
+            this.getId(),
+            this.getCode(),
+            this.getName(),
+            this.getNickname()
         );
     }
 

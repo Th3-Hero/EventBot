@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<EventJpa, Long> {
 
     @Query("select e from EventJpa e join e.courses c where c in :courses")
-    List<EventJpa> findAllByCourse(@Param("courses")List<CourseJpa> courses);
+    List<EventJpa> findAllByCourse(@Param("courses") List<CourseJpa> courses);
 
     boolean existsByMessageId(Long messageId);
 

@@ -1,6 +1,7 @@
 package com.th3hero.eventbot.listeners;
 
 import com.th3hero.eventbot.services.DeletionHandler;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
@@ -15,12 +16,12 @@ public class DeletionListener extends ListenerAdapter {
     private final DeletionHandler deletionHandler;
 
     @Override
-    public void onMessageDelete(MessageDeleteEvent event) {
+    public void onMessageDelete(@NonNull MessageDeleteEvent event) {
         deletionHandler.handleDeletedMessage(event);
     }
 
     @Override
-    public void onChannelDelete(ChannelDeleteEvent event) {
+    public void onChannelDelete(@NonNull ChannelDeleteEvent event) {
         deletionHandler.handleDeletedChannel(event);
     }
 }

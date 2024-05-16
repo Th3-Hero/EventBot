@@ -91,12 +91,12 @@ public class EventJpa implements Serializable {
 
     public static EventJpa create(EventDraftJpa draftJpa) {
         return EventJpa.builder()
-                .authorId(draftJpa.getAuthorId())
-                .title(draftJpa.getTitle())
-                .note(draftJpa.getNote())
-                .datetime(draftJpa.getDatetime())
-                .courses(new ArrayList<>(draftJpa.getCourses()))
-                .type(draftJpa.getType())
-                .build();
+            .authorId(draftJpa.getAuthorId())
+            .title(draftJpa.getTitle())
+            .note(draftJpa.getNote())
+            .datetime(draftJpa.getDatetime())
+            .courses(new ArrayList<>(draftJpa.getCourses()))
+            .type(draftJpa.getType())
+            .build();
     }
 }

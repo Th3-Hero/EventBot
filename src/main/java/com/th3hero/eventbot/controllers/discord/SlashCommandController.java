@@ -57,6 +57,5 @@ public class SlashCommandController extends ListenerAdapter {
             DiscordActionUtils.textResponse(request.getEvent(), e.getMessage(), true);
             throw e;
         }
-
     }
 }

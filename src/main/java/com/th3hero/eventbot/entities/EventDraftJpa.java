@@ -55,10 +55,10 @@ public class EventDraftJpa {
 
     public static EventDraftJpa create(Long authorId, LocalDateTime eventDate, EventJpa.EventType eventType) {
         return EventDraftJpa.builder()
-                .authorId(authorId)
-                .datetime(eventDate)
-                .type(eventType)
-                .build();
+            .authorId(authorId)
+            .datetime(eventDate)
+            .type(eventType)
+            .build();
     }
 
     @Override

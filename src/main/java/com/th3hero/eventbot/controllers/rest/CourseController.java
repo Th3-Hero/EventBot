@@ -33,7 +33,7 @@ public class CourseController {
     @Operation(summary = "Create multiple courses at once")
     @ResponseStatus(HttpStatus.CREATED)
     public List<Course> createCourses(
-            @RequestBody @NotNull List<CourseUpload> courseUploads
+        @RequestBody @NotNull List<CourseUpload> courseUploads
     ) {
         return courseService.createCourses(courseUploads);
     }
@@ -51,7 +51,7 @@ public class CourseController {
     @Operation(summary = "Delete a Course by its id")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCourse(
-            @PathVariable @NotNull Long courseId
+        @PathVariable @NotNull Long courseId
     ) {
         courseService.deleteCourseById(courseId);
     }

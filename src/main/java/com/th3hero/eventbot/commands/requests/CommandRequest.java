@@ -36,13 +36,7 @@ public class CommandRequest extends InteractionRequest {
 
     private static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
 
-    private CommandRequest(
-            Command command,
-            SlashCommandInteractionEvent event,
-            Member requester,
-            Guild server,
-            Map<String, String> arguments
-    ) {
+    private CommandRequest(Command command, SlashCommandInteractionEvent event, Member requester, Guild server, Map<String, String> arguments) {
         super(requester, server);
         this.command = command;
         this.event = event;
@@ -53,16 +47,13 @@ public class CommandRequest extends InteractionRequest {
      * Create a command request from a slash command interaction event
      *
      * @param event The event to create the command request from
+     *
      * @return The created command request
      * @throws UnsupportedInteractionException If the interaction is not supported
      * @see Command Command for supported interactions
      */
     public static CommandRequest fromInteraction(@NonNull final SlashCommandInteractionEvent event) throws UnsupportedInteractionException {
-        final Command command = EnumUtils.valueOf(
-                Command.class,
-                event.getName(),
-                new UnsupportedInteractionException("Unsupported interaction with command %s".formatted(event.getName()))
-        );
+        final Command command = EnumUtils.valueOf(Command.class, event.getName(), new UnsupportedInteractionException("Unsupported interaction with command %s".formatted(event.getName())));
 
         Map<String, String> arguments = parseOptions(event.getOptions());
         if (event.getSubcommandName() != null) {
@@ -92,6 +83,7 @@ public class CommandRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
+     *
      * @throws UnsupportedInteractionException If given unsupported interaction
      */
     @Override
@@ -101,7 +93,8 @@ public class CommandRequest extends InteractionRequest {
             case MessageEmbed embed -> sendEmbedResponse(embed, mode, success);
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
-            default -> throw new UnsupportedInteractionException("Unable to process response of type '%s' for slash commands".formatted(response.getClass().getSimpleName()));
+            default ->
+                throw new UnsupportedInteractionException("Unable to process response of type '%s' for slash commands".formatted(response.getClass().getSimpleName()));
         }
     }
 
@@ -156,5 +149,4 @@ public class CommandRequest extends InteractionRequest {
         }
         log.debug("MessageCreateData response sent for slash command {}", command);
     }
-
 }

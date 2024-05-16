@@ -10,8 +10,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories
 public class EventBotForDiscordApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(EventBotForDiscordApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(EventBotForDiscordApplication.class, args);
+    }
 
 }

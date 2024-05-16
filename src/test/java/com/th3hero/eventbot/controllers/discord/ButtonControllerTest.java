@@ -35,15 +35,15 @@ class ButtonControllerTest {
         final var event = mock(ButtonInteractionEvent.class);
 
         when(event.getButton())
-                .thenReturn(mock(Button.class));
+            .thenReturn(mock(Button.class));
         when(event.getButton().getId())
-                .thenReturn("INVALID_BUTTON_ACTION-4234");
+            .thenReturn("INVALID_BUTTON_ACTION-4234");
         when(event.isAcknowledged())
-                .thenReturn(false);
+            .thenReturn(false);
         when(event.reply(anyString()))
-                .thenReturn(mock(ReplyCallbackAction.class));
+            .thenReturn(mock(ReplyCallbackAction.class));
         when(event.reply(anyString()).setEphemeral(anyBoolean()))
-                .thenReturn(mock(ReplyCallbackAction.class));
+            .thenReturn(mock(ReplyCallbackAction.class));
 
         assertThrows(UnsupportedInteractionException.class, () -> buttonController.onButtonInteraction(event));
     }
@@ -54,21 +54,21 @@ class ButtonControllerTest {
     }
 
     private static ButtonInteractionEvent event(
-            final ButtonAction action
+        final ButtonAction action
     ) {
         final var event = mock(ButtonInteractionEvent.class);
         final var guild = TestEntities.guild();
         final var member = TestEntities.member(guild);
 
         when(event.getButton())
-                .thenReturn(mock(Button.class));
+            .thenReturn(mock(Button.class));
         when(event.getButton().getId())
-                .thenReturn(InteractionArguments.createInteractionIdString(action, 1234L));
+            .thenReturn(InteractionArguments.createInteractionIdString(action, 1234L));
 
         when(event.getMember())
-                .thenReturn(member);
+            .thenReturn(member);
         when(event.getGuild())
-                .thenReturn(guild);
+            .thenReturn(guild);
 
         return event;
     }

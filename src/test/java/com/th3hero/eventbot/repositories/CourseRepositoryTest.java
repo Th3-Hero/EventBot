@@ -16,7 +16,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -36,7 +35,7 @@ class CourseRepositoryTest {
         entityManager.clear();
 
         final CourseJpa course = courseRepository.findCourseJpaByCode(courseTwo.getCode())
-                .orElseThrow(() -> new EntityNotFoundException("Course not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         assertThat(course).isEqualTo(courseTwo);
     }

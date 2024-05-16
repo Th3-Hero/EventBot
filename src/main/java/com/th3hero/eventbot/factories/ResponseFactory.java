@@ -14,16 +14,16 @@ public class ResponseFactory {
 
     public static MessageCreateData createResponse(MessageEmbed embed, ItemComponent... components) {
         return new MessageCreateBuilder()
-                .addEmbeds(embed)
-                .addActionRow(components)
-                .build();
+            .addEmbeds(embed)
+            .addActionRow(components)
+            .build();
     }
 
     public static MessageCreateData createResponse(Collection<MessageEmbed> embeds, ItemComponent... components) {
         return new MessageCreateBuilder()
-                .addEmbeds(embeds)
-                .addActionRow(components)
-                .build();
+            .addEmbeds(embeds)
+            .addActionRow(components)
+            .build();
     }
 
 }

@@ -52,11 +52,11 @@ public class ConfigJpa implements Serializable {
 
     public Config toDto() {
         return new Config(
-                this.getId(),
-                this.getEventChannel(),
-                this.getBotOwnerId(),
-                this.getDeletedEventCleanupDelay(),
-                this.getDraftCleanupDelay()
+            this.getId(),
+            this.getEventChannel(),
+            this.getBotOwnerId(),
+            this.getDeletedEventCleanupDelay(),
+            this.getDraftCleanupDelay()
         );
     }
 

@@ -21,13 +21,13 @@ public class JdaFactoryImpl extends JdaFactory {
         super(jdaProperties);
     }
 
-    public <T extends ListenerAdapter>JDA richJdaClient(@NonNull List<T> listeners) {
+    public <T extends ListenerAdapter> JDA richJdaClient(@NonNull List<T> listeners) {
         return JDABuilder.createDefault(jdaProperties.token(), GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGES)
-                .setChunkingFilter(ChunkingFilter.ALL)
-                .setMemberCachePolicy(MemberCachePolicy.ALL)
-                .addEventListeners(listeners.toArray())
-                .setActivity(Activity.watching("For Events"))
-                .disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS)
-                .build();
+            .setChunkingFilter(ChunkingFilter.ALL)
+            .setMemberCachePolicy(MemberCachePolicy.ALL)
+            .addEventListeners(listeners.toArray())
+            .setActivity(Activity.watching("For Events"))
+            .disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS)
+            .build();
     }
 }
