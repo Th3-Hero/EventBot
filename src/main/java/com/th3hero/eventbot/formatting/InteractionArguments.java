@@ -17,6 +17,13 @@ public class InteractionArguments {
     public static final String DRAFT_ID = "draft_id";
     public static final String EVENT_ID = "event_id";
 
+    /**
+     * Creates an interaction ID string for a DiscordActionArguments enum value and a single ID.
+     *
+     * @param enumValue The DiscordActionArguments enum value.
+     * @param id The ID to include in the interaction ID string.
+     * @return The created interaction ID string to be used in discord interactions.
+     */
     public static String createInteractionIdString(DiscordActionArguments enumValue, Long id) {
         if (enumValue.getRequestKeys().size() != 1) {
             throw new IllegalArgumentException("Enum value must have exactly one request key");
@@ -24,6 +31,14 @@ public class InteractionArguments {
         return "%s-%s".formatted(enumValue, id);
     }
 
+    /**
+     * Creates an interaction ID string for a DiscordActionArguments enum value and a list of IDs.
+     * The enum value must have a request key for each ID in the list.
+     *
+     * @param enumValue The DiscordActionArguments enum value.
+     * @param ids The list of IDs to include in the interaction ID string.
+     * @return The created interaction ID string to be used in discord interactions.
+     */
     public static String createInteractionIdString(DiscordActionArguments enumValue, List<Long> ids) {
         if (enumValue.getRequestKeys().size() != ids.size()) {
             throw new IllegalArgumentException("Enum value must have exactly one request key");
@@ -34,12 +49,29 @@ public class InteractionArguments {
         return "%s-%s".formatted(enumValue.name(), joinedIds);
     }
 
+    /**
+     * Converts a list of string values into a list of long values.
+     *
+     * @param list The list of string values to convert.
+     * @return A list of long values.
+     */
     public static List<Long> parseLongs(List<String> list) {
         return list.stream()
             .map(Long::parseLong)
             .toList();
     }
 
+    /**
+     * Parses a list of string arguments into a map of request keys and long values.
+     * The DiscordActionArguments enum value provides the expected request keys.
+     * The number of arguments must match the number of expected request keys.
+     *
+     * @param action The DiscordActionArguments enum value providing the expected request keys.
+     * @param idArguments The list of string arguments to parse.
+     * @return A map of request keys and long values.
+     * @throws ArgumentMappingException If the number of arguments does not match the number of request keys.
+     * @throws UnsupportedInteractionException If any argument cannot be parsed to a long.
+     */
     public static Map<String, Long> parseArguments(final DiscordActionArguments action, final List<String> idArguments) {
         if (idArguments.size() != action.getRequestKeys().size()) {
             throw new ArgumentMappingException("Number of request arguments does not match expected");

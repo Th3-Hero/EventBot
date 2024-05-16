@@ -34,7 +34,13 @@ public class ButtonRequest extends InteractionRequest {
 
     private static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
 
-    private ButtonRequest(@NonNull ButtonAction action, @NonNull ButtonInteractionEvent event, @NonNull Member requester, @NonNull Guild server, @NonNull Map<String, Long> arguments) {
+    private ButtonRequest(
+        @NonNull ButtonAction action,
+        @NonNull ButtonInteractionEvent event,
+        @NonNull Member requester,
+        @NonNull Guild server,
+        @NonNull Map<String, Long> arguments
+    ) {
         super(requester, server);
         this.action = action;
         this.event = event;
@@ -45,10 +51,9 @@ public class ButtonRequest extends InteractionRequest {
      * Create a button request from a button interaction event
      *
      * @param event The event to create the button request from
-     *
      * @return The created button request
      * @throws UnsupportedInteractionException If the interaction is not supported
-     * @see ButtonAction ButtonAtion for supported interactions
+     * @see ButtonAction ButtonAction for supported interactions
      */
     public static ButtonRequest fromInteraction(@NonNull final ButtonInteractionEvent event) throws UnsupportedInteractionException {
         final List<String> buttonIdSplits = List.of(event.getButton().getId().split("-"));
@@ -70,7 +75,6 @@ public class ButtonRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
-     *
      * @throws UnsupportedInteractionException If given unsupported interaction
      */
     @Override

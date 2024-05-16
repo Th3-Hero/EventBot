@@ -47,6 +47,14 @@ public class SelectionRequest extends InteractionRequest {
         this.arguments = arguments;
     }
 
+    /**
+     * Create a selection request from a selection interaction event
+     *
+     * @param event The event to create the selection request from
+     * @return The created selection request
+     * @throws UnsupportedInteractionException If the interaction is not supported
+     * @see SelectionAction SelectionAction for supported interactions
+     */
     public static SelectionRequest fromInteraction(@NonNull final StringSelectInteractionEvent event) {
         final List<String> selectionIdSplits = List.of(event.getSelectMenu().getId().split("-"));
         final String selectionActionString = selectionIdSplits.getFirst();
@@ -66,6 +74,19 @@ public class SelectionRequest extends InteractionRequest {
         );
     }
 
+    /**
+     * Send a response back to the user that made the request. <br>
+     * Supported response types:<br>
+     * - String <br>
+     * - MessageEmbed <br>
+     * - Modal <br>
+     * - MessageCreateData <br>
+     *
+     * @param response The response to send
+     * @param mode The mode used when sending the response
+     * @param success Successful response callback
+     * @throws UnsupportedInteractionException If given unsupported interaction
+     */
     @Override
     public void sendResponse(@NonNull Object response, MessageMode mode, Consumer<Message> success) {
         switch (response) {
@@ -78,6 +99,11 @@ public class SelectionRequest extends InteractionRequest {
         }
     }
 
+    /**
+     * Sends a deferred reply to discord
+     *
+     * @param mode The mode used when later sending the response
+     */
     @Override
     public void deferReply(MessageMode mode) {
         DiscordActionUtils.deferResponse(event, MessageMode.USER == mode);

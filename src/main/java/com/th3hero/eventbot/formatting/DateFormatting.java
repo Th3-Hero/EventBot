@@ -20,22 +20,53 @@ public class DateFormatting {
         DateTimeFormatter.ofPattern("yyyy/M/d H:mm")
     );
 
+    /**
+     * Converts a LocalDateTime to a Date.
+     *
+     * @param dateTime The LocalDateTime to convert.
+     * @return The converted Date.
+     */
     public static Date toDate(LocalDateTime dateTime) {
         return Date.from(dateTime.atZone(ZONE_ID).toInstant());
     }
 
+    /**
+     * Formats a LocalDateTime to a String with the pattern "yyyy-MM-dd HH:mm".
+     *
+     * @param dateTime The LocalDateTime to format.
+     * @return The formatted String.
+     */
     public static String formattedDateTime(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
+    /**
+     * Formats a LocalDateTime to a String with the pattern "yyyy-MM-dd".
+     *
+     * @param dateTime The LocalDateTime to format.
+     * @return The formatted String.
+     */
     public static String formattedDate(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
+
+    /**
+     * Formats a LocalDateTime to a String with the pattern "HH:mm".
+     *
+     * @param dateTime The LocalDateTime to format.
+     * @return The formatted String.
+     */
     public static String formattedTime(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
+    /**
+     * Formats a LocalDateTime to a String with a discord timestamp.
+     *
+     * @param dateTime The LocalDateTime to format.
+     * @return The formatted String with timestamp.
+     */
     public static String formattedDateTimeWithTimestamp(LocalDateTime dateTime) {
         return "%s (%s)".formatted(
             formattedDateTime(dateTime),
@@ -43,6 +74,15 @@ public class DateFormatting {
         );
     }
 
+    /**
+     * Parses a date and time String to a LocalDateTime. <br>
+     * - yyyy-M-d H:mm <br>
+     * - yyyy/M/d H:mm <br>
+     *
+     * @param dateString The date String to parse.
+     * @param timeString The time String to parse.
+     * @return An Optional containing the parsed LocalDateTime if successful, or an empty Optional if not.
+     */
     public static Optional<LocalDateTime> parseDate(String dateString, String timeString) {
         String combinedDateTime = "%s %S".formatted(dateString, timeString);
 

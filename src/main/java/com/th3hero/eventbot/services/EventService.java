@@ -138,7 +138,7 @@ public class EventService {
 
         request.sendResponse("Event has been deleted. %s".formatted(jumpUrl), MessageMode.USER);
     }
-    
+
     public void deleteEvent(ModalRequest request) {
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
             .orElseThrow(() -> new EntityNotFoundException("Failed to find an event within the database from modal %s".formatted(request.getEvent().getModalId())));

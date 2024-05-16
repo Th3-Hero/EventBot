@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class EmbedBuilderFactory {
-    public static int MAX_EMBED_FIELDS = 25;
+    public static final int MAX_EMBED_FIELDS = 25;
 
     private static final Color BLUE = new Color(3, 123, 252);
     private static final Color GREEN = new Color(0, 255, 0);
@@ -56,6 +56,11 @@ public class EmbedBuilderFactory {
             .build();
     }
 
+
+    /**
+     * @param courses The courses to display in the embed
+     * @return An embed displaying the selected courses
+     */
     public static MessageEmbed selectedCourses(List<CourseJpa> courses) {
         if (courses.size() > MAX_EMBED_FIELDS) {
             throw new DiscordConstraintException("Too many courses selected. Discord limits to %d fields.".formatted(MAX_EMBED_FIELDS));

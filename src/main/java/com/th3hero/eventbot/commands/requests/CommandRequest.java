@@ -5,7 +5,6 @@ import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,7 @@ import java.util.function.Consumer;
 @Slf4j
 @Getter
 public class CommandRequest extends InteractionRequest {
-    @NotNull
+    @NonNull
     private final Command command;
     @NonNull
     private final SlashCommandInteractionEvent event;
@@ -36,7 +35,13 @@ public class CommandRequest extends InteractionRequest {
 
     private static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
 
-    private CommandRequest(Command command, SlashCommandInteractionEvent event, Member requester, Guild server, Map<String, String> arguments) {
+    private CommandRequest(
+        @NonNull Command command,
+        @NonNull SlashCommandInteractionEvent event,
+        @NonNull Member requester,
+        @NonNull Guild server,
+        @NonNull Map<String, String> arguments
+    ) {
         super(requester, server);
         this.command = command;
         this.event = event;
@@ -47,7 +52,6 @@ public class CommandRequest extends InteractionRequest {
      * Create a command request from a slash command interaction event
      *
      * @param event The event to create the command request from
-     *
      * @return The created command request
      * @throws UnsupportedInteractionException If the interaction is not supported
      * @see Command Command for supported interactions
@@ -83,7 +87,6 @@ public class CommandRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
-     *
      * @throws UnsupportedInteractionException If given unsupported interaction
      */
     @Override

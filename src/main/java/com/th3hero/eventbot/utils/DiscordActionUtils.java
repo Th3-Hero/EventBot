@@ -63,7 +63,6 @@ public final class DiscordActionUtils {
      *
      * @param event The event to respond to
      * @param modal The modal to send
-     *
      * @throws IllegalInteractionException If the event is already acknowledged
      */
     public static <T extends IModalCallback> void modalResponse(final T event, final Modal modal) {
@@ -104,6 +103,14 @@ public final class DiscordActionUtils {
         }
     }
 
+    /**
+     * Retrieves a message from a given channel by its ID.
+     *
+     * @param channel The channel from which the message will be retrieved.
+     * @param messageId The ID of the message to be retrieved.
+     * @param success A Consumer to be executed upon successful retrieval of the message.
+     * @param error A Consumer to be executed upon encountering an error
+     */
     public static void retrieveMessage(
         final MessageChannel channel,
         final Long messageId,
@@ -116,6 +123,15 @@ public final class DiscordActionUtils {
         );
     }
 
+    /**
+     * Edits a message in a given channel by its ID.
+     *
+     * @param channel The channel where the message to be edited is located.
+     * @param messageId The ID of the message to be edited.
+     * @param data The new content for the message.
+     * @param success A Consumer to be executed upon successful editing of the message.
+     * @param error A Consumer to be executed upon encountering an error
+     */
     public static void editMessage(
         final MessageChannel channel,
         final Long messageId,
@@ -131,7 +147,14 @@ public final class DiscordActionUtils {
         );
     }
 
-
+    /**
+     * Deletes a message in a given channel by its ID.
+     *
+     * @param channel The channel where the message to be deleted is located.
+     * @param messageId The ID of the message to be deleted.
+     * @param success A Consumer to be executed upon successful deletion of the message.
+     * @param error A Consumer to be executed upon encountering an error
+     */
     public static void deleteMessage(
         final MessageChannel channel,
         final Long messageId,

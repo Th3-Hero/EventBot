@@ -41,7 +41,8 @@ public class SelectionController extends ListenerAdapter {
                 case SELECT_COURSES -> courseService.processCourseSelection(request);
                 case DRAFT_CREATION, EDIT_DRAFT_COURSES -> eventDraftService.addCoursesToDraft(request);
                 case EDIT_EVENT_COURSES -> eventService.editEventCourses(request);
-                default -> log.warn("Received an unsupported selection type: {}", request.getEvent().getSelectMenu().getId());
+                default ->
+                    log.warn("Received an unsupported selection type: {}", request.getEvent().getSelectMenu().getId());
             }
         } catch (EntityNotFoundException e) {
             request.sendResponse(e.getMessage(), MessageMode.USER);

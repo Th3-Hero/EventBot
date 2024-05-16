@@ -36,7 +36,6 @@ public class StudentService {
      * Fetches a student based on the provided studentId or creates a new student if one does not exist.
      *
      * @param studentId The ID of the student to fetch.
-     *
      * @return The StudentJpa object corresponding to the provided studentId.
      */
     public StudentJpa fetchStudent(Long studentId) {
@@ -48,7 +47,6 @@ public class StudentService {
      * Fetches a student based on the provided course.
      *
      * @param courseJpa The course to fetch students for.
-     *
      * @return List of students that are enrolled in the provided course.
      */
     public List<StudentJpa> fetchStudentsWithCourse(CourseJpa courseJpa) {

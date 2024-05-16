@@ -22,7 +22,6 @@ public enum DiscordTimestamp {
     /**
      * @param style The style of the timestamp
      * @param date The date to format
-     *
      * @return A formatted timestamp string
      * @see <a href="https://discord.com/developers/docs/reference#message-formatting-timestamp-styles">Discord Timestamp Styles</a>
      */

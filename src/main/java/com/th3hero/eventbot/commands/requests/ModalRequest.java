@@ -49,7 +49,6 @@ public class ModalRequest extends InteractionRequest {
      * Create a modal request from a modal interaction event
      *
      * @param event The event to create the modal request from
-     *
      * @return The created modal request
      * @throws UnsupportedInteractionException If the interaction is not supported
      * @see ModalAction ModalAction for supported interactions
@@ -83,7 +82,6 @@ public class ModalRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
-     *
      * @throws UnsupportedInteractionException If given unsupported interaction
      */
     @Override
