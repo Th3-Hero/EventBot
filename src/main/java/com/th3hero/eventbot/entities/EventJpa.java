@@ -15,7 +15,7 @@ import java.util.Objects;
 @Setter
 @Entity
 @Builder
-@ToString
+@ToString(exclude = "courses")
 @Table(name = "event")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -44,7 +44,7 @@ public class EventJpa implements Serializable {
 
     @NonNull
     @Column
-    private LocalDateTime datetime;
+    private LocalDateTime eventDate;
 
     @OrderBy("code ASC")
     @ManyToMany
@@ -94,7 +94,7 @@ public class EventJpa implements Serializable {
             .authorId(draftJpa.getAuthorId())
             .title(draftJpa.getTitle())
             .note(draftJpa.getNote())
-            .datetime(draftJpa.getDatetime())
+            .eventDate(draftJpa.getEventDate())
             .courses(new ArrayList<>(draftJpa.getCourses()))
             .type(draftJpa.getType())
             .build();

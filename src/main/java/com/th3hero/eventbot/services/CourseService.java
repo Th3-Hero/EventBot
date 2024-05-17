@@ -113,7 +113,7 @@ public class CourseService {
     public List<CourseJpa> coursesFromSelectionMenuValues(List<String> values) {
         return values.stream()
             .map(course ->
-                courseRepository.findCourseJpaByCode(course).orElseThrow(() -> new EntityNotFoundException("One or more of the courses selected is not within the database."))
+                courseRepository.findByCode(course).orElseThrow(() -> new EntityNotFoundException("One or more of the courses selected is not within the database."))
             )
             .toList();
     }
@@ -165,7 +165,7 @@ public class CourseService {
         if (courseCode.isBlank()) {
             return Optional.empty();
         }
-        return courseRepository.findCourseJpaByCode(courseCode);
+        return courseRepository.findByCode(courseCode);
     }
 
 }

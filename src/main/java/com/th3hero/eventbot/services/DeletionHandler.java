@@ -42,7 +42,7 @@ public class DeletionHandler {
             return;
         }
 
-        EventJpa eventJpa = eventRepository.findEventJpaByMessageId(deletedMessageId)
+        EventJpa eventJpa = eventRepository.findByMessageId(deletedMessageId)
             .orElseThrow(() -> new EntityNotFoundException("Event with deleted message was not found in the database. Message id: %d".formatted(deletedMessageId)));
         Long eventChannelId = configJpa.getEventChannel();
         Optional<TextChannel> channel = Optional.ofNullable(event.getJDA().getTextChannelById(eventChannelId));

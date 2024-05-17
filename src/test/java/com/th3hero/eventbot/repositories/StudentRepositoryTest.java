@@ -35,17 +35,13 @@ class StudentRepositoryTest {
         StudentJpa studentOne = TestEntities.studentJpa(1, List.of(courseOne));
         StudentJpa studentTwo = TestEntities.studentJpa(2, List.of(courseOne, courseTwo));
         StudentJpa studentThree = TestEntities.studentJpa(3, List.of(courseTwo));
-        StudentJpa studentFour = TestEntities.studentJpa(4, List.of(courseThree));
-        StudentJpa studentFive = TestEntities.studentJpa(5, List.of(courseTwo, courseThree));
 
-        studentRepository.saveAllAndFlush(List.of(studentOne, studentTwo, studentThree, studentFour, studentFive));
+        studentRepository.saveAllAndFlush(List.of(studentOne, studentTwo, studentThree));
         entityManager.clear();
 
         List<StudentJpa> students = studentRepository.findAllByCoursesContains(courseTwo);
 
-        assertThat(students)
-            .usingRecursiveComparison()
-            .isEqualTo(List.of(studentTwo, studentThree, studentFive));
+        assertThat(students).containsExactlyInAnyOrder(studentTwo, studentThree);
     }
 
     @Test

@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.th3hero.eventbot.config.DiscordFieldsConfig.OFFSET_ID;
+import static com.th3hero.eventbot.utils.DiscordFieldsUtils.OFFSET_ID;
 
 @Slf4j
 @Service
@@ -72,7 +72,7 @@ public class StudentService {
      */
     public void offsetAutoComplete(CommandAutoCompleteInteractionEvent event) {
         StudentJpa studentJpa = fetchStudent(event.getUser().getIdLong());
-        List<Command.Choice> choices = studentJpa.getOffsetTimes().stream()
+        List<Command.Choice> choices = studentJpa.getReminderOffsetTimes().stream()
             .filter(offset -> offset.toString().startsWith(event.getFocusedOption().getValue()))
             .map(offset -> new Command.Choice(offset.toString(), offset))
             .toList();
@@ -102,40 +102,40 @@ public class StudentService {
 
 
     private void listReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
-        studentJpa.getOffsetTimes().sort(null);
-        request.sendResponse(EmbedBuilderFactory.reminderOffsets(studentJpa.getOffsetTimes()), MessageMode.USER);
+        studentJpa.getReminderOffsetTimes().sort(null);
+        request.sendResponse(EmbedBuilderFactory.reminderOffsets(studentJpa.getReminderOffsetTimes()), MessageMode.USER);
     }
 
     private void addReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
         Integer newOffset = Integer.parseInt(request.getArguments().get(OFFSET_ID));
-        if (studentJpa.getOffsetTimes().contains(newOffset)) {
+        if (studentJpa.getReminderOffsetTimes().contains(newOffset)) {
             request.sendResponse("You already have an offset for %d".formatted(newOffset), MessageMode.USER);
             return;
         }
-        studentJpa.getOffsetTimes().add(newOffset);
-        studentJpa.getOffsetTimes().sort(null);
+        studentJpa.getReminderOffsetTimes().add(newOffset);
+        studentJpa.getReminderOffsetTimes().sort(null);
     }
 
     private void removeReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
         Integer targetOffset = Integer.parseInt(request.getArguments().get(OFFSET_ID));
-        if (!studentJpa.getOffsetTimes().contains(targetOffset)) {
+        if (!studentJpa.getReminderOffsetTimes().contains(targetOffset)) {
             request.sendResponse("You have no offset for %d".formatted(targetOffset), MessageMode.USER);
             return;
         }
-        studentJpa.getOffsetTimes().remove(targetOffset);
-        studentJpa.getOffsetTimes().sort(null);
+        studentJpa.getReminderOffsetTimes().remove(targetOffset);
+        studentJpa.getReminderOffsetTimes().sort(null);
     }
 
     public void scheduleStudentForEvent(EventJpa eventJpa, StudentJpa studentJpa) {
-        for (Integer offset : studentJpa.getOffsetTimes()) {
-            if (eventJpa.getDatetime().minusHours(offset).isBefore(LocalDateTime.now())) {
+        for (Integer offset : studentJpa.getReminderOffsetTimes()) {
+            if (eventJpa.getEventDate().minusHours(offset).isBefore(LocalDateTime.now())) {
                 continue;
             }
             schedulingService.addEventReminderTrigger(
                 eventJpa.getId(),
                 studentJpa.getId(),
                 offset,
-                eventJpa.getDatetime().minusHours(offset)
+                eventJpa.getEventDate().minusHours(offset)
             );
         }
     }

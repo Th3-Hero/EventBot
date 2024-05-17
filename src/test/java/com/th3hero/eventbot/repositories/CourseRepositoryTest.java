@@ -34,23 +34,21 @@ class CourseRepositoryTest {
         courseRepository.saveAllAndFlush(List.of(courseOne, courseTwo, courseThree));
         entityManager.clear();
 
-        final CourseJpa course = courseRepository.findCourseJpaByCode(courseTwo.getCode())
-            .orElseThrow(() -> new EntityNotFoundException("Course not found"));
+        final Optional<CourseJpa> course = courseRepository.findByCode(courseTwo.getCode());
 
-        assertThat(course).isEqualTo(courseTwo);
+        assertThat(course).contains(courseTwo);
     }
 
     @Test
     void findCourseJpaByCode_missingCourse() {
         final CourseJpa courseOne = TestEntities.courseJpa(1);
         final CourseJpa courseTwo = TestEntities.courseJpa(2);
-        final CourseJpa courseThree = TestEntities.courseJpa(3);
-        final CourseJpa courseFour = TestEntities.courseJpa(4);
+        final CourseJpa courseThree = TestEntities.courseJpa(4);
 
-        courseRepository.saveAllAndFlush(List.of(courseOne, courseTwo, courseThree));
+        courseRepository.saveAllAndFlush(List.of(courseOne, courseTwo));
         entityManager.clear();
 
-        final Optional<CourseJpa> course = courseRepository.findCourseJpaByCode(courseFour.getCode());
+        final Optional<CourseJpa> course = courseRepository.findByCode(courseThree.getCode());
 
         assertThat(course).isEmpty();
     }

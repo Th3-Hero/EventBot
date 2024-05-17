@@ -6,8 +6,8 @@ import org.apache.commons.lang3.EnumUtils;
 
 import java.util.Optional;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class EnumParser {
+@NoArgsConstructor(access = AccessLevel.NONE)
+public final class EnumParser {
 
     /**
      * Parses a string value into an enum of the specified type.

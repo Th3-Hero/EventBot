@@ -5,19 +5,20 @@ import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.DiscordConstraintException;
-import com.th3hero.eventbot.formatting.DateFormatting;
+import com.th3hero.eventbot.formatting.DateFormatter;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.utils.MarkdownUtil;
 
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class EmbedBuilderFactory {
+@NoArgsConstructor(access = AccessLevel.NONE)
+public final class EmbedBuilderFactory {
     public static final int MAX_EMBED_FIELDS = 25;
 
     private static final Color BLUE = new Color(3, 123, 252);
@@ -45,13 +46,9 @@ public class EmbedBuilderFactory {
     }
 
     public static MessageEmbed coursePicker(String description) {
-        return coursePicker("Course Selection", description);
-    }
-
-    public static MessageEmbed coursePicker(String title, String description) {
         return new EmbedBuilder()
             .setColor(BLUE)
-            .setTitle(title)
+            .setTitle("Course Selection")
             .setDescription(description)
             .build();
     }
@@ -80,7 +77,7 @@ public class EmbedBuilderFactory {
         return embedBuilder.build();
     }
 
-    private static MessageEmbed draftLayout(String title, String note, String type, String date, List<CourseJpa> courses, String authorMention) {
+    private static MessageEmbed eventLayout(String title, String note, String date, String type, List<CourseJpa> courses, String authorMention) {
         return new EmbedBuilder()
             .setColor(GREEN)
             .setTitle(title)
@@ -116,13 +113,13 @@ public class EmbedBuilderFactory {
             .setFooter("Note: Drafts that are not confirmed within %d hours will be deleted.".formatted(draftCleanupDelay))
             .build();
 
-        String date = DateFormatting.formattedDateTimeWithTimestamp(eventDraftJpa.getDatetime());
+        String date = DateFormatter.formattedDateTimeWithTimestamp(eventDraftJpa.getEventDate());
 
-        MessageEmbed eventDraft = draftLayout(
+        MessageEmbed eventDraft = eventLayout(
             eventDraftJpa.getTitle(),
             eventDraftJpa.getNote(),
-            eventDraftJpa.getType().displayName(),
             date,
+            eventDraftJpa.getType().displayName(),
             eventDraftJpa.getCourses(),
             authorMention
         );
@@ -144,13 +141,13 @@ public class EmbedBuilderFactory {
     }
 
     public static MessageEmbed eventEmbed(EventJpa eventJpa, String authorMention) {
-        String date = DateFormatting.formattedDateTimeWithTimestamp(eventJpa.getDatetime());
+        String date = DateFormatter.formattedDateTimeWithTimestamp(eventJpa.getEventDate());
 
-        return draftLayout(
+        return eventLayout(
             eventJpa.getTitle(),
             eventJpa.getNote(),
-            eventJpa.getType().displayName(),
             date,
+            eventJpa.getType().displayName(),
             eventJpa.getCourses(),
             authorMention
         );
@@ -158,10 +155,11 @@ public class EmbedBuilderFactory {
 
     public static MessageEmbed deleteEvent(String reason, String jumpUrl, String mention, int eventCleanupDelay) {
         return new EmbedBuilder()
+            .setColor(BLUE)
             .setTitle("Event Deleted")
             .setDescription("The following event has been deleted: %s".formatted(jumpUrl))
             .addField(
-                "This action has been taken by:",
+                "Deleted by",
                 mention,
                 false
             )
@@ -172,23 +170,26 @@ public class EmbedBuilderFactory {
             )
             .addField(
                 "Information",
-                "- Once an event has been deleted no reminders will be sent for the event.%n- The event can be recovered within the next %d hours using the undo button.%n- After %d hours, the event will be entirely cleaned up.".formatted(eventCleanupDelay, eventCleanupDelay),
+                """
+                 - Once an event has been deleted no reminders will be sent for the event.
+                 - The event can be recovered within the next %d hours using the undo button.
+                 - After %d hours, the event will be entirely cleaned up. \
+                """.formatted(eventCleanupDelay, eventCleanupDelay),
                 false
             )
-            .setColor(BLUE)
             .build();
     }
 
     public static MessageEmbed eventRestored(String mention) {
         return new EmbedBuilder()
+            .setColor(BLUE)
             .setTitle("Event Restored")
             .setDescription("The event has been restored. Reminders will be sent out as scheduled.")
             .addField(
-                "The event was restored by:",
+                "Restored by",
                 mention,
                 false
             )
-            .setColor(BLUE)
             .build();
     }
 
@@ -200,14 +201,15 @@ public class EmbedBuilderFactory {
     }
 
     private static String shortEventSummary(EventJpa eventJpa, String jumpUrl) {
-        String date = DateFormatting.formattedDateTimeWithTimestamp(eventJpa.getDatetime());
+        String date = DateFormatter.formattedDateTimeWithTimestamp(eventJpa.getEventDate());
 
-        return "%s%s%s%s".formatted(
-            "**Date**\n",
-            "%s%n".formatted(date),
-            "**Link**\n",
-            jumpUrl
-        );
+        return
+            """
+            %s
+            %S
+            %s
+            %S
+            """.formatted(MarkdownUtil.bold("Date"), date, MarkdownUtil.bold("Link"), jumpUrl);
     }
 
     public static MessageEmbed eventList(Map<EventJpa, String> events) {

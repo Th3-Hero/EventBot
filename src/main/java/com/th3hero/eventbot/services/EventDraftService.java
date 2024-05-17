@@ -11,7 +11,7 @@ import com.th3hero.eventbot.exceptions.InformationRetrievalException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.factories.ModalFactory;
 import com.th3hero.eventbot.factories.ResponseFactory;
-import com.th3hero.eventbot.formatting.DateFormatting;
+import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.formatting.EnumParser;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.repositories.EventDraftRepository;
@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.th3hero.eventbot.config.DiscordFieldsConfig.*;
+import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 import static com.th3hero.eventbot.formatting.InteractionArguments.DRAFT_ID;
 
 @Service
@@ -68,7 +68,7 @@ public class EventDraftService {
             return;
         }
 
-        Optional<LocalDateTime> eventDate = DateFormatting.parseDate(dateString, timeString);
+        Optional<LocalDateTime> eventDate = DateFormatter.parseDate(dateString, timeString);
         if (eventDate.isEmpty()) {
             request.sendResponse("Failed to parse date and time.", MessageMode.USER);
             return;
@@ -87,7 +87,7 @@ public class EventDraftService {
 
         eventDraft = eventDraftRepository.save(eventDraft);
 
-        schedulingService.addDraftCleanupTrigger(eventDraft.getId(), eventDraft.getDatetime());
+        schedulingService.addDraftCleanupTrigger(eventDraft.getId(), eventDraft.getEventDate());
 
         request.sendResponse(
             ModalFactory.eventDraftCreationModal(eventDraft.getId()),
@@ -176,7 +176,7 @@ public class EventDraftService {
             .map(ModalMapping::getAsString)
             .orElseThrow(() -> new InformationRetrievalException("Failed to get time from modal"));
 
-        Optional<LocalDateTime> eventDate = DateFormatting.parseDate(dateString, timeString);
+        Optional<LocalDateTime> eventDate = DateFormatter.parseDate(dateString, timeString);
         if (eventDate.isEmpty()) {
             request.sendResponse("Failed to parse date and time.", MessageMode.USER);
             return;
@@ -184,7 +184,7 @@ public class EventDraftService {
 
         eventDraftJpa.setTitle(title);
         eventDraftJpa.setNote(StringUtils.isBlank(note) ? null : note);
-        eventDraftJpa.setDatetime(eventDate.get());
+        eventDraftJpa.setEventDate(eventDate.get());
 
         sendEventResponse(request, eventDraftJpa);
     }

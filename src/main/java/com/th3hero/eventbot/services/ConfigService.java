@@ -5,7 +5,6 @@ import com.th3hero.eventbot.dto.config.ConfigUpload;
 import com.th3hero.eventbot.dto.config.ConfigUploadUpdate;
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.exceptions.ActionAlreadyPreformedException;
-import com.th3hero.eventbot.exceptions.InvalidStateException;
 import com.th3hero.eventbot.repositories.ConfigRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -26,7 +25,7 @@ public class ConfigService {
             throw new EntityNotFoundException("No existing config was found. Contact the bot owner to fix this issue.");
         }
         if (configList.size() > 1) {
-            throw new InvalidStateException("The application has managed to reach an invalid state with multiple configurations. No clue how we got here ¯\\_(ツ)_/¯");
+            throw new IllegalStateException("The application has managed to reach an invalid state with multiple configurations. No clue how we got here ¯\\_(ツ)_/¯");
         }
 
         return configList.getFirst();
@@ -41,14 +40,18 @@ public class ConfigService {
             throw new ActionAlreadyPreformedException("There is already an existing configuration. Please update it instead of creating a new configuration");
         }
 
-        ConfigJpa jpa = ConfigJpa.builder()
+        ConfigJpa.ConfigJpaBuilder configJpaBuilder = ConfigJpa.builder()
             .eventChannel(configUpload.eventChannel())
-            .botOwnerId(configUpload.botOwnerId())
-            .deletedEventCleanupDelay(configUpload.deletedEventCleanupDelay() == null ? ConfigJpa.DEFAULT_DELETED_EVENT_CLEANUP_DELAY : configUpload.deletedEventCleanupDelay())
-            .draftCleanupDelay(configUpload.draftCleanupDelay() == null ? ConfigJpa.DEFAULT_DRAFT_CLEANUP_DELAY : configUpload.draftCleanupDelay())
-            .build();
+            .botOwnerId(configUpload.botOwnerId());
 
-        return configRepository.save(jpa).toDto();
+        if (configUpload.deletedEventCleanupDelay() != null) {
+            configJpaBuilder.deletedEventCleanupDelay(configUpload.deletedEventCleanupDelay());
+        }
+        if (configUpload.draftCleanupDelay() != null) {
+            configJpaBuilder.draftCleanupDelay(configUpload.draftCleanupDelay());
+        }
+
+        return configRepository.save(configJpaBuilder.build()).toDto();
     }
 
     public Config updateConfig(ConfigUploadUpdate configUpload) {

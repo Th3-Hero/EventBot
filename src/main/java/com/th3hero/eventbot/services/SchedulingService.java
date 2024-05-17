@@ -1,6 +1,6 @@
 package com.th3hero.eventbot.services;
 
-import com.th3hero.eventbot.formatting.DateFormatting;
+import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.jobs.DeletedEventCleanupJob;
 import com.th3hero.eventbot.jobs.DraftCleanupJob;
 import com.th3hero.eventbot.jobs.EventReminderJob;
@@ -38,7 +38,7 @@ public class SchedulingService {
                 .withIdentity(key)
                 .forJob(DraftCleanupJob.JOB_KEY)
                 .usingJobData(DraftCleanupJob.JOB_DRAFT_KEY, draftId)
-                .startAt(DateFormatting.toDate(draftCreationDate.plusHours(configService.getConfigJpa().getDraftCleanupDelay())))
+                .startAt(DateFormatter.toDate(draftCreationDate.plusHours(configService.getConfigJpa().getDraftCleanupDelay())))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                     .withMisfireHandlingInstructionFireNow()
                     .withRepeatCount(0))
@@ -85,7 +85,7 @@ public class SchedulingService {
                 .usingJobData(EventReminderJob.EVENT_ID, eventId)
                 .usingJobData(EventReminderJob.OFFSET_ID, offset)
                 .forJob(EventReminderJob.JOB_KEY)
-                .startAt(DateFormatting.toDate(eventTime))
+                .startAt(DateFormatter.toDate(eventTime))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                     .withMisfireHandlingInstructionFireNow()
                     .withRepeatCount(0))
@@ -141,7 +141,7 @@ public class SchedulingService {
                 .usingJobData(DeletedEventCleanupJob.DELETION_MESSAGE_ID, cleanupMessageId)
                 .usingJobData(DeletedEventCleanupJob.EVENT_ID, eventId)
                 .forJob(DeletedEventCleanupJob.JOB_KEY)
-                .startAt(DateFormatting.toDate(cleanupTime))
+                .startAt(DateFormatter.toDate(cleanupTime))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                     .withMisfireHandlingInstructionFireNow()
                     .withRepeatCount(0))

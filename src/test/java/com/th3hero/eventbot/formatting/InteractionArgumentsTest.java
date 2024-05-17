@@ -47,22 +47,6 @@ class InteractionArgumentsTest {
     }
 
     @Test
-    void parseLongs() {
-        List<String> list = List.of("1", "2", "3");
-        List<Long> targetList = List.of(1L, 2L, 3L);
-        var result = InteractionArguments.parseLongs(list);
-        assertThat(result).isEqualTo(targetList);
-    }
-
-    @Test
-    void parseLongs_nonLongs() {
-        List<String> list = List.of("1", "2", "3", "a");
-        assertThatExceptionOfType(NumberFormatException.class).isThrownBy(() -> {
-            InteractionArguments.parseLongs(list);
-        });
-    }
-
-    @Test
     void parseArguments() {
         var action = TestInteractionEnum.TEST_INTERACTION_TWO;
         List<String> idArguments = List.of("1", "2");

@@ -2,6 +2,8 @@ package com.th3hero.eventbot.formatting;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.dv8tion.jda.api.utils.TimeFormat;
+import net.dv8tion.jda.api.utils.Timestamp;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -10,8 +12,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class DateFormatting {
+@NoArgsConstructor(access = AccessLevel.NONE)
+public final class DateFormatter {
 
     public static final ZoneId ZONE_ID = ZoneId.of("America/New_York");
 
@@ -84,7 +86,7 @@ public class DateFormatting {
      * @return An Optional containing the parsed LocalDateTime if successful, or an empty Optional if not.
      */
     public static Optional<LocalDateTime> parseDate(String dateString, String timeString) {
-        String combinedDateTime = "%s %S".formatted(dateString, timeString);
+        String combinedDateTime = "%s %s".formatted(dateString, timeString);
 
         for (DateTimeFormatter formatter : FORMATTERS) {
             try {

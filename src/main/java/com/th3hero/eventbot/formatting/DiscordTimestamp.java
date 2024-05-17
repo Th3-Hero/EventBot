@@ -27,7 +27,7 @@ public enum DiscordTimestamp {
      */
     public static String create(DiscordTimestamp style, LocalDateTime date) {
         return "<t:%d%s>".formatted(
-            date.atZone(DateFormatting.ZONE_ID).toEpochSecond(),
+            date.atZone(DateFormatter.ZONE_ID).toEpochSecond(),
             style.getStyle()
         );
     }

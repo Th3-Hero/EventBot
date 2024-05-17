@@ -28,7 +28,7 @@ public class TestEntities {
             .title("Test Event")
             .note("Test Note")
             .authorId(1234L)
-            .datetime(LocalDateTime.now())
+            .eventDate(LocalDateTime.now())
             .type(EventJpa.EventType.ASSIGNMENT)
             .build();
     }
@@ -54,7 +54,7 @@ public class TestEntities {
             .messageId(1234L + seed)
             .title("Test Event%s".formatted(seed))
             .note("Test Note%s".formatted(seed))
-            .datetime(LocalDateTime.of(2025, 1, 1, 1, 1, 1))
+            .eventDate(LocalDateTime.of(2025, 1, 1, 1, 1, 1))
             .type(EventJpa.EventType.ASSIGNMENT)
             .courses(new ArrayList<>(courses))
             .build();
@@ -63,7 +63,7 @@ public class TestEntities {
     public static StudentJpa studentJpa(int seed, List<CourseJpa> courses) {
         return StudentJpa.builder()
             .id(1234L + seed)
-            .offsetTimes(List.of(24, 72))
+            .reminderOffsetTimes(List.of(24, 72))
             .courses(new ArrayList<>(courses))
             .build();
     }
@@ -72,7 +72,6 @@ public class TestEntities {
         return guild(1);
     }
 
-    // Ignored for mocking reasons. I don't actually care what value it takes on, so long as it does not NPE
     public static Guild guild(final int id) {
         final JDAImpl jda = mock(JDAImpl.class);
 

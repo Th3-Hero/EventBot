@@ -1,7 +1,6 @@
 package com.th3hero.eventbot.commands.requests;
 
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
-import com.th3hero.eventbot.exceptions.InvalidStateException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -67,7 +66,7 @@ public abstract class InteractionRequest {
 
     protected final MessageChannel getEventChannel() {
         if (eventChannelId == null) {
-            throw new InvalidStateException("No event channel was found on the request. Make sure to addEventChannel");
+            throw new IllegalStateException("No event channel was found on the request. Make sure to addEventChannel");
         }
         return Optional.ofNullable(server.getTextChannelById(eventChannelId))
             .orElseThrow(() -> new ConfigErrorException("Unable to find event channel %d".formatted(eventChannelId)));

@@ -11,7 +11,7 @@ import com.th3hero.eventbot.exceptions.InformationRetrievalException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.factories.ModalFactory;
 import com.th3hero.eventbot.factories.ResponseFactory;
-import com.th3hero.eventbot.formatting.DateFormatting;
+import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.repositories.EventDraftRepository;
 import com.th3hero.eventbot.repositories.EventRepository;
@@ -44,7 +44,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.th3hero.eventbot.config.DiscordFieldsConfig.*;
+import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 import static com.th3hero.eventbot.formatting.InteractionArguments.EVENT_ID;
 
 @Slf4j
@@ -271,17 +271,17 @@ public class EventService {
             }
             eventJpa.setNote(StringUtils.isBlank(note) ? null : note);
         }
-        if (!eventDate.equals(eventJpa.getDatetime())) {
+        if (!eventDate.equals(eventJpa.getEventDate())) {
             embedBuilder.addField(
                 "Original Date",
-                DateFormatting.formattedDateTime(eventJpa.getDatetime()),
+                DateFormatter.formattedDateTime(eventJpa.getEventDate()),
                 false
             ).addField(
                 "Updated Date",
-                DateFormatting.formattedDateTime(eventDate),
+                DateFormatter.formattedDateTime(eventDate),
                 false
             );
-            eventJpa.setDatetime(eventDate);
+            eventJpa.setEventDate(eventDate);
             schedulingService.stripReminderTriggers(eventJpa.getId());
             for (CourseJpa courseJpa : eventJpa.getCourses()) {
                 courseService.scheduleEventForCourse(eventJpa, courseJpa);
@@ -310,7 +310,7 @@ public class EventService {
             .map(ModalMapping::getAsString)
             .orElseThrow(() -> new InformationRetrievalException("Failed to parse time from modal"));
 
-        Optional<LocalDateTime> eventDate = DateFormatting.parseDate(dateString, timeString);
+        Optional<LocalDateTime> eventDate = DateFormatter.parseDate(dateString, timeString);
         if (eventDate.isEmpty()) {
             request.sendResponse("Failed to parse date and time", MessageMode.USER);
             return;
@@ -426,7 +426,7 @@ public class EventService {
             LocalDateTime minTimePeriod = LocalDateTime.now();
             LocalDateTime maxTimePeriod = minTimePeriod.plusDays(timePeriodField);
             events = events.stream()
-                .filter(event -> event.getDatetime().isAfter(minTimePeriod) && event.getDatetime().isBefore(maxTimePeriod))
+                .filter(event -> event.getEventDate().isAfter(minTimePeriod) && event.getEventDate().isBefore(maxTimePeriod))
                 .toList();
         }
 
@@ -469,8 +469,8 @@ public class EventService {
         LocalDateTime now = LocalDateTime.now();
         return events.stream()
             .sorted((event1, event2) -> {
-                long diff1 = ChronoUnit.SECONDS.between(now, event1.getDatetime());
-                long diff2 = ChronoUnit.SECONDS.between(now, event2.getDatetime());
+                long diff1 = ChronoUnit.SECONDS.between(now, event1.getEventDate());
+                long diff2 = ChronoUnit.SECONDS.between(now, event2.getEventDate());
                 return Long.compare(Math.abs(diff1), Math.abs(diff2));
             })
             .toList();

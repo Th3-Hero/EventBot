@@ -13,7 +13,7 @@ import java.util.Objects;
 @Setter
 @Entity
 @Builder
-@ToString
+@ToString(exclude = "courses")
 @Table(name = "event_draft")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -37,7 +37,7 @@ public class EventDraftJpa {
 
     @NonNull
     @Column
-    private LocalDateTime datetime;
+    private LocalDateTime eventDate;
 
     @OrderBy("code ASC")
     @ManyToMany
@@ -51,12 +51,12 @@ public class EventDraftJpa {
     @NonNull
     @Builder.Default
     @Column
-    private LocalDateTime draftCreationTime = LocalDateTime.now();
+    private LocalDateTime draftCreationDate = LocalDateTime.now();
 
     public static EventDraftJpa create(Long authorId, LocalDateTime eventDate, EventJpa.EventType eventType) {
         return EventDraftJpa.builder()
             .authorId(authorId)
-            .datetime(eventDate)
+            .eventDate(eventDate)
             .type(eventType)
             .build();
     }

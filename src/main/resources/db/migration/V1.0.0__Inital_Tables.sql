@@ -1,4 +1,3 @@
-
 create sequence seq_config_id start with 1 increment by 1;
 create table config (
     id integer not null primary key,
@@ -20,18 +19,21 @@ create table student (
     id bigint not null primary key
 );
 
+create index student_reminder_offsets_student_id_index on student_reminder_offsets (student_id);
 create table student_reminder_offsets (
     student_id bigint not null,
-    offsets_times integer,
+    reminder_offset_time integer,
     constraint fk_student_notification_times foreign key (student_id)
         references student(id)
 );
 
+create index student_courses_courses_id_index on student_courses(courses_id);
+create index student_courses_student_jpa_id_index on student_courses(student_jpa_id);
 create table student_courses (
     courses_id bigint not null,
     student_jpa_id bigint not null,
     constraint fk_course_id foreign key (courses_id) references course(id),
-    constraint fk_student_id foreign key (student_jpa_id) references student (id),
+    constraint fk_student_id foreign key (student_jpa_id) references student(id),
     constraint student_courses_pk primary key (courses_id, student_jpa_id)
 );
 
@@ -42,11 +44,13 @@ create table event (
     message_id bigint,
     title text not null,
     note text,
-    datetime timestamp not null,
-    type varchar(20) not null,
+    event_date timestamp not null,
+    type text not null,
     deleted boolean not null
 );
 
+create index event_courses_event_jpa_id_index on event_courses(event_jpa_id);
+create index event_courses_courses_id_index on event_courses(courses_id);
 create table event_courses (
     event_jpa_id bigint not null,
     courses_id bigint not null,
@@ -63,11 +67,13 @@ create table event_draft (
     author_id bigint not null,
     title text,
     note text,
-    datetime timestamp not null,
+    event_date timestamp not null,
     type varchar(20) not null,
-    draft_creation_time timestamp not null
+    draft_creation_date timestamp not null
 );
 
+create index idx_event_draft_courses_event_draft_jpa_id on event_draft_courses(event_draft_jpa_id);
+create index idx_event_draft_courses_courses_id on event_draft_courses(courses_id);
 create table event_draft_courses (
     event_draft_jpa_id bigint not null,
     courses_id bigint not null,

@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.NONE)
-public class InteractionArguments {
+public final class InteractionArguments {
     public static final String DRAFT_ID = "draft_id";
     public static final String EVENT_ID = "event_id";
 
@@ -50,18 +50,6 @@ public class InteractionArguments {
     }
 
     /**
-     * Converts a list of string values into a list of long values.
-     *
-     * @param list The list of string values to convert.
-     * @return A list of long values.
-     */
-    public static List<Long> parseLongs(List<String> list) {
-        return list.stream()
-            .map(Long::parseLong)
-            .toList();
-    }
-
-    /**
      * Parses a list of string arguments into a map of request keys and long values.
      * The DiscordActionArguments enum value provides the expected request keys.
      * The number of arguments must match the number of expected request keys.
@@ -74,12 +62,14 @@ public class InteractionArguments {
      */
     public static Map<String, Long> parseArguments(final DiscordActionArguments action, final List<String> idArguments) {
         if (idArguments.size() != action.getRequestKeys().size()) {
-            throw new ArgumentMappingException("Number of request arguments does not match expected");
+            throw new ArgumentMappingException("Number of request arguments(%d) does not match expected(%d) for action %s".formatted(action.getRequestKeys().size(), idArguments.size(), action.name()));
         }
 
         List<Long> args;
         try {
-            args = parseLongs(idArguments);
+            args = idArguments.stream()
+                .map(Long::parseLong)
+                .toList();
         } catch (NumberFormatException e) {
             throw new UnsupportedInteractionException("Failed to parse arguments");
         }

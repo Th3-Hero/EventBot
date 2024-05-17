@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
-import static com.th3hero.eventbot.config.DiscordFieldsConfig.*;
+import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 
 @Component
 @RequiredArgsConstructor

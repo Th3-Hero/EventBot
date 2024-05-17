@@ -18,9 +18,6 @@ import java.util.Objects;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class ConfigJpa implements Serializable {
 
-    public static final int DEFAULT_DRAFT_CLEANUP_DELAY = 24;
-    public static final int DEFAULT_DELETED_EVENT_CLEANUP_DELAY = 48;
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_config_id_generator")
     @SequenceGenerator(name = "seq_config_id_generator", sequenceName = "seq_config_id", allocationSize = 1)

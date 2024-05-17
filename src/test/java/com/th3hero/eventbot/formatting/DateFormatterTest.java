@@ -11,41 +11,41 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-class DateFormattingTest {
+class DateFormatterTest {
 
 
     @Test
     void toDate() {
         var dateTime = LocalDateTime.of(2024, 5, 20, 14, 30);
-        var result = DateFormatting.toDate(dateTime);
+        var result = DateFormatter.toDate(dateTime);
         assertThat(result).isNotNull();
     }
 
     @Test
     void formattedDateTime() {
         var dateTime = LocalDateTime.of(2024, 5, 20, 14, 30);
-        var result = DateFormatting.formattedDateTime(dateTime);
+        var result = DateFormatter.formattedDateTime(dateTime);
         assertThat(result).isEqualTo("2024-05-20 14:30");
     }
 
     @Test
     void formattedDate() {
         var dateTime = LocalDateTime.of(2024, 5, 20, 14, 30);
-        var result = DateFormatting.formattedDate(dateTime);
+        var result = DateFormatter.formattedDate(dateTime);
         assertThat(result).isEqualTo("2024-05-20");
     }
 
     @Test
     void formattedTime() {
         var dateTime = LocalDateTime.of(2024, 5, 20, 14, 30);
-        var result = DateFormatting.formattedTime(dateTime);
+        var result = DateFormatter.formattedTime(dateTime);
         assertThat(result).isEqualTo("14:30");
     }
 
     @Test
     void formattedDateTimeWithTimestamp() {
-        var dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(1715649720L), DateFormatting.ZONE_ID);
-        var result = DateFormatting.formattedDateTimeWithTimestamp(dateTime);
+        var dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(1715649720L), DateFormatter.ZONE_ID);
+        var result = DateFormatter.formattedDateTimeWithTimestamp(dateTime);
         assertThat(result).isEqualTo("2024-05-13 21:22 (<t:1715649720:R>)");
     }
 
@@ -63,7 +63,7 @@ class DateFormattingTest {
     @ParameterizedTest
     @MethodSource("parseDateArguments")
     void parseDate(String date, String time, LocalDateTime expected) {
-        var result = DateFormatting.parseDate(date, time);
+        var result = DateFormatter.parseDate(date, time);
         assertThat(result).isPresent();
         assertThat(result).contains(expected);
     }
@@ -72,7 +72,7 @@ class DateFormattingTest {
     void parseDate_invalidDate() {
         var dateString = "2024-555-3123";
         var timeString = "14:30";
-        var result = DateFormatting.parseDate(dateString, timeString);
+        var result = DateFormatter.parseDate(dateString, timeString);
         assertThat(result).isEmpty();
     }
 

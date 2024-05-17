@@ -14,7 +14,7 @@ import java.util.Objects;
 @Setter
 @Entity
 @Builder
-@ToString
+@ToString(exclude = "courses")
 @Table(name = "student")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -32,8 +32,8 @@ public class StudentJpa implements Serializable {
 
     @ElementCollection
     @CollectionTable(name = "student_reminder_offsets", joinColumns = @JoinColumn(name = "student_id"))
-    @Column(name = "offsets_times")
-    private List<Integer> offsetTimes;
+    @Column(name = "reminder_offset_time")
+    private List<Integer> reminderOffsetTimes;
 
     public static StudentJpa create(
         Long studentId
@@ -41,7 +41,7 @@ public class StudentJpa implements Serializable {
         return StudentJpa.builder()
             .id(studentId)
             .courses(List.of())
-            .offsetTimes(List.of(24, 72))
+            .reminderOffsetTimes(List.of(24, 72))
             .build();
     }
 

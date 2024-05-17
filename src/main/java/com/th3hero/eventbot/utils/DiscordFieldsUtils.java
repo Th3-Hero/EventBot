@@ -1,4 +1,4 @@
-package com.th3hero.eventbot.config;
+package com.th3hero.eventbot.utils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
  * Along with a set of constraints for field sizes and values.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class DiscordFieldsConfig {
+public class DiscordFieldsUtils {
     public static final String TITLE_ID = "title";
     public static final String NOTE_ID = "note";
     public static final String DATE_ID = "date";
