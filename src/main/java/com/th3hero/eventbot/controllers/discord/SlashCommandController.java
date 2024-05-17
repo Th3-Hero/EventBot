@@ -1,8 +1,8 @@
 package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.requests.CommandRequest;
-import com.th3hero.eventbot.exceptions.ArgumentMappingException;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
+import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.EventDraftService;
@@ -31,7 +31,7 @@ public class SlashCommandController extends ListenerAdapter {
         try {
             final CommandRequest request = CommandRequest.fromInteraction(event);
             commandHandler(request);
-        } catch (UnsupportedInteractionException | ArgumentMappingException e) {
+        } catch (IllegalInteractionException | DataAccessException e) {
             DiscordActionUtils.textResponse(event, e.getMessage(), true);
             log.warn(e.getMessage());
         } catch (Exception e) {

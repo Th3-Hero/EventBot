@@ -2,7 +2,7 @@ package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.requests.ButtonRequest;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
-import com.th3hero.eventbot.exceptions.InformationRetrievalException;
+import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.services.EventDraftService;
 import com.th3hero.eventbot.services.EventService;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
@@ -53,7 +53,7 @@ public class ButtonController extends ListenerAdapter {
         } catch (EntityNotFoundException e) {
             request.sendResponse(e.getMessage(), MessageMode.USER);
             log.debug(e.getMessage());
-        } catch (InformationRetrievalException e) {
+        } catch (DataAccessException e) {
             request.sendResponse(e.getMessage(), MessageMode.USER);
             log.error(e.getMessage(), e);
         } catch (Exception e) {

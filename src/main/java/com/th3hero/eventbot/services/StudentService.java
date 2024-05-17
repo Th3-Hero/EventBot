@@ -7,7 +7,7 @@ import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.repositories.StudentRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -88,7 +88,7 @@ public class StudentService {
         ReminderConfigOptions option = EnumUtils.valueOf(
             ReminderConfigOptions.class,
             request.getArguments().get("sub_command"),
-            new UnsupportedInteractionException("Unknown sub command %s".formatted(request.getArguments().get("sub_command")))
+            new IllegalInteractionException("Unknown sub command %s".formatted(request.getArguments().get("sub_command")))
         );
 
         StudentJpa studentJpa = fetchStudent(request.getRequester().getIdLong());

@@ -2,7 +2,7 @@ package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.TestEntities;
 import com.th3hero.eventbot.commands.actions.ButtonAction;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.services.EventDraftService;
 import com.th3hero.eventbot.services.EventService;
@@ -45,7 +45,7 @@ class ButtonControllerTest {
         when(event.reply(anyString()).setEphemeral(anyBoolean()))
             .thenReturn(mock(ReplyCallbackAction.class));
 
-        assertThrows(UnsupportedInteractionException.class, () -> buttonController.onButtonInteraction(event));
+        assertThrows(IllegalInteractionException.class, () -> buttonController.onButtonInteraction(event));
     }
 
     @Test

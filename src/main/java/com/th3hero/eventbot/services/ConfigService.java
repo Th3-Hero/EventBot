@@ -4,8 +4,8 @@ import com.th3hero.eventbot.dto.config.Config;
 import com.th3hero.eventbot.dto.config.ConfigUpload;
 import com.th3hero.eventbot.dto.config.ConfigUploadUpdate;
 import com.th3hero.eventbot.entities.ConfigJpa;
-import com.th3hero.eventbot.exceptions.ActionAlreadyPreformedException;
 import com.th3hero.eventbot.repositories.ConfigRepository;
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public class ConfigService {
 
     public Config createConfig(ConfigUpload configUpload) {
         if (!configRepository.findAll().isEmpty()) {
-            throw new ActionAlreadyPreformedException("There is already an existing configuration. Please update it instead of creating a new configuration");
+            throw new EntityExistsException("There is already an existing configuration. Please update it instead of creating a new configuration");
         }
 
         ConfigJpa.ConfigJpaBuilder configJpaBuilder = ConfigJpa.builder()

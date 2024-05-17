@@ -7,7 +7,7 @@ import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
-import com.th3hero.eventbot.exceptions.InformationRetrievalException;
+import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.factories.ModalFactory;
 import com.th3hero.eventbot.factories.ResponseFactory;
@@ -27,8 +27,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 import static com.th3hero.eventbot.formatting.InteractionArguments.DRAFT_ID;
+import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 
 @Service
 @Transactional
@@ -100,10 +100,10 @@ public class EventDraftService {
 
         String title = Optional.ofNullable(request.getEvent().getValue(TITLE_ID))
             .map(ModalMapping::getAsString)
-            .orElseThrow(() -> new InformationRetrievalException("Failed to get title from modal."));
+            .orElseThrow(() -> new DataAccessException("Failed to get title from modal."));
 
         if (StringUtils.isBlank(title)) {
-            throw new InformationRetrievalException("Failed to get title from modal. Title is required.");
+            throw new DataAccessException("Failed to get title from modal. Title is required.");
         }
 
         String note = Optional.ofNullable(request.getEvent().getValue(NOTE_ID))
@@ -158,10 +158,10 @@ public class EventDraftService {
 
         String title = Optional.ofNullable(request.getEvent().getValue(TITLE_ID))
             .map(ModalMapping::getAsString)
-            .orElseThrow(() -> new InformationRetrievalException("Failed to get title from modal."));
+            .orElseThrow(() -> new DataAccessException("Failed to get title from modal."));
 
         if (StringUtils.isBlank(title)) {
-            throw new InformationRetrievalException("Failed to get title from modal. Title is required.");
+            throw new DataAccessException("Failed to get title from modal. Title is required.");
         }
 
         String note = Optional.ofNullable(request.getEvent().getValue(NOTE_ID))
@@ -170,11 +170,11 @@ public class EventDraftService {
 
         String dateString = Optional.ofNullable(request.getEvent().getValue(DATE_ID))
             .map(ModalMapping::getAsString)
-            .orElseThrow(() -> new InformationRetrievalException("Failed to get date from modal"));
+            .orElseThrow(() -> new DataAccessException("Failed to get date from modal"));
 
         String timeString = Optional.ofNullable(request.getEvent().getValue(TIME_ID))
             .map(ModalMapping::getAsString)
-            .orElseThrow(() -> new InformationRetrievalException("Failed to get time from modal"));
+            .orElseThrow(() -> new DataAccessException("Failed to get time from modal"));
 
         Optional<LocalDateTime> eventDate = DateFormatter.parseDate(dateString, timeString);
         if (eventDate.isEmpty()) {

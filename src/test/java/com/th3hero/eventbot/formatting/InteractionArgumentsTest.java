@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.formatting;
 
-import com.th3hero.eventbot.exceptions.ArgumentMappingException;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
+import com.th3hero.eventbot.exceptions.DataAccessException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -62,7 +62,7 @@ class InteractionArgumentsTest {
     void parseArguments_argNumberMissMatch() {
         var action = TestInteractionEnum.TEST_INTERACTION_TWO;
         List<String> idArguments = List.of("1");
-        assertThatExceptionOfType(ArgumentMappingException.class).isThrownBy(() -> {
+        assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> {
             InteractionArguments.parseArguments(action, idArguments);
         });
     }
@@ -71,7 +71,7 @@ class InteractionArgumentsTest {
     void parseArguments_nonLong() {
         var action = TestInteractionEnum.TEST_INTERACTION_TWO;
         List<String> idArguments = List.of("1", "a");
-        assertThatExceptionOfType(UnsupportedInteractionException.class).isThrownBy(() -> {
+        assertThatExceptionOfType(IllegalInteractionException.class).isThrownBy(() -> {
             InteractionArguments.parseArguments(action, idArguments);
         });
     }

@@ -3,7 +3,6 @@ package com.th3hero.eventbot.formatting;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.dv8tion.jda.api.utils.TimeFormat;
-import net.dv8tion.jda.api.utils.Timestamp;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -72,7 +71,7 @@ public final class DateFormatter {
     public static String formattedDateTimeWithTimestamp(LocalDateTime dateTime) {
         return "%s (%s)".formatted(
             formattedDateTime(dateTime),
-            DiscordTimestamp.create(DiscordTimestamp.RELATIVE, dateTime)
+            TimeFormat.RELATIVE.format(dateTime.atZone(ZONE_ID))
         );
     }
 

@@ -3,7 +3,6 @@ package com.th3hero.eventbot.commands.requests;
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.ButtonAction;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.Getter;
@@ -52,14 +51,14 @@ public class ButtonRequest extends InteractionRequest {
      *
      * @param event The event to create the button request from
      * @return The created button request
-     * @throws UnsupportedInteractionException If the interaction is not supported
+     * @throws IllegalInteractionException If the interaction is not supported
      * @see ButtonAction ButtonAction for supported interactions
      */
-    public static ButtonRequest fromInteraction(@NonNull final ButtonInteractionEvent event) throws UnsupportedInteractionException {
+    public static ButtonRequest fromInteraction(@NonNull final ButtonInteractionEvent event) throws IllegalInteractionException {
         final List<String> buttonIdSplits = List.of(event.getButton().getId().split("-"));
         final String buttonActionString = buttonIdSplits.subList(0, 1).getFirst();
         final List<String> idArguments = buttonIdSplits.subList(1, buttonIdSplits.size());
-        final ButtonAction action = EnumUtils.valueOf(ButtonAction.class, buttonActionString, new UnsupportedInteractionException("Unsupported interaction with button %s".formatted(event.getButton().getId())));
+        final ButtonAction action = EnumUtils.valueOf(ButtonAction.class, buttonActionString, new IllegalInteractionException("Unsupported interaction with button %s".formatted(event.getButton().getId())));
 
         return new ButtonRequest(action, event, event.getMember(), event.getGuild(), InteractionArguments.parseArguments(action, idArguments));
     }
@@ -75,7 +74,7 @@ public class ButtonRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
-     * @throws UnsupportedInteractionException If given unsupported interaction
+     * @throws IllegalInteractionException If given unsupported interaction
      */
     @Override
     public void sendResponse(@NonNull Object response, MessageMode mode, Consumer<Message> success) {
@@ -85,7 +84,7 @@ public class ButtonRequest extends InteractionRequest {
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
             default ->
-                throw new UnsupportedInteractionException("Unsupported button event response type %s".formatted(response.getClass().getSimpleName()));
+                throw new IllegalInteractionException("Unsupported button event response type %s".formatted(response.getClass().getSimpleName()));
         }
     }
 

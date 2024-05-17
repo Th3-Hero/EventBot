@@ -3,7 +3,6 @@ package com.th3hero.eventbot.repositories;
 import com.th3hero.eventbot.TestEntities;
 import com.th3hero.eventbot.entities.CourseJpa;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;

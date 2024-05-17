@@ -1,8 +1,8 @@
 package com.th3hero.eventbot.formatting;
 
 import com.th3hero.eventbot.commands.actions.DiscordActionArguments;
-import com.th3hero.eventbot.exceptions.ArgumentMappingException;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
+import com.th3hero.eventbot.exceptions.DataAccessException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -57,12 +57,12 @@ public final class InteractionArguments {
      * @param action The DiscordActionArguments enum value providing the expected request keys.
      * @param idArguments The list of string arguments to parse.
      * @return A map of request keys and long values.
-     * @throws ArgumentMappingException If the number of arguments does not match the number of request keys.
-     * @throws UnsupportedInteractionException If any argument cannot be parsed to a long.
+     * @throws DataAccessException If the number of arguments does not match the number of request keys.
+     * @throws IllegalInteractionException If any argument cannot be parsed to a long.
      */
     public static Map<String, Long> parseArguments(final DiscordActionArguments action, final List<String> idArguments) {
         if (idArguments.size() != action.getRequestKeys().size()) {
-            throw new ArgumentMappingException("Number of request arguments(%d) does not match expected(%d) for action %s".formatted(action.getRequestKeys().size(), idArguments.size(), action.name()));
+            throw new DataAccessException("Number of request arguments(%d) does not match expected(%d) for action %s".formatted(action.getRequestKeys().size(), idArguments.size(), action.name()));
         }
 
         List<Long> args;
@@ -71,7 +71,7 @@ public final class InteractionArguments {
                 .map(Long::parseLong)
                 .toList();
         } catch (NumberFormatException e) {
-            throw new UnsupportedInteractionException("Failed to parse arguments");
+            throw new IllegalInteractionException("Failed to parse arguments");
         }
 
         Map<String, Long> mappedArgs = new HashMap<>();

@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.controllers.rest;
 
 import com.kseth.development.rest.error.ProblemDetailFactory;
-import com.th3hero.eventbot.exceptions.ActionAlreadyPreformedException;
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -15,8 +15,8 @@ public class GlobalExceptionHandler {
         return ProblemDetailFactory.createProblemDetail(HttpStatus.NOT_FOUND, e);
     }
 
-    @ExceptionHandler(ActionAlreadyPreformedException.class)
-    public ProblemDetail actionAlreadyPreformedException(ActionAlreadyPreformedException e) {
+    @ExceptionHandler(EntityExistsException.class)
+    public ProblemDetail entityExistsException(EntityExistsException e) {
         return ProblemDetailFactory.createProblemDetail(HttpStatus.BAD_REQUEST, e);
     }
 }

@@ -3,7 +3,6 @@ package com.th3hero.eventbot.commands.requests;
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.Getter;
 import lombok.NonNull;
@@ -53,11 +52,11 @@ public class CommandRequest extends InteractionRequest {
      *
      * @param event The event to create the command request from
      * @return The created command request
-     * @throws UnsupportedInteractionException If the interaction is not supported
+     * @throws IllegalInteractionException If the interaction is not supported
      * @see Command Command for supported interactions
      */
-    public static CommandRequest fromInteraction(@NonNull final SlashCommandInteractionEvent event) throws UnsupportedInteractionException {
-        final Command command = EnumUtils.valueOf(Command.class, event.getName(), new UnsupportedInteractionException("Unsupported interaction with command %s".formatted(event.getName())));
+    public static CommandRequest fromInteraction(@NonNull final SlashCommandInteractionEvent event) throws IllegalInteractionException {
+        final Command command = EnumUtils.valueOf(Command.class, event.getName(), new IllegalInteractionException("Unsupported interaction with command %s".formatted(event.getName())));
 
         Map<String, String> arguments = parseOptions(event.getOptions());
         if (event.getSubcommandName() != null) {
@@ -87,7 +86,7 @@ public class CommandRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
-     * @throws UnsupportedInteractionException If given unsupported interaction
+     * @throws IllegalInteractionException If given unsupported interaction
      */
     @Override
     public void sendResponse(@NonNull Object response, MessageMode mode, Consumer<Message> success) {
@@ -97,7 +96,7 @@ public class CommandRequest extends InteractionRequest {
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
             default ->
-                throw new UnsupportedInteractionException("Unable to process response of type '%s' for slash commands".formatted(response.getClass().getSimpleName()));
+                throw new IllegalInteractionException("Unable to process response of type '%s' for slash commands".formatted(response.getClass().getSimpleName()));
         }
     }
 

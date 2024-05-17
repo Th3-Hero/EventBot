@@ -19,16 +19,14 @@ create table student (
     id bigint not null primary key
 );
 
-create index student_reminder_offsets_student_id_index on student_reminder_offsets (student_id);
 create table student_reminder_offsets (
     student_id bigint not null,
     reminder_offset_time integer,
     constraint fk_student_notification_times foreign key (student_id)
         references student(id)
 );
+create index student_reminder_offsets_student_id_index on student_reminder_offsets (student_id);
 
-create index student_courses_courses_id_index on student_courses(courses_id);
-create index student_courses_student_jpa_id_index on student_courses(student_jpa_id);
 create table student_courses (
     courses_id bigint not null,
     student_jpa_id bigint not null,
@@ -36,6 +34,8 @@ create table student_courses (
     constraint fk_student_id foreign key (student_jpa_id) references student(id),
     constraint student_courses_pk primary key (courses_id, student_jpa_id)
 );
+create index student_courses_courses_id_index on student_courses(courses_id);
+create index student_courses_student_jpa_id_index on student_courses(student_jpa_id);
 
 create sequence seq_event_id start with 1 increment by 1;
 create table event (
@@ -49,8 +49,6 @@ create table event (
     deleted boolean not null
 );
 
-create index event_courses_event_jpa_id_index on event_courses(event_jpa_id);
-create index event_courses_courses_id_index on event_courses(courses_id);
 create table event_courses (
     event_jpa_id bigint not null,
     courses_id bigint not null,
@@ -60,6 +58,8 @@ create table event_courses (
         references course(id),
     constraint event_courses_pk primary key (event_jpa_id, courses_id)
 );
+create index event_courses_event_jpa_id_index on event_courses(event_jpa_id);
+create index event_courses_courses_id_index on event_courses(courses_id);
 
 create sequence seq_event_draft_id start with 1 increment by 1;
 create table event_draft (
@@ -72,8 +72,6 @@ create table event_draft (
     draft_creation_date timestamp not null
 );
 
-create index idx_event_draft_courses_event_draft_jpa_id on event_draft_courses(event_draft_jpa_id);
-create index idx_event_draft_courses_courses_id on event_draft_courses(courses_id);
 create table event_draft_courses (
     event_draft_jpa_id bigint not null,
     courses_id bigint not null,
@@ -83,6 +81,8 @@ create table event_draft_courses (
         references course(id),
     constraint event_draft_courses_pk primary key (event_draft_jpa_id, courses_id)
 );
+create index idx_event_draft_courses_event_draft_jpa_id on event_draft_courses(event_draft_jpa_id);
+create index idx_event_draft_courses_courses_id on event_draft_courses(courses_id);
 
 ----------------------------------------
 ------------ Quartz tables -------------

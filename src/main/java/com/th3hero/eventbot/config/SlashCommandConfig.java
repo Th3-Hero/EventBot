@@ -5,6 +5,7 @@ import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.services.StudentService;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.Command.Choice;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -61,7 +62,8 @@ public class SlashCommandConfig {
                 ),
             Commands.slash(Command.VIEW_EVENTS.getDisplayName(), Command.DESCRIPTIONS.get(Command.VIEW_EVENTS.getDisplayName())).addOptions(
                 new OptionData(OptionType.INTEGER, UPCOMING_ID, "Get a list of the next X upcoming events.", false)
-                    .setMinValue(MIN_FILTER_VALUE),
+                    .setMinValue(MIN_FILTER_VALUE)
+                    .setMaxValue(MessageEmbed.MAX_FIELD_AMOUNT),
                 new OptionData(OptionType.INTEGER, TIME_PERIOD_ID, "Filter events to a certain time period in the next X days.", false)
                     .setMinValue(MIN_FILTER_VALUE),
                 new OptionData(OptionType.STRING, COURSE_ID, "Filter events for a certain course.", false)

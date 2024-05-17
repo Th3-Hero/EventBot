@@ -7,7 +7,7 @@ import com.th3hero.eventbot.commands.requests.*;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.entities.*;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
-import com.th3hero.eventbot.exceptions.InformationRetrievalException;
+import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.factories.ModalFactory;
 import com.th3hero.eventbot.factories.ResponseFactory;
@@ -44,8 +44,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 import static com.th3hero.eventbot.formatting.InteractionArguments.EVENT_ID;
+import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 
 @Slf4j
 @Service
@@ -150,7 +150,7 @@ public class EventService {
 
         String reason = Optional.ofNullable(request.getEvent().getValue(REASON_ID))
             .map(ModalMapping::getAsString)
-            .orElseThrow(() -> new InformationRetrievalException("Failed to parse field from modal"));
+            .orElseThrow(() -> new DataAccessException("Failed to parse field from modal"));
 
         int deletedEventCleanupDelay = configService.getConfigJpa().getDeletedEventCleanupDelay();
 
@@ -296,7 +296,7 @@ public class EventService {
 
         String title = Optional.ofNullable(request.getEvent().getValue(TITLE_ID))
             .map(ModalMapping::getAsString)
-            .orElseThrow(() -> new InformationRetrievalException("Failed to parse title from modal"));
+            .orElseThrow(() -> new DataAccessException("Failed to parse title from modal"));
 
         String note = Optional.ofNullable(request.getEvent().getValue(NOTE_ID))
             .map(ModalMapping::getAsString)
@@ -304,11 +304,11 @@ public class EventService {
 
         String dateString = Optional.ofNullable(request.getEvent().getValue(DATE_ID))
             .map(ModalMapping::getAsString)
-            .orElseThrow(() -> new InformationRetrievalException("Failed to parse date from modal"));
+            .orElseThrow(() -> new DataAccessException("Failed to parse date from modal"));
 
         String timeString = Optional.ofNullable(request.getEvent().getValue(TIME_ID))
             .map(ModalMapping::getAsString)
-            .orElseThrow(() -> new InformationRetrievalException("Failed to parse time from modal"));
+            .orElseThrow(() -> new DataAccessException("Failed to parse time from modal"));
 
         Optional<LocalDateTime> eventDate = DateFormatter.parseDate(dateString, timeString);
         if (eventDate.isEmpty()) {

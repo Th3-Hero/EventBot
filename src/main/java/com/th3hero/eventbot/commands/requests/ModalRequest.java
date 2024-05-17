@@ -2,7 +2,7 @@ package com.th3hero.eventbot.commands.requests;
 
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.ModalAction;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.Getter;
@@ -50,7 +50,7 @@ public class ModalRequest extends InteractionRequest {
      *
      * @param event The event to create the modal request from
      * @return The created modal request
-     * @throws UnsupportedInteractionException If the interaction is not supported
+     * @throws IllegalInteractionException If the interaction is not supported
      * @see ModalAction ModalAction for supported interactions
      */
     public static ModalRequest fromInteraction(@NonNull final ModalInteractionEvent event) {
@@ -60,7 +60,7 @@ public class ModalRequest extends InteractionRequest {
         final ModalAction action = EnumUtils.valueOf(
             ModalAction.class,
             modalActionString,
-            new UnsupportedInteractionException("Unsupported interaction with modal %s".formatted(event.getModalId()))
+            new IllegalInteractionException("Unsupported interaction with modal %s".formatted(event.getModalId()))
         );
 
         return new ModalRequest(
@@ -82,7 +82,7 @@ public class ModalRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
-     * @throws UnsupportedInteractionException If given unsupported interaction
+     * @throws IllegalInteractionException If given unsupported interaction
      */
     @Override
     public void sendResponse(@NonNull Object response, MessageMode mode, Consumer<Message> success) {
@@ -91,7 +91,7 @@ public class ModalRequest extends InteractionRequest {
             case MessageEmbed embed -> sendEmbedResponse(embed, mode, success);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
             default ->
-                throw new UnsupportedInteractionException("Unable to process response of type '%s' for modal interactions".formatted(response.getClass().getSimpleName()));
+                throw new IllegalInteractionException("Unable to process response of type '%s' for modal interactions".formatted(response.getClass().getSimpleName()));
         }
     }
 

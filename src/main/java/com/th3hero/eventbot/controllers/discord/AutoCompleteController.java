@@ -2,7 +2,7 @@ package com.th3hero.eventbot.controllers.discord;
 
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.Command;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.StudentService;
 import lombok.NonNull;
@@ -24,7 +24,7 @@ public class AutoCompleteController extends ListenerAdapter {
         Command command = EnumUtils.valueOf(
             Command.class,
             event.getName(),
-            new UnsupportedInteractionException("Failed to parse auto complete interaction: %s".formatted(event.getName()))
+            new IllegalInteractionException("Failed to parse auto complete interaction: %s".formatted(event.getName()))
         );
 
         switch (command) {

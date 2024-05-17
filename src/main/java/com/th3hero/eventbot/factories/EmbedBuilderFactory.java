@@ -4,7 +4,7 @@ import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
-import com.th3hero.eventbot.exceptions.DiscordConstraintException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.formatting.DateFormatter;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.NONE)
 public final class EmbedBuilderFactory {
-    public static final int MAX_EMBED_FIELDS = 25;
 
     private static final Color BLUE = new Color(3, 123, 252);
     private static final Color GREEN = new Color(0, 255, 0);
@@ -59,8 +58,8 @@ public final class EmbedBuilderFactory {
      * @return An embed displaying the selected courses
      */
     public static MessageEmbed selectedCourses(List<CourseJpa> courses) {
-        if (courses.size() > MAX_EMBED_FIELDS) {
-            throw new DiscordConstraintException("Too many courses selected. Discord limits to %d fields.".formatted(MAX_EMBED_FIELDS));
+        if (courses.size() > MessageEmbed.MAX_FIELD_AMOUNT) {
+            throw new IllegalInteractionException("Too many courses selected. Discord limits to %d fields.".formatted(MessageEmbed.MAX_FIELD_AMOUNT));
         }
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .setColor(BLUE)
@@ -213,6 +212,9 @@ public final class EmbedBuilderFactory {
     }
 
     public static MessageEmbed eventList(Map<EventJpa, String> events) {
+        if (events.size() > MessageEmbed.MAX_FIELD_AMOUNT) {
+            throw new IllegalInteractionException("Too many events. Discord limits to %d fields.".formatted(MessageEmbed.MAX_FIELD_AMOUNT));
+        }
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .setColor(BLUE)
             .setTitle("Upcoming Events");

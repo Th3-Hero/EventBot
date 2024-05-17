@@ -3,7 +3,6 @@ package com.th3hero.eventbot.commands.requests;
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.SelectionAction;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
-import com.th3hero.eventbot.exceptions.UnsupportedInteractionException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.Getter;
@@ -52,7 +51,7 @@ public class SelectionRequest extends InteractionRequest {
      *
      * @param event The event to create the selection request from
      * @return The created selection request
-     * @throws UnsupportedInteractionException If the interaction is not supported
+     * @throws IllegalInteractionException If the interaction is not supported
      * @see SelectionAction SelectionAction for supported interactions
      */
     public static SelectionRequest fromInteraction(@NonNull final StringSelectInteractionEvent event) {
@@ -62,7 +61,7 @@ public class SelectionRequest extends InteractionRequest {
         final SelectionAction action = EnumUtils.valueOf(
             SelectionAction.class,
             selectionActionString,
-            new UnsupportedInteractionException("Unsupported interaction with selection menu %s".formatted(event.getSelectMenu().getId()))
+            new IllegalInteractionException("Unsupported interaction with selection menu %s".formatted(event.getSelectMenu().getId()))
         );
 
         return new SelectionRequest(
@@ -85,7 +84,7 @@ public class SelectionRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
-     * @throws UnsupportedInteractionException If given unsupported interaction
+     * @throws IllegalInteractionException If given unsupported interaction
      */
     @Override
     public void sendResponse(@NonNull Object response, MessageMode mode, Consumer<Message> success) {
@@ -95,7 +94,7 @@ public class SelectionRequest extends InteractionRequest {
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
             default ->
-                throw new UnsupportedInteractionException("Unsupported selection event response type %s".formatted(response.getClass().getSimpleName()));
+                throw new IllegalInteractionException("Unsupported selection event response type %s".formatted(response.getClass().getSimpleName()));
         }
     }
 
