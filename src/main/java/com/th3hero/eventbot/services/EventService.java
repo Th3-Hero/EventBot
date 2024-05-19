@@ -428,6 +428,10 @@ public class EventService {
             events = events.stream()
                 .filter(event -> event.getEventDate().isAfter(minTimePeriod) && event.getEventDate().isBefore(maxTimePeriod))
                 .toList();
+        } else {
+            events = events.stream()
+                .filter(event -> event.getEventDate().isAfter(LocalDateTime.now()))
+                .toList();
         }
 
         if (upcomingField != null) {

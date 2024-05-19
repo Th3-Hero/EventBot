@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface EventRepository extends JpaRepository<EventJpa, Long> {
 
-    @Query("select e from EventJpa e join e.courses c where c in :courses")
+    @Query("select e from EventJpa e join e.courses c where c in :courses and e.deleted = false")
     List<EventJpa> findAllByCourse(List<CourseJpa> courses);
 
     boolean existsByMessageId(Long messageId);

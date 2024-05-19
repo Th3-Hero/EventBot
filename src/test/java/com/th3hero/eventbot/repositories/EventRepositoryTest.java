@@ -66,6 +66,24 @@ class EventRepositoryTest {
     }
 
     @Test
+    void findAllByCourse_ignoreDeleted() {
+        CourseJpa courseOne = TestEntities.courseJpa(1);
+        CourseJpa courseTwo = TestEntities.courseJpa(2);
+        courseRepository.saveAllAndFlush(List.of(courseOne, courseTwo));
+
+        EventJpa eventOne = TestEntities.eventJpa(1, List.of(courseOne, courseTwo));
+        eventOne.setDeleted(true);
+        EventJpa eventTwo = TestEntities.eventJpa(2, List.of(courseTwo));
+        EventJpa eventThree = TestEntities.eventJpa(3, List.of(courseOne));
+        eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo, eventThree));
+        entityManager.clear();
+
+        List<EventJpa> events = eventRepository.findAllByCourse(List.of(courseOne));
+
+        assertThat(events).containsExactlyInAnyOrder(eventThree);
+    }
+
+    @Test
     void existsByMessageId() {
         Long targetEventId = 1111L;
         EventJpa event = TestEntities.eventJpa(2, List.of());
