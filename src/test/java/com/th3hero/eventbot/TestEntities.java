@@ -44,7 +44,6 @@ public class TestEntities {
         return CourseJpa.builder()
             .code("TEST%s".formatted(seed))
             .name("Test Course%s".formatted(seed))
-            .nickname("Test%s".formatted(seed))
             .build();
     }
 

@@ -1,16 +1,14 @@
 package com.th3hero.eventbot.formatting;
 
 import com.th3hero.eventbot.commands.actions.DiscordActionArguments;
-import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.exceptions.DataAccessException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.NONE)
 public final class InteractionArguments {
@@ -29,24 +27,6 @@ public final class InteractionArguments {
             throw new IllegalArgumentException("Enum value must have exactly one request key");
         }
         return "%s-%s".formatted(enumValue, id);
-    }
-
-    /**
-     * Creates an interaction ID string for a DiscordActionArguments enum value and a list of IDs.
-     * The enum value must have a request key for each ID in the list.
-     *
-     * @param enumValue The DiscordActionArguments enum value.
-     * @param ids The list of IDs to include in the interaction ID string.
-     * @return The created interaction ID string to be used in discord interactions.
-     */
-    public static String createInteractionIdString(DiscordActionArguments enumValue, List<Long> ids) {
-        if (enumValue.getRequestKeys().size() != ids.size()) {
-            throw new IllegalArgumentException("Enum value must have exactly one request key");
-        }
-        String joinedIds = ids.stream()
-            .map(Objects::toString)
-            .collect(Collectors.joining("-"));
-        return "%s-%s".formatted(enumValue.name(), joinedIds);
     }
 
     /**

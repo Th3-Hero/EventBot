@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.Hibernate;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -13,7 +14,7 @@ import java.util.Objects;
 @Setter
 @Entity
 @Builder
-@ToString
+@ToString(exclude = "students")
 @Table(name = "course")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,18 +31,18 @@ public class CourseJpa implements Serializable {
     @Column(unique = true)
     private String code;
 
+    @NonNull
     @Column
     private String name;
 
-    @Column
-    private String nickname;
+    @ManyToMany(mappedBy = "courses")
+    private List<StudentJpa> students;
 
     public Course toDto() {
         return new Course(
             this.getId(),
             this.getCode(),
-            this.getName(),
-            this.getNickname()
+            this.getName()
         );
     }
 

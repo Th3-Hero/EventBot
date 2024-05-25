@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface StudentRepository extends JpaRepository<StudentJpa, Long> {
     List<StudentJpa> findAllByCoursesContains(CourseJpa courseJpa);
+
 }

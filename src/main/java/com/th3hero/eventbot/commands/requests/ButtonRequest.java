@@ -31,8 +31,6 @@ public class ButtonRequest extends InteractionRequest {
     @NonNull
     private final Map<String, Long> arguments;
 
-    private static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
-
     private ButtonRequest(
         @NonNull ButtonAction action,
         @NonNull ButtonInteractionEvent event,
@@ -65,11 +63,13 @@ public class ButtonRequest extends InteractionRequest {
 
     /**
      * Send a response back to the user that made the request. <br>
-     * Supported response types:<br>
-     * - String <br>
-     * - MessageEmbed <br>
-     * - Modal <br>
-     * - MessageCreateData <br>
+     * Supported response types:
+     * <ul>
+     *     <li>String</li>
+     *     <li>MessageEmbed</li>
+     *     <li>Modal</li>
+     *     <li>MessageCreateData</li>
+     * </ul>
      *
      * @param response The response to send
      * @param mode The mode used when sending the response

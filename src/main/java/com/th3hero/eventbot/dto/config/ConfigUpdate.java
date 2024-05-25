@@ -9,7 +9,7 @@ package com.th3hero.eventbot.dto.config;
  * @param deletedEventCleanupDelay delay in hours before deleted events are removed from the database
  * @param draftCleanupDelay delay in hours before drafts are removed from the database
  */
-public record ConfigUploadUpdate(
+public record ConfigUpdate(
     Long eventChannel,
     Long botOwnerId,
     Integer deletedEventCleanupDelay,

@@ -9,16 +9,16 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DiscordFieldsUtils {
-    public static final String TITLE_ID = "title";
-    public static final String NOTE_ID = "note";
-    public static final String DATE_ID = "date";
-    public static final String TIME_ID = "time";
-    public static final String TYPE_ID = "type";
-    public static final String OFFSET_ID = "offset";
-    public static final String REASON_ID = "reason";
-    public static final String UPCOMING_ID = "upcoming";
-    public static final String COURSE_ID = "course";
-    public static final String TIME_PERIOD_ID = "time_period";
+    public static final String TITLE = "title";
+    public static final String NOTE = "note";
+    public static final String DATE = "date";
+    public static final String TIME = "time";
+    public static final String TYPE = "type";
+    public static final String OFFSET = "offset";
+    public static final String REASON = "reason";
+    public static final String UPCOMING = "upcoming";
+    public static final String COURSE = "course";
+    public static final String TIME_PERIOD = "time_period";
 
     public static final int MIN_TITLE_LENGTH = 4;
     public static final int MAX_TITLE_LENGTH = 128;

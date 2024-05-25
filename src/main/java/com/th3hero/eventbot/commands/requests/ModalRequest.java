@@ -30,8 +30,6 @@ public class ModalRequest extends InteractionRequest {
     @NonNull
     private final Map<String, Long> arguments;
 
-    private static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
-
     private ModalRequest(
         @NonNull ModalAction action,
         @NonNull ModalInteractionEvent event,
@@ -74,10 +72,12 @@ public class ModalRequest extends InteractionRequest {
 
     /**
      * Send a response back to the user that made the request. <br>
-     * Supported response types:<br>
-     * - String <br>
-     * - MessageEmbed <br>
-     * - MessageCreateData <br>
+     * Supported response types:
+     * <ul>
+     *     <li>String</li>
+     *     <li>MessageEmbed</li>
+     *     <li>MessageCreateData</li>
+     * </ul>
      *
      * @param response The response to send
      * @param mode The mode used when sending the response

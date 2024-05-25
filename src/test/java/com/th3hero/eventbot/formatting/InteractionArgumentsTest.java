@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.formatting;
 
-import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.exceptions.DataAccessException;
+import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -26,23 +26,6 @@ class InteractionArgumentsTest {
         var draftId = 423L;
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
             InteractionArguments.createInteractionIdString(TestInteractionEnum.TEST_INTERACTION_TWO, draftId);
-        });
-    }
-
-    @Test
-    void createInteractionIdString_ids() {
-        var draftId = 423L;
-        var eventId = 123L;
-        var targetString = "TEST_INTERACTION_TWO-%s-%s".formatted(eventId, draftId);
-        var result = InteractionArguments.createInteractionIdString(TestInteractionEnum.TEST_INTERACTION_TWO, List.of(eventId, draftId));
-        assertThat(result).isEqualTo(targetString);
-    }
-
-    @Test
-    void createInteractionIdString_ids_numberOfArgsMissMatch() {
-        List<Long> list = List.of(423L);
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-            InteractionArguments.createInteractionIdString(TestInteractionEnum.TEST_INTERACTION_TWO, list);
         });
     }
 

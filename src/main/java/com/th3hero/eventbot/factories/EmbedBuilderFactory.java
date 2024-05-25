@@ -11,8 +11,10 @@ import lombok.NoArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,7 +46,7 @@ public final class EmbedBuilderFactory {
         return embedBuilder.build();
     }
 
-    public static MessageEmbed coursePicker(String description) {
+    public static MessageEmbed courseSelectionHeader(String description) {
         return new EmbedBuilder()
             .setColor(BLUE)
             .setTitle("Course Selection")
@@ -74,34 +76,6 @@ public final class EmbedBuilderFactory {
         }
 
         return embedBuilder.build();
-    }
-
-    private static MessageEmbed eventLayout(String title, String note, String date, String type, List<CourseJpa> courses, String authorMention) {
-        return new EmbedBuilder()
-            .setColor(GREEN)
-            .setTitle(title)
-            .setDescription(note)
-            .addField(
-                "Date",
-                date,
-                false
-            )
-            .addField(
-                "Type",
-                type,
-                false
-            )
-            .addField(
-                "Course(s)",
-                courses.stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
-                false
-            )
-            .addField(
-                "Author",
-                authorMention,
-                false
-            )
-            .build();
     }
 
     public static List<MessageEmbed> displayEventDraft(EventDraftJpa eventDraftJpa, int draftCleanupDelay, String authorMention) {
@@ -152,7 +126,7 @@ public final class EmbedBuilderFactory {
         );
     }
 
-    public static MessageEmbed deleteEvent(String reason, String jumpUrl, String mention, int eventCleanupDelay) {
+    public static MessageEmbed deletedEvent(String reason, String jumpUrl, String mention, int eventCleanupDelay) {
         return new EmbedBuilder()
             .setColor(BLUE)
             .setTitle("Event Deleted")
@@ -170,10 +144,9 @@ public final class EmbedBuilderFactory {
             .addField(
                 "Information",
                 """
-                 - Once an event has been deleted no reminders will be sent for the event.
-                 - The event can be recovered within the next %d hours using the undo button.
-                 - After %d hours, the event will be entirely cleaned up. \
-                """.formatted(eventCleanupDelay, eventCleanupDelay),
+                    - Once an event has been deleted no reminders will be sent for the event.
+                    - The event can be recovered within the next %d hours using the undo button. Afterwards it will be deleted. \
+                    """.formatted(eventCleanupDelay),
                 false
             )
             .build();
@@ -192,26 +165,63 @@ public final class EmbedBuilderFactory {
             .build();
     }
 
-    public static EmbedBuilder eventEditsStarter() {
-        return new EmbedBuilder()
-            .setColor(BLUE)
-            .setTitle("Event has been edited.")
-            .setDescription("Find the changes below.");
+    public static MessageEmbed editedEventDetailsChangelog(String title, EventJpa eventJpa, String note, LocalDateTime eventDate) {
+        EmbedBuilder embedBuilder = editedEventChangelogStarted();
+
+        if (!title.equals(eventJpa.getTitle())) {
+            embedBuilder.addField(
+                "Original Title", eventJpa.getTitle(), false
+            ).addField(
+                "Updated Title", title, false
+            );
+            eventJpa.setTitle(title);
+        }
+        if (!StringUtils.equals(note, eventJpa.getNote())) {
+            if (StringUtils.isBlank(eventJpa.getNote()) && !StringUtils.isBlank(note)) {
+                embedBuilder.addField(
+                    "Added Note", note, false
+                );
+            } else {
+                embedBuilder.addField(
+                    "Original Note", eventJpa.getNote(), false
+                ).addField(
+                    "Updated Note", StringUtils.isBlank(note) ? "*Note was removed*" : note, false
+                );
+            }
+            eventJpa.setNote(StringUtils.isBlank(note) ? null : note);
+        }
+        if (!eventDate.equals(eventJpa.getEventDate())) {
+            embedBuilder.addField(
+                "Original Date",
+                DateFormatter.formattedDateTime(eventJpa.getEventDate()),
+                false
+            ).addField(
+                "Updated Date",
+                DateFormatter.formattedDateTime(eventDate),
+                false
+            );
+        }
+
+        return embedBuilder.build();
     }
 
-    private static String shortEventSummary(EventJpa eventJpa, String jumpUrl) {
-        String date = DateFormatter.formattedDateTimeWithTimestamp(eventJpa.getEventDate());
+    public static MessageEmbed editedEventCoursesChangelog(EventJpa eventJpa, List<CourseJpa> selectedCourses) {
+        EmbedBuilder embedBuilder = editedEventChangelogStarted();
 
-        return
-            """
-            %s
-            %S
-            %s
-            %S
-            """.formatted(MarkdownUtil.bold("Date"), date, MarkdownUtil.bold("Link"), jumpUrl);
+        embedBuilder.addField(
+            "Original Courses",
+            eventJpa.getCourses().stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
+            false
+        ).addField(
+            "Updated Courses",
+            selectedCourses.stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
+            false
+        );
+
+        return embedBuilder.build();
     }
 
-    public static MessageEmbed eventList(Map<EventJpa, String> events) {
+    public static MessageEmbed listEvents(Map<EventJpa, String> events) {
         if (events.size() > MessageEmbed.MAX_FIELD_AMOUNT) {
             throw new IllegalInteractionException("Too many events. Discord limits to %d fields.".formatted(MessageEmbed.MAX_FIELD_AMOUNT));
         }
@@ -228,5 +238,52 @@ public final class EmbedBuilderFactory {
         }
 
         return embedBuilder.build();
+    }
+
+    private static MessageEmbed eventLayout(String title, String note, String date, String type, List<CourseJpa> courses, String authorMention) {
+        return new EmbedBuilder()
+            .setColor(GREEN)
+            .setTitle(title)
+            .setDescription(note)
+            .addField(
+                "Date",
+                date,
+                false
+            )
+            .addField(
+                "Type",
+                type,
+                false
+            )
+            .addField(
+                "Course(s)",
+                courses.stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")),
+                false
+            )
+            .addField(
+                "Author",
+                authorMention,
+                false
+            )
+            .build();
+    }
+
+    private static String shortEventSummary(EventJpa eventJpa, String jumpUrl) {
+        String date = DateFormatter.formattedDateTimeWithTimestamp(eventJpa.getEventDate());
+
+        return
+            """
+                %s
+                %s
+                %s
+                %s
+                """.formatted(MarkdownUtil.bold("Date"), date, MarkdownUtil.bold("Link"), jumpUrl);
+    }
+
+    private static EmbedBuilder editedEventChangelogStarted() {
+        return new EmbedBuilder()
+            .setColor(BLUE)
+            .setTitle("Event has been edited.")
+            .setDescription("Find the changes below.");
     }
 }

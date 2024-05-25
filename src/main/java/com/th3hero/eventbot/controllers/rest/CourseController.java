@@ -1,11 +1,12 @@
 package com.th3hero.eventbot.controllers.rest;
 
 import com.th3hero.eventbot.dto.course.Course;
+import com.th3hero.eventbot.dto.course.CourseUpdate;
 import com.th3hero.eventbot.dto.course.CourseUpload;
-import com.th3hero.eventbot.dto.course.CourseUploadUpdate;
 import com.th3hero.eventbot.services.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/course")
+@RequestMapping("/courses")
 @Tag(name = "Course Controller", description = "Handles admin operations regarding Courses")
 public class CourseController {
     private final CourseService courseService;
@@ -29,20 +30,20 @@ public class CourseController {
         return courseService.getAllCourses();
     }
 
-    @PostMapping("/create")
+    @PostMapping
     @Operation(summary = "Create multiple courses at once")
     @ResponseStatus(HttpStatus.CREATED)
     public List<Course> createCourses(
-        @RequestBody @NotNull List<CourseUpload> courseUploads
+        @RequestBody @NotNull @Valid List<CourseUpload> courseUploads
     ) {
         return courseService.createCourses(courseUploads);
     }
 
-    @PostMapping("/{courseId}")
+    @PatchMapping("/{courseId}")
     @Operation(summary = "Update the information of an course")
     public Course updateCourse(
         @PathVariable @NotNull Long courseId,
-        @RequestBody @NotNull CourseUploadUpdate courseUploadUpdate
+        @RequestBody @NotNull @Valid CourseUpdate courseUploadUpdate
     ) {
         return courseService.updateCourse(courseId, courseUploadUpdate);
     }
@@ -51,7 +52,7 @@ public class CourseController {
     @Operation(summary = "Delete a Course by its id")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCourse(
-        @PathVariable @NotNull Long courseId
+        @PathVariable @NotNull @Valid Long courseId
     ) {
         courseService.deleteCourseById(courseId);
     }

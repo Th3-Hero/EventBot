@@ -22,18 +22,16 @@ public class SchedulingService {
     private final Scheduler scheduler;
     private final ConfigService configService;
 
+    private static final String DRAFT_CLEANUP_GROUP = "DRAFT_CLEANUP";
+    private static final String DELETE_EVENT_CLEANUP_GROUP = "DELETED_EVENT_CLEANUP";
+
+    private static final String REMINDER_TRIGGER_GROUP_FORMAT = "%d-%d";
+
     public void addDraftCleanupTrigger(Long draftId, LocalDateTime draftCreationDate) {
         try {
-            if (!scheduler.checkExists(DraftCleanupJob.JOB_KEY)) {
-                JobDetail cleanupJob = JobBuilder.newJob(DraftCleanupJob.class)
-                    .withIdentity(DraftCleanupJob.JOB_KEY)
-                    .withDescription("Automated cleanup of abandoned jobs")
-                    .storeDurably()
-                    .build();
-                scheduler.addJob(cleanupJob, true);
-                log.info("Added cleanup job");
-            }
-            TriggerKey key = TriggerKey.triggerKey(draftId.toString());
+            createJobIfNone(DraftCleanupJob.JOB_KEY, DraftCleanupJob.class, "Automated cleanup of abandoned jobs");
+
+            TriggerKey key = TriggerKey.triggerKey(draftId.toString(), DRAFT_CLEANUP_GROUP);
             Trigger cleanupTrigger = TriggerBuilder.newTrigger()
                 .withIdentity(key)
                 .forJob(DraftCleanupJob.JOB_KEY)
@@ -53,7 +51,7 @@ public class SchedulingService {
 
     public void removeDraftCleanupTrigger(Long draftId) {
         try {
-            scheduler.unscheduleJob(TriggerKey.triggerKey(draftId.toString()));
+            scheduler.unscheduleJob(TriggerKey.triggerKey(draftId.toString(), DRAFT_CLEANUP_GROUP));
             log.debug("Removed cleanup trigger for draft: %s".formatted(draftId));
         } catch (SchedulerException e) {
             log.error("Failed to remove cleanup trigger for draft: %d".formatted(draftId), e);
@@ -62,17 +60,9 @@ public class SchedulingService {
 
     public void addEventReminderTrigger(Long eventId, Long studentId, Integer offset, LocalDateTime eventTime) {
         try {
-            if (!scheduler.checkExists(EventReminderJob.JOB_KEY)) {
-                JobDetail reminderJob = JobBuilder.newJob(EventReminderJob.class)
-                    .withIdentity(EventReminderJob.JOB_KEY)
-                    .withDescription("Reminder notifications for events")
-                    .storeDurably()
-                    .build();
-                scheduler.addJob(reminderJob, true);
-                log.info("Added reminder job");
-            }
+            createJobIfNone(EventReminderJob.JOB_KEY, EventReminderJob.class, "Reminder notifications for events");
 
-            String groupKey = "%d-%d".formatted(eventId, studentId);
+            String groupKey = REMINDER_TRIGGER_GROUP_FORMAT.formatted(eventId, studentId);
             TriggerKey triggerKey = TriggerKey.triggerKey(offset.toString(), groupKey);
 
             if (scheduler.checkExists(triggerKey)) {
@@ -99,24 +89,36 @@ public class SchedulingService {
         }
     }
 
-    public boolean removeEventReminderTriggersForStudent(Long eventId, Long studentId) {
+    public boolean removeEventReminderTriggers(Long eventId, Long studentId) {
         try {
-            Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEndsWith(studentId.toString()));
+            Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(REMINDER_TRIGGER_GROUP_FORMAT.formatted(eventId, studentId)));
             if (keys.isEmpty()) {
                 return false;
             }
-            scheduler.unscheduleJobs(new ArrayList<>(keys));
             log.debug("Removed triggers on event %d for student %s".formatted(eventId, studentId));
-            return true;
+            return scheduler.unscheduleJobs(new ArrayList<>(keys));
         } catch (SchedulerException e) {
             log.error("Failed to remove trigger for event %d for student %d".formatted(eventId, studentId));
             throw new SchedulingException("Failed to remove event reminders.");
         }
     }
 
-    public void stripReminderTriggers(Long eventId) {
+    public void removeAllEventReminderTriggers(Long studentId) {
         try {
-            Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupStartsWith(eventId.toString()));
+            Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEndsWith("-%s".formatted(studentId)));
+            if (keys.isEmpty()) {
+                return;
+            }
+            log.debug("Removed all triggers for student %s".formatted(studentId));
+            scheduler.unscheduleJobs(new ArrayList<>(keys));
+        } catch (SchedulerException e) {
+            log.error("Scheduling error when removing all triggers for student %s".formatted(studentId), e);
+        }
+    }
+
+    public void removeReminderTriggers(Long eventId) {
+        try {
+            Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupStartsWith("%d-".formatted(eventId)));
             scheduler.unscheduleJobs(new ArrayList<>(keys));
         } catch (SchedulerException e) {
             log.error("Failed to remove reminder trigger for event: %d".formatted(eventId), e);
@@ -125,17 +127,9 @@ public class SchedulingService {
 
     public void addDeletedEventCleanupTrigger(Long eventId, Long cleanupMessageId, LocalDateTime cleanupTime) {
         try {
-            if (!scheduler.checkExists(DeletedEventCleanupJob.JOB_KEY)) {
-                JobDetail cleanupJob = JobBuilder.newJob(DeletedEventCleanupJob.class)
-                    .withIdentity(DeletedEventCleanupJob.JOB_KEY)
-                    .withDescription("Cleanup of deleted events")
-                    .storeDurably()
-                    .build();
-                scheduler.addJob(cleanupJob, true);
-                log.info("Added deleted event cleanup job");
-            }
+            createJobIfNone(DeletedEventCleanupJob.JOB_KEY, DeletedEventCleanupJob.class, "Cleanup of deleted events");
 
-            TriggerKey key = TriggerKey.triggerKey(eventId.toString());
+            TriggerKey key = TriggerKey.triggerKey(eventId.toString(), DELETE_EVENT_CLEANUP_GROUP);
             Trigger trigger = TriggerBuilder.newTrigger()
                 .withIdentity(key)
                 .usingJobData(DeletedEventCleanupJob.DELETION_MESSAGE_ID, cleanupMessageId)
@@ -157,11 +151,23 @@ public class SchedulingService {
 
     public void removeDeletedEventCleanupTrigger(Long eventId) {
         try {
-            TriggerKey key = TriggerKey.triggerKey(eventId.toString());
+            TriggerKey key = TriggerKey.triggerKey(eventId.toString(), DELETE_EVENT_CLEANUP_GROUP);
             scheduler.unscheduleJob(key);
             log.debug("Removed cleanup trigger for deleted event with id: %d".formatted(eventId));
         } catch (SchedulerException e) {
             log.error("Failed to remove cleanup trigger for deleted event id: %d".formatted(eventId), e);
+        }
+    }
+
+    private <T extends Job> void createJobIfNone(JobKey jobKey, Class<T> jobClass, String description) throws SchedulerException {
+        if (!scheduler.checkExists(jobKey)) {
+            JobDetail job = JobBuilder.newJob(jobClass)
+                .withIdentity(jobKey)
+                .storeDurably()
+                .withDescription(description)
+                .build();
+            scheduler.addJob(job, true);
+            log.info("Added job: %s".formatted(jobKey.getName()));
         }
     }
 

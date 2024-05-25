@@ -38,25 +38,19 @@ public class EventReminderJob implements Job {
             .orElseThrow(() -> new EntityNotFoundException("Failed to find event in the database when trying to send a reminder. Event id: %d".formatted(eventId)));
 
 
-        Optional<TextChannel> channel = Optional.ofNullable(jda.getTextChannelById(configService.getConfigJpa().getEventChannel()));
-        if (channel.isEmpty()) {
-            throw new ConfigErrorException("Failed to find event channel in the database when trying to send a reminder. Make sure config is setup correctly");
-        }
+        TextChannel channel = Optional.ofNullable(jda.getTextChannelById(configService.getConfigJpa().getEventChannel()))
+            .orElseThrow(() -> new ConfigErrorException("Failed to find event channel in the database when trying to send a reminder. Make sure config is setup correctly"));
+
 
         Long userId = executionContext.getTrigger().getJobDataMap().getLong(STUDENT_ID);
         int offset = executionContext.getTrigger().getJobDataMap().getInt(OFFSET_ID);
 
         DiscordActionUtils.retrieveMessage(
-            channel.get(),
+            channel,
             eventJpa.getMessageId(),
             message -> sendUserReminder(userId, offset, message.getJumpUrl()),
             err -> log.warn("Failed to find message for event %d".formatted(eventId))
         );
-
-//        channel.get().retrieveMessageById(eventJpa.getMessageId()).queue(message ->
-//            sendUserReminder(userId, offset, message.getJumpUrl()),
-//            err -> log.warn("Failed to find message for event %d".formatted(eventId))
-//        );
     }
 
     private void sendUserReminder(Long userId, int offset, String jumpUrl) {

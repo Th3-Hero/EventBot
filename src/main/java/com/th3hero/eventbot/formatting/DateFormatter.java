@@ -9,10 +9,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @NoArgsConstructor(access = AccessLevel.NONE)
 public final class DateFormatter {
+
+    public static final String DATE_FORMAT_EXAMPLE = "Event dates are formatted as year, month, day. Eg. 2025-4-24 or 2025/4/24.";
+    public static final String TIME_FORMAT_EXAMPLE = "Event times are in 24 hour time. Eg. 14:30.";
 
     public static final ZoneId ZONE_ID = ZoneId.of("America/New_York");
 
@@ -76,24 +78,26 @@ public final class DateFormatter {
     }
 
     /**
-     * Parses a date and time String to a LocalDateTime. <br>
-     * - yyyy-M-d H:mm <br>
-     * - yyyy/M/d H:mm <br>
+     * Parses a date and time String to a LocalDateTime. Supported formats:
+     * <ul>
+     *     <li>yyyy-M-d H:mm</li>
+     *     <li>yyyy/M/d H:mm</li>
+     * </ul>
      *
      * @param dateString The date String to parse.
      * @param timeString The time String to parse.
-     * @return An Optional containing the parsed LocalDateTime if successful, or an empty Optional if not.
+     * @return LocalDateTime if the date and time Strings are valid, otherwise null.
      */
-    public static Optional<LocalDateTime> parseDate(String dateString, String timeString) {
+    public static LocalDateTime parseDate(String dateString, String timeString) {
         String combinedDateTime = "%s %s".formatted(dateString, timeString);
 
         for (DateTimeFormatter formatter : FORMATTERS) {
             try {
-                return Optional.of(LocalDateTime.parse(combinedDateTime, formatter));
+                return LocalDateTime.parse(combinedDateTime, formatter);
             } catch (Exception e) {
                 // Do nothing
             }
         }
-        return Optional.empty();
+        return null;
     }
 }

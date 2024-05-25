@@ -2,6 +2,7 @@ package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.commands.requests.SelectionRequest;
+import com.th3hero.eventbot.services.ConfigService;
 import com.th3hero.eventbot.services.CourseService;
 import com.th3hero.eventbot.services.EventDraftService;
 import com.th3hero.eventbot.services.EventService;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 @RequiredArgsConstructor
 public class SelectionController extends ListenerAdapter {
+    private final ConfigService configService;
     private final CourseService courseService;
     private final EventDraftService eventDraftService;
     private final EventService eventService;
@@ -29,20 +31,22 @@ public class SelectionController extends ListenerAdapter {
             final SelectionRequest request = SelectionRequest.fromInteraction(event);
             selectionHandler(request);
         } catch (Exception e) {
-            log.error("onStringSelectInteraction", e);
+            log.error("SelectionMenuId: {}", event.getSelectMenu().getId());
+            log.error("Options: {}", event.getValues());
             DiscordActionUtils.textResponse(event, e.getMessage(), true);
             throw e;
         }
     }
 
     public void selectionHandler(@NotNull final SelectionRequest request) {
+        request.addEventChannel(configService.getConfigJpa().getEventChannel());
         try {
             switch (request.getAction()) {
-                case SELECT_COURSES -> courseService.processCourseSelection(request);
-                case DRAFT_CREATION, EDIT_DRAFT_COURSES -> eventDraftService.addCoursesToDraft(request);
+                case SELECT_COURSES -> courseService.processStudentSelectedCourses(request);
+                case DRAFT_CREATION, EDIT_DRAFT_COURSES -> eventDraftService.setCoursesOnDraft(request);
                 case EDIT_EVENT_COURSES -> eventService.editEventCourses(request);
                 default ->
-                    log.warn("Received an unsupported selection type: {}", request.getEvent().getSelectMenu().getId());
+                    log.error("Received an unsupported selection type: {}", request.getEvent().getSelectMenu().getId());
             }
         } catch (EntityNotFoundException e) {
             request.sendResponse(e.getMessage(), MessageMode.USER);

@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.function.Consumer;
 
@@ -120,30 +119,6 @@ public final class DiscordActionUtils {
         channel.retrieveMessageById(messageId).queue(
             success,
             new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, error)
-        );
-    }
-
-    /**
-     * Edits a message in a given channel by its ID.
-     *
-     * @param channel The channel where the message to be edited is located.
-     * @param messageId The ID of the message to be edited.
-     * @param data The new content for the message.
-     * @param success A Consumer to be executed upon successful editing of the message.
-     * @param error A Consumer to be executed upon encountering an error
-     */
-    public static void editMessage(
-        final MessageChannel channel,
-        final Long messageId,
-        final MessageEditData data,
-        final Consumer<Message> success,
-        final Consumer<? super ErrorResponseException> error
-    ) {
-        retrieveMessage(
-            channel,
-            messageId,
-            message -> message.editMessage(data).queue(success),
-            error
         );
     }
 

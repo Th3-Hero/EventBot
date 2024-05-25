@@ -28,9 +28,9 @@ public class AutoCompleteController extends ListenerAdapter {
         );
 
         switch (command) {
-            case REMINDER_OFFSETS_CONFIG -> studentService.offsetAutoComplete(event);
+            case REMINDER_OFFSETS_CONFIG -> studentService.reminderOffsetAutoComplete(event);
             case VIEW_EVENTS -> courseService.autoCompleteCourseOptions(event);
-            default -> log.warn("Received autocomplete event of unsupported type %s".formatted(event.getName()));
+            default -> log.error("Received autocomplete event of unsupported type %s".formatted(event.getName()));
         }
     }
 }

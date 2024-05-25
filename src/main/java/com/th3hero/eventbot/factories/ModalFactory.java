@@ -29,13 +29,13 @@ public final class ModalFactory {
     private static final String TIME_PLACEHOLDER = "14:30";
 
 
-    public static Modal eventDraftCreationModal(Long eventDraftId) {
-        TextInput title = TextInput.create(TITLE_ID, TITLE_LABEL, TextInputStyle.SHORT)
+    public static Modal draftCreationData(Long eventDraftId) {
+        TextInput title = TextInput.create(TITLE, TITLE_LABEL, TextInputStyle.SHORT)
             .setPlaceholder(TITLE_PLACEHOLDER)
             .setRequiredRange(MIN_TITLE_LENGTH, MAX_TITLE_LENGTH)
             .setRequired(true)
             .build();
-        TextInput note = TextInput.create(NOTE_ID, NOTE_LABEL, TextInputStyle.PARAGRAPH)
+        TextInput note = TextInput.create(NOTE, NOTE_LABEL, TextInputStyle.PARAGRAPH)
             .setPlaceholder(NOTE_PLACEHOLDER)
             .setMaxLength(MAX_NOTE_LENGTH)
             .setRequired(false)
@@ -49,7 +49,29 @@ public final class ModalFactory {
             .build();
     }
 
-    private static Modal editDetailsModal(
+    public static Modal editDetails(EventDraftJpa eventDraft) {
+        return editDetails("Edit Draft Information", ModalAction.EDIT_DRAFT_DETAILS, eventDraft.getId(), eventDraft.getTitle(), eventDraft.getNote(), eventDraft.getEventDate());
+    }
+
+    public static Modal editDetails(EventJpa eventJpa) {
+        return editDetails("Edit Event Information", ModalAction.EDIT_EVENT_DETAILS, eventJpa.getId(), eventJpa.getTitle(), eventJpa.getNote(), eventJpa.getEventDate());
+    }
+
+    public static Modal deleteDraftReason(EventJpa eventJpa) {
+        TextInput reason = TextInput.create(REASON, "Why are you deleting the event?", TextInputStyle.PARAGRAPH)
+            .setPlaceholder("Assignment was cancelled")
+            .setRequiredRange(MIN_REASON_LENGTH, MAX_REASON_LENGTH)
+            .setRequired(true)
+            .build();
+
+        return Modal.create(InteractionArguments.createInteractionIdString(ModalAction.EVENT_DELETION_REASON, eventJpa.getId()), "Reason for event deletion")
+            .addComponents(
+                ActionRow.of(reason)
+            )
+            .build();
+    }
+
+    private static Modal editDetails(
         String modalTitle,
         ModalAction modalType,
         Long id,
@@ -57,25 +79,25 @@ public final class ModalFactory {
         String note,
         LocalDateTime dateTime
     ) {
-        TextInput titleInput = TextInput.create(TITLE_ID, TITLE_LABEL, TextInputStyle.SHORT)
+        TextInput titleInput = TextInput.create(TITLE, TITLE_LABEL, TextInputStyle.SHORT)
             .setPlaceholder(TITLE_PLACEHOLDER)
             .setValue(title)
             .setRequiredRange(MIN_TITLE_LENGTH, MAX_TITLE_LENGTH)
             .setRequired(true)
             .build();
-        TextInput noteInput = TextInput.create(NOTE_ID, NOTE_LABEL, TextInputStyle.PARAGRAPH)
+        TextInput noteInput = TextInput.create(NOTE, NOTE_LABEL, TextInputStyle.PARAGRAPH)
             .setPlaceholder(NOTE_PLACEHOLDER)
             .setValue(note)
             .setMaxLength(MAX_NOTE_LENGTH)
             .setRequired(false)
             .build();
-        TextInput dateInput = TextInput.create(DATE_ID, DATE_LABEL, TextInputStyle.SHORT)
+        TextInput dateInput = TextInput.create(DATE, DATE_LABEL, TextInputStyle.SHORT)
             .setPlaceholder(DATE_PLACEHOLDER)
             .setRequiredRange(MIN_DATE_LENGTH, MAX_DATE_LENGTH)
             .setValue(DateFormatter.formattedDate(dateTime))
             .setRequired(true)
             .build();
-        TextInput timeInput = TextInput.create(TIME_ID, TIME_LABEL, TextInputStyle.SHORT)
+        TextInput timeInput = TextInput.create(TIME, TIME_LABEL, TextInputStyle.SHORT)
             .setPlaceholder(TIME_PLACEHOLDER)
             .setRequiredRange(MIN_TIME_LENGTH, MAX_TIME_LENGTH)
             .setValue(DateFormatter.formattedTime(dateTime))
@@ -88,28 +110,6 @@ public final class ModalFactory {
                 ActionRow.of(noteInput),
                 ActionRow.of(dateInput),
                 ActionRow.of(timeInput)
-            )
-            .build();
-    }
-
-    public static Modal editDetailsModal(EventDraftJpa eventDraft) {
-        return editDetailsModal("Edit Draft Information", ModalAction.EDIT_DRAFT_DETAILS, eventDraft.getId(), eventDraft.getTitle(), eventDraft.getNote(), eventDraft.getEventDate());
-    }
-
-    public static Modal editDetailsModal(EventJpa eventJpa) {
-        return editDetailsModal("Edit Event Information", ModalAction.EDIT_EVENT_DETAILS, eventJpa.getId(), eventJpa.getTitle(), eventJpa.getNote(), eventJpa.getEventDate());
-    }
-
-    public static Modal deleteDraftReasonModal(EventJpa eventJpa) {
-        TextInput reason = TextInput.create(REASON_ID, "Why are you deleting the event?", TextInputStyle.PARAGRAPH)
-            .setPlaceholder("Assignment was cancelled")
-            .setRequiredRange(MIN_REASON_LENGTH, MAX_REASON_LENGTH)
-            .setRequired(true)
-            .build();
-
-        return Modal.create(InteractionArguments.createInteractionIdString(ModalAction.EVENT_DELETION_REASON, eventJpa.getId()), "Reason for event deletion")
-            .addComponents(
-                ActionRow.of(reason)
             )
             .build();
     }

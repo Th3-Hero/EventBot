@@ -11,8 +11,7 @@ create sequence seq_course_id start with 1 increment by 1;
 create table course (
     id bigint primary key,
     code text unique not null,
-    name text,
-    nickname text
+    name text not null
 );
 
 create table student (
@@ -29,13 +28,13 @@ create index student_reminder_offsets_student_id_index on student_reminder_offse
 
 create table student_courses (
     courses_id bigint not null,
-    student_jpa_id bigint not null,
+    students_id bigint not null,
     constraint fk_course_id foreign key (courses_id) references course(id),
-    constraint fk_student_id foreign key (student_jpa_id) references student(id),
-    constraint student_courses_pk primary key (courses_id, student_jpa_id)
+    constraint fk_student_id foreign key (students_id) references student(id),
+    constraint student_courses_pk primary key (courses_id, students_id)
 );
 create index student_courses_courses_id_index on student_courses(courses_id);
-create index student_courses_student_jpa_id_index on student_courses(student_jpa_id);
+create index student_courses_student_jpa_id_index on student_courses(students_id);
 
 create sequence seq_event_id start with 1 increment by 1;
 create table event (

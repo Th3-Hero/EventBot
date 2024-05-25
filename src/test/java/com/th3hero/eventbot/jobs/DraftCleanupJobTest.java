@@ -39,7 +39,7 @@ class DraftCleanupJobTest {
 
         draftCleanupJob.execute(executionContext);
 
-        verify(eventDraftRepository, times(1)).deleteById(draftId);
+        verify(eventDraftRepository).deleteById(draftId);
     }
 
     @Test

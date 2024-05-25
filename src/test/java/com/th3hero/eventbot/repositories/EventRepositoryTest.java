@@ -84,34 +84,6 @@ class EventRepositoryTest {
     }
 
     @Test
-    void existsByMessageId() {
-        Long targetEventId = 1111L;
-        EventJpa event = TestEntities.eventJpa(2, List.of());
-        event.setMessageId(targetEventId);
-
-        eventRepository.saveAndFlush(event);
-        entityManager.clear();
-
-        boolean exists = eventRepository.existsByMessageId(targetEventId);
-
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    void existsByMessageId_noEvent() {
-        Long targetEventId = 1111L;
-        EventJpa eventOne = TestEntities.eventJpa(1, List.of());
-        EventJpa eventTwo = TestEntities.eventJpa(2, List.of());
-
-        eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo));
-        entityManager.clear();
-
-        boolean exists = eventRepository.existsByMessageId(targetEventId);
-
-        assertThat(exists).isFalse();
-    }
-
-    @Test
     void findEventJpaByMessageId() {
         Long targetEventId = 1111L;
         EventJpa eventOne = TestEntities.eventJpa(1, List.of());

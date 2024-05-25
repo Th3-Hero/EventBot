@@ -22,7 +22,7 @@ public enum Command {
         Map.entry(SELECT_COURSES.getDisplayName(), "Select courses you wish to be notified for"),
         Map.entry(MY_COURSES.getDisplayName(), "Displays all courses you are currently subscribed to for notification"),
         Map.entry(CREATE_EVENT.getDisplayName(), "Create a new event"),
-        Map.entry(REMINDER_OFFSETS_CONFIG.getDisplayName(), "List, Add, and Remove reminder offsets(how many hours before an event ou are notified)"),
+        Map.entry(REMINDER_OFFSETS_CONFIG.getDisplayName(), "List, Add, and Remove reminder offsets(how many hours before an event you are notified)"),
         Map.entry(VIEW_EVENTS.getDisplayName(), "Get a list of upcoming events. Filter by course, number of events, and time period.")
     );
 }

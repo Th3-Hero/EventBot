@@ -24,6 +24,8 @@ public abstract class InteractionRequest {
     @Getter(value = AccessLevel.NONE)
     protected Long eventChannelId = null;
 
+    protected static final String SENT_TO_EVENT_CHANNEL = "Result has been sent to the event channel %s";
+
     /**
      * Sends a response back to the user that made the request.
      *
@@ -64,7 +66,7 @@ public abstract class InteractionRequest {
         this.eventChannelId = channelId;
     }
 
-    protected final MessageChannel getEventChannel() {
+    public final MessageChannel getEventChannel() {
         if (eventChannelId == null) {
             throw new IllegalStateException("No event channel was found on the request. Make sure to addEventChannel");
         }

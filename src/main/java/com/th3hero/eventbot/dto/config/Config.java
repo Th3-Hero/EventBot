@@ -1,6 +1,6 @@
 package com.th3hero.eventbot.dto.config;
 
-import lombok.NonNull;
+import jakarta.validation.constraints.NotNull;
 
 
 /**
@@ -13,10 +13,10 @@ import lombok.NonNull;
  * @param draftCleanupDelay delay in hours before drafts are removed from the database
  */
 public record Config(
-    @NonNull Integer id,
-    @NonNull Long eventChannel,
-    @NonNull Long botOwnerId,
-    @NonNull Integer deletedEventCleanupDelay,
-    @NonNull Integer draftCleanupDelay
+    @NotNull Integer id,
+    @NotNull Long eventChannel,
+    @NotNull Long botOwnerId,
+    @NotNull Integer deletedEventCleanupDelay,
+    @NotNull Integer draftCleanupDelay
 ) {
 }

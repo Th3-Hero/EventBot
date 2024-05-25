@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.dto.config;
 
 import com.th3hero.eventbot.entities.ConfigJpa;
-import lombok.NonNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Represents the configuration uploaded to the rest api
@@ -12,8 +12,8 @@ import lombok.NonNull;
  * @param draftCleanupDelay delay in hours before drafts are removed from the database
  */
 public record ConfigUpload(
-    @NonNull Long eventChannel,
-    @NonNull Long botOwnerId,
+    @NotNull Long eventChannel,
+    @NotNull Long botOwnerId,
     Integer deletedEventCleanupDelay,
     Integer draftCleanupDelay
 ) {

@@ -3,6 +3,7 @@ package com.th3hero.eventbot.services;
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.requests.ButtonRequest;
 import com.th3hero.eventbot.commands.requests.CommandRequest;
+import com.th3hero.eventbot.commands.requests.InteractionRequest;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
@@ -11,18 +12,18 @@ import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.repositories.StudentRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.th3hero.eventbot.utils.DiscordFieldsUtils.OFFSET_ID;
+import static com.th3hero.eventbot.utils.DiscordFieldsUtils.OFFSET;
 
 @Slf4j
 @Service
@@ -43,17 +44,7 @@ public class StudentService {
             .orElseGet(() -> studentRepository.save(StudentJpa.create(studentId)));
     }
 
-    /**
-     * Fetches a student based on the provided course.
-     *
-     * @param courseJpa The course to fetch students for.
-     * @return List of students that are enrolled in the provided course.
-     */
-    public List<StudentJpa> fetchStudentsWithCourse(CourseJpa courseJpa) {
-        return studentRepository.findAllByCoursesContains(courseJpa);
-    }
-
-    public void myCourses(CommandRequest request) {
+    public void listStudentCourses(InteractionRequest request) {
         StudentJpa studentJpa = studentRepository.findById(request.getRequester().getIdLong())
             .orElseThrow(() -> new EntityNotFoundException("Student with ID %d not found".formatted(request.getRequester().getIdLong())));
 
@@ -70,7 +61,7 @@ public class StudentService {
      *
      * @param event the command auto complete event
      */
-    public void offsetAutoComplete(CommandAutoCompleteInteractionEvent event) {
+    public void reminderOffsetAutoComplete(CommandAutoCompleteInteractionEvent event) {
         StudentJpa studentJpa = fetchStudent(event.getUser().getIdLong());
         List<Command.Choice> choices = studentJpa.getReminderOffsetTimes().stream()
             .filter(offset -> offset.toString().startsWith(event.getFocusedOption().getValue()))
@@ -84,7 +75,7 @@ public class StudentService {
      *
      * @param request the command request
      */
-    public void reminderOffsetsHandler(CommandRequest request) {
+    public void reminderOffsetSubcommandHandler(CommandRequest request) {
         ReminderConfigOptions option = EnumUtils.valueOf(
             ReminderConfigOptions.class,
             request.getArguments().get("sub_command"),
@@ -101,31 +92,6 @@ public class StudentService {
     }
 
 
-    private void listReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
-        studentJpa.getReminderOffsetTimes().sort(null);
-        request.sendResponse(EmbedBuilderFactory.reminderOffsets(studentJpa.getReminderOffsetTimes()), MessageMode.USER);
-    }
-
-    private void addReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
-        Integer newOffset = Integer.parseInt(request.getArguments().get(OFFSET_ID));
-        if (studentJpa.getReminderOffsetTimes().contains(newOffset)) {
-            request.sendResponse("You already have an offset for %d".formatted(newOffset), MessageMode.USER);
-            return;
-        }
-        studentJpa.getReminderOffsetTimes().add(newOffset);
-        studentJpa.getReminderOffsetTimes().sort(null);
-    }
-
-    private void removeReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
-        Integer targetOffset = Integer.parseInt(request.getArguments().get(OFFSET_ID));
-        if (!studentJpa.getReminderOffsetTimes().contains(targetOffset)) {
-            request.sendResponse("You have no offset for %d".formatted(targetOffset), MessageMode.USER);
-            return;
-        }
-        studentJpa.getReminderOffsetTimes().remove(targetOffset);
-        studentJpa.getReminderOffsetTimes().sort(null);
-    }
-
     public void scheduleStudentForEvent(EventJpa eventJpa, StudentJpa studentJpa) {
         for (Integer offset : studentJpa.getReminderOffsetTimes()) {
             if (eventJpa.getEventDate().minusHours(offset).isBefore(LocalDateTime.now())) {
@@ -140,13 +106,9 @@ public class StudentService {
         }
     }
 
-    public void unscheduleStudentForEvent(EventJpa eventJpa, StudentJpa studentJpa) {
-        schedulingService.removeEventReminderTriggersForStudent(eventJpa.getId(), studentJpa.getId());
-    }
-
-    public void unscheduleStudentForEvent(ButtonRequest request, Long eventId) {
+    public void unscheduleStudentRemindersForEvent(ButtonRequest request, Long eventId) {
         StudentJpa studentJpa = fetchStudent(request.getRequester().getIdLong());
-        boolean removed = schedulingService.removeEventReminderTriggersForStudent(eventId, studentJpa.getId());
+        boolean removed = schedulingService.removeEventReminderTriggers(eventId, studentJpa.getId());
         String message = removed ?
             "All reminders have been removed for this event." :
             "You have no reminders on this event.";
@@ -171,5 +133,28 @@ public class StudentService {
         public String toLower() {
             return StringUtils.lowerCase(super.toString());
         }
+    }
+
+    private void listReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
+        studentJpa.getReminderOffsetTimes().sort(null);
+        request.sendResponse(EmbedBuilderFactory.reminderOffsets(studentJpa.getReminderOffsetTimes()), MessageMode.USER);
+    }
+
+    private void addReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
+        Integer newOffset = Integer.parseInt(request.getArguments().get(OFFSET));
+        if (studentJpa.getReminderOffsetTimes().contains(newOffset)) {
+            request.sendResponse("You already have an offset for %d".formatted(newOffset), MessageMode.USER);
+            return;
+        }
+        studentJpa.getReminderOffsetTimes().add(newOffset);
+    }
+
+    private void removeReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
+        Integer targetOffset = Integer.parseInt(request.getArguments().get(OFFSET));
+        if (!studentJpa.getReminderOffsetTimes().contains(targetOffset)) {
+            request.sendResponse("You have no offset for %d".formatted(targetOffset), MessageMode.USER);
+            return;
+        }
+        studentJpa.getReminderOffsetTimes().remove(targetOffset);
     }
 }

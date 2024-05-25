@@ -1,15 +1,17 @@
 package com.th3hero.eventbot.services;
 
 import com.th3hero.eventbot.dto.config.Config;
+import com.th3hero.eventbot.dto.config.ConfigUpdate;
 import com.th3hero.eventbot.dto.config.ConfigUpload;
-import com.th3hero.eventbot.dto.config.ConfigUploadUpdate;
 import com.th3hero.eventbot.entities.ConfigJpa;
+import com.th3hero.eventbot.listeners.events.UpdatedEventChannelEvent;
 import com.th3hero.eventbot.repositories.ConfigRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ConfigService {
     private final ConfigRepository configRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public ConfigJpa getConfigJpa() {
         List<ConfigJpa> configList = configRepository.findAll();
@@ -54,12 +57,12 @@ public class ConfigService {
         return configRepository.save(configJpaBuilder.build()).toDto();
     }
 
-    public Config updateConfig(ConfigUploadUpdate configUpload) {
-        ConfigJpa configJpa = getConfigJpa();
-
+    public Config updateConfig(ConfigUpdate configUpload) {
         if (configUpload.eventChannel() != null) {
-            configJpa.setEventChannel(configUpload.eventChannel());
+            updateEventChannel(configUpload.eventChannel());
         }
+
+        ConfigJpa configJpa = getConfigJpa();
         if (configUpload.botOwnerId() != null) {
             configJpa.setBotOwnerId(configUpload.botOwnerId());
         }
@@ -71,6 +74,13 @@ public class ConfigService {
         }
 
         return configRepository.save(configJpa).toDto();
+    }
+
+    public void updateEventChannel(Long eventChannelId) {
+        ConfigJpa configJpa = getConfigJpa();
+        configJpa.setEventChannel(eventChannelId);
+        configRepository.save(configJpa);
+        applicationEventPublisher.publishEvent(new UpdatedEventChannelEvent());
     }
 
 }

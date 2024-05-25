@@ -31,7 +31,7 @@ class AutoCompleteControllerTest {
 
         autoCompleteController.onCommandAutoCompleteInteraction(event);
 
-        verify(studentService, times(1)).offsetAutoComplete(event);
+        verify(studentService).reminderOffsetAutoComplete(event);
         verify(courseService, never()).autoCompleteCourseOptions(event);
     }
 
@@ -42,8 +42,8 @@ class AutoCompleteControllerTest {
 
         autoCompleteController.onCommandAutoCompleteInteraction(event);
 
-        verify(courseService, times(1)).autoCompleteCourseOptions(event);
-        verify(studentService, never()).offsetAutoComplete(event);
+        verify(courseService).autoCompleteCourseOptions(event);
+        verify(studentService, never()).reminderOffsetAutoComplete(event);
     }
 
     @Test
@@ -54,6 +54,6 @@ class AutoCompleteControllerTest {
         autoCompleteController.onCommandAutoCompleteInteraction(event);
 
         verify(courseService, never()).autoCompleteCourseOptions(event);
-        verify(studentService, never()).offsetAutoComplete(event);
+        verify(studentService, never()).reminderOffsetAutoComplete(event);
     }
 }

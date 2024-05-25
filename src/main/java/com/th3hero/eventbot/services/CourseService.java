@@ -2,21 +2,18 @@ package com.th3hero.eventbot.services;
 
 import com.kseth.development.util.CollectionUtils;
 import com.th3hero.eventbot.commands.actions.SelectionAction;
-import com.th3hero.eventbot.commands.requests.CommandRequest;
 import com.th3hero.eventbot.commands.requests.InteractionRequest;
 import com.th3hero.eventbot.commands.requests.SelectionRequest;
 import com.th3hero.eventbot.dto.course.Course;
+import com.th3hero.eventbot.dto.course.CourseUpdate;
 import com.th3hero.eventbot.dto.course.CourseUpload;
-import com.th3hero.eventbot.dto.course.CourseUploadUpdate;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.repositories.CourseRepository;
 import com.th3hero.eventbot.repositories.EventRepository;
-import com.th3hero.eventbot.utils.HttpErrorUtil;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
@@ -26,10 +23,11 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,6 +37,9 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final StudentService studentService;
     private final EventRepository eventRepository;
+    private final SchedulingService schedulingService;
+
+    private static final String MISSING_COURSE_WITH_ID = "Unable to find Course with provided id.";
 
     public Collection<Course> getAllCourses() {
         return CollectionUtils.transform(
@@ -48,14 +49,17 @@ public class CourseService {
     }
 
     public List<Course> createCourses(List<CourseUpload> courseUploads) {
-        return courseUploads.stream()
-            .map(course -> courseRepository.save(course.toJpa()).toDto())
+        List<CourseJpa> courses = courseUploads.stream()
+            .map(CourseUpload::toJpa)
+            .toList();
+        return courseRepository.saveAll(courses).stream()
+            .map(CourseJpa::toDto)
             .toList();
     }
 
-    public Course updateCourse(Long courseId, CourseUploadUpdate courseUpload) {
+    public Course updateCourse(Long courseId, CourseUpdate courseUpload) {
         CourseJpa courseJpa = courseRepository.findById(courseId)
-            .orElseThrow(() -> new EntityNotFoundException(HttpErrorUtil.MISSING_COURSE_WITH_ID));
+            .orElseThrow(() -> new EntityNotFoundException(MISSING_COURSE_WITH_ID));
 
         if (courseUpload.code() != null) {
             courseJpa.setCode(courseUpload.code());
@@ -63,29 +67,20 @@ public class CourseService {
         if (courseUpload.name() != null) {
             courseJpa.setName(courseUpload.name());
         }
-        if (courseUpload.nickname() != null) {
-            courseJpa.setNickname(courseUpload.nickname());
-        }
 
         return courseRepository.save(courseJpa).toDto();
     }
 
     public void deleteCourseById(Long courseId) {
         CourseJpa courseJpa = courseRepository.findById(courseId)
-            .orElseThrow(() -> new EntityNotFoundException(HttpErrorUtil.MISSING_COURSE_WITH_ID));
+            .orElseThrow(() -> new EntityNotFoundException(MISSING_COURSE_WITH_ID));
 
         studentService.removeCourseFromAllStudents(courseJpa);
 
         courseRepository.deleteById(courseId);
     }
 
-    private List<SelectOption> selectOptionFromJpas(List<CourseJpa> courses) {
-        return courses.stream()
-            .map(course -> SelectOption.of(course.getCode(), course.getCode()).withDescription(course.getName()))
-            .toList();
-    }
-
-    public StringSelectMenu createCourseSelector(String selectMenuId, List<CourseJpa> defaultOptions) {
+    public StringSelectMenu createCourseSelectionMenu(String selectMenuId, List<CourseJpa> defaultOptions) {
         List<SelectOption> options = selectOptionFromJpas(courseRepository.findAll());
         if (options.isEmpty()) {
             throw new EntityNotFoundException("No courses are currently setup. Contact the bot owner.");
@@ -98,11 +93,11 @@ public class CourseService {
             .build();
     }
 
-    public void sendCourseSelectionMenu(CommandRequest request) {
+    public void sendCourseSelectionMenu(InteractionRequest request) {
         MessageCreateData data = new MessageCreateBuilder()
-            .addEmbeds(EmbedBuilderFactory.coursePicker("Select Any courses you wish to receive notifications for."))
+            .addEmbeds(EmbedBuilderFactory.courseSelectionHeader("Select any courses you wish to receive notifications for."))
             .addActionRow(
-                createCourseSelector(
+                createCourseSelectionMenu(
                     SelectionAction.SELECT_COURSES.toString(),
                     studentService.fetchStudent(request.getRequester().getIdLong()).getCourses()
                 )
@@ -110,25 +105,30 @@ public class CourseService {
         request.sendResponse(data, InteractionRequest.MessageMode.USER);
     }
 
-    public List<CourseJpa> coursesFromSelectionMenuValues(List<String> values) {
-        return values.stream()
-            .map(course ->
-                courseRepository.findByCode(course).orElseThrow(() -> new EntityNotFoundException("One or more of the courses selected is not within the database."))
-            )
-            .toList();
+    public List<CourseJpa> coursesFromCourseCodes(List<String> values) {
+        List<CourseJpa> courses = courseRepository.findByCodeIn(values);
+        if (courses.size() != values.size()) {
+            String missingCourses = courses.stream()
+                .map(CourseJpa::getCode)
+                .filter(code -> !values.contains(code))
+                .collect(Collectors.joining("\n"));
+            throw new EntityNotFoundException("The following courses were not found in the database:\n%s".formatted(missingCourses));
+        }
+
+        return courses;
     }
 
-    public void processCourseSelection(SelectionRequest request) {
+    public void processStudentSelectedCourses(SelectionRequest request) {
         StudentJpa studentJpa = studentService.fetchStudent(request.getRequester().getIdLong());
 
-        List<CourseJpa> updatedCourses = coursesFromSelectionMenuValues(request.getEvent().getValues());
+        List<CourseJpa> updatedCourses = coursesFromCourseCodes(request.getEvent().getValues());
         List<CourseJpa> removedCourses = studentJpa.getCourses().stream()
             .filter(course -> !updatedCourses.contains(course))
             .toList();
 
         List<EventJpa> eventsToRemove = eventRepository.findAllByCourse(removedCourses);
         for (EventJpa event : eventsToRemove) {
-            studentService.unscheduleStudentForEvent(event, studentJpa);
+            schedulingService.removeEventReminderTriggers(event.getId(), studentJpa.getId());
         }
 
         studentJpa.getCourses().clear();
@@ -145,12 +145,6 @@ public class CourseService {
         );
     }
 
-    public void scheduleEventForCourse(EventJpa eventJpa, CourseJpa targetCourse) {
-        List<StudentJpa> studentsWithCourse = studentService.fetchStudentsWithCourse(targetCourse);
-
-        studentsWithCourse.forEach(student -> studentService.scheduleStudentForEvent(eventJpa, student));
-    }
-
     public void autoCompleteCourseOptions(CommandAutoCompleteInteractionEvent event) {
         StudentJpa studentJpa = studentService.fetchStudent(event.getUser().getIdLong());
 
@@ -161,11 +155,9 @@ public class CourseService {
         event.replyChoices(choices).queue();
     }
 
-    public Optional<CourseJpa> parseCourseCodeToCourseJpa(String courseCode) {
-        if (courseCode.isBlank()) {
-            return Optional.empty();
-        }
-        return courseRepository.findByCode(courseCode);
+    private List<SelectOption> selectOptionFromJpas(List<CourseJpa> courses) {
+        return courses.stream()
+            .map(course -> SelectOption.of(course.getCode(), course.getCode()).withDescription(course.getName()))
+            .toList();
     }
-
 }

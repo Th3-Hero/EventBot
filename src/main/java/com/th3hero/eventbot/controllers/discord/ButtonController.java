@@ -3,6 +3,7 @@ package com.th3hero.eventbot.controllers.discord;
 import com.th3hero.eventbot.commands.requests.ButtonRequest;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.exceptions.DataAccessException;
+import com.th3hero.eventbot.services.ConfigService;
 import com.th3hero.eventbot.services.EventDraftService;
 import com.th3hero.eventbot.services.EventService;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 @RequiredArgsConstructor
 public class ButtonController extends ListenerAdapter {
+    private final ConfigService configService;
     private final EventDraftService eventDraftService;
     private final EventService eventService;
 
@@ -29,17 +31,18 @@ public class ButtonController extends ListenerAdapter {
             final ButtonRequest request = ButtonRequest.fromInteraction(event);
             buttonHandler(request);
         } catch (Exception e) {
-            log.error("onButtonInteraction", e);
+            log.error("ButtonId: {}", event.getButton().getId());
             DiscordActionUtils.textResponse(event, e.getMessage(), true);
             throw e;
         }
     }
 
     public void buttonHandler(@NonNull final ButtonRequest request) {
+        request.addEventChannel(configService.getConfigJpa().getEventChannel());
         try {
             switch (request.getAction()) {
                 case EDIT_DRAFT_DETAILS, EDIT_DRAFT_COURSES, CONFIRM_DRAFT ->
-                    eventDraftService.eventDraftHandler(request);
+                    eventDraftService.handleEventDraftActions(request);
                 case DELETE_DRAFT -> eventDraftService.deleteDraft(request);
                 case EDIT_EVENT -> eventService.sendEventEditOptions(request);
                 case EDIT_EVENT_DETAILS -> eventService.sendEditEventDetails(request);
@@ -48,7 +51,7 @@ public class ButtonController extends ListenerAdapter {
                 case UNDO_EVENT_DELETION -> eventService.undoEventDeletion(request);
                 case MARK_COMPLETE -> eventService.markEventComplete(request);
                 default ->
-                    log.warn("Received an unsupported button action: {}", request.getEvent().getButton().getId());
+                    log.error("Received an unsupported button action: {}", request.getEvent().getButton().getId());
             }
         } catch (EntityNotFoundException e) {
             request.sendResponse(e.getMessage(), MessageMode.USER);

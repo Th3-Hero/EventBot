@@ -2,6 +2,7 @@ package com.th3hero.eventbot.jobs;
 
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
@@ -40,25 +41,22 @@ public class DeletedEventCleanupJob implements Job {
 
         eventRepository.delete(eventJpa);
 
-        Optional<TextChannel> channel = Optional.ofNullable(jda.getTextChannelById(config.getEventChannel()));
-        if (channel.isEmpty()) {
-            log.error("Failed to get event channel. Make sure config is setup correctly. Channel id: %d".formatted(config.getEventChannel()));
-            return;
-        }
+        TextChannel channel = Optional.ofNullable(jda.getTextChannelById(config.getEventChannel()))
+            .orElseThrow(() -> new ConfigErrorException("Failed to get event channel. Make sure config is setup correctly. Channel id: %d".formatted(config.getEventChannel())));
 
         DiscordActionUtils.deleteMessage(
-            channel.get(),
+            channel,
             eventJpa.getMessageId(),
-            success -> log.info("Cleaned up deleted draft %d".formatted(eventId)),
+            success -> log.info("Cleaned up deleted event %d".formatted(eventId)),
             e -> log.warn("Failed to find event message for cleanup. The message may have already been deleted outside of the bot. Otherwise something has went wrong. Message id: %d".formatted(eventJpa.getMessageId()))
         );
 
         long deletionMessage = executionContext.getTrigger().getJobDataMap().getLongFromString(DELETION_MESSAGE_ID);
 
         DiscordActionUtils.deleteMessage(
-            channel.get(),
+            channel,
             deletionMessage,
-            success -> log.info("Cleaned up deleted draft %d".formatted(eventId)),
+            success -> log.info("Cleaned up deleted event %d".formatted(eventId)),
             e -> log.warn("Failed to find deletion message")
         );
     }

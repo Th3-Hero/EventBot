@@ -64,8 +64,8 @@ class DateFormatterTest {
     @MethodSource("parseDateArguments")
     void parseDate(String date, String time, LocalDateTime expected) {
         var result = DateFormatter.parseDate(date, time);
-        assertThat(result).isPresent();
-        assertThat(result).contains(expected);
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
@@ -73,7 +73,7 @@ class DateFormatterTest {
         var dateString = "2024-555-3123";
         var timeString = "14:30";
         var result = DateFormatter.parseDate(dateString, timeString);
-        assertThat(result).isEmpty();
+        assertThat(result).isNull();
     }
 
 }
