@@ -110,9 +110,11 @@ public class EventService {
                 // Send a message saying that the event has been deleted and giving the recovery option
                 deleteEventConsumer(request, message, eventJpa, reason, deletedEventCleanupDelay);
             },
-            new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e ->
-                request.sendResponse("Failed to retrieve message tied to event.", MessageMode.USER))
-        );
+            new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> {
+                log.error("Failed to retrieve message tied to event (id: %d)".formatted(eventJpa.getId()));
+                request.sendResponse("Failed to retrieve message tied to event.", MessageMode.USER);
+            }
+        ));
     }
 
 

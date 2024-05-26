@@ -106,6 +106,22 @@ public class SchedulingService {
     }
 
     /**
+     * Removes a specific reminder trigger for a student on a specific event.
+     * @param eventId The id of the event
+     * @param studentId The id of the student
+     * @param offset The offset of the reminder from the event date
+     */
+    public void removeEventReminderTriggers(Long eventId, Long studentId, Integer offset) {
+        try {
+            String groupKey = REMINDER_TRIGGER_GROUP_FORMAT.formatted(eventId, studentId);
+            scheduler.unscheduleJob(TriggerKey.triggerKey(offset.toString(), groupKey));
+        } catch (SchedulerException e) {
+            log.error("Failed to remove trigger for event %d for student %d with offset %s".formatted(eventId, studentId, offset));
+            throw new SchedulingException("Failed to remove event reminder.");
+        }
+    }
+
+    /**
      * Removes all reminder triggers for a student on a specific event.
      * @param eventId The id of the event
      * @param studentId The id of the student

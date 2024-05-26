@@ -19,6 +19,8 @@ import java.util.function.Consumer;
 @NoArgsConstructor(access = AccessLevel.NONE)
 public final class DiscordActionUtils {
 
+    public static final String DEFAULT_ERROR_RESPONSE = "An unexpected error occurred while processing your request.";
+
     /**
      * Safely handle sending a text response to an event. The response will be a reply if the event is unacknowledged, otherwise it will use the hook.
      *

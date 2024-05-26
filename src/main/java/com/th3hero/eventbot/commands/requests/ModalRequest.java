@@ -3,6 +3,7 @@ package com.th3hero.eventbot.commands.requests;
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.ModalAction;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
+import com.th3hero.eventbot.exceptions.UnsupportedResponseException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.Getter;
@@ -51,7 +52,7 @@ public class ModalRequest extends InteractionRequest {
      * @throws IllegalInteractionException If the interaction is not supported
      * @see ModalAction ModalAction for supported interactions
      */
-    public static ModalRequest fromInteraction(@NonNull final ModalInteractionEvent event) {
+    public static ModalRequest fromInteraction(@NonNull final ModalInteractionEvent event) throws IllegalInteractionException {
         final List<String> modalIdSplits = List.of(event.getModalId().split("-"));
         final String modalActionString = modalIdSplits.subList(0, 1).getFirst();
         final List<String> idArguments = modalIdSplits.subList(1, modalIdSplits.size());
@@ -91,7 +92,7 @@ public class ModalRequest extends InteractionRequest {
             case MessageEmbed embed -> sendEmbedResponse(embed, mode, success);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
             default ->
-                throw new IllegalInteractionException("Unable to process response of type '%s' for modal interactions".formatted(response.getClass().getSimpleName()));
+                throw new UnsupportedResponseException("Unable to process response of type '%s' for modal interactions".formatted(response.getClass().getSimpleName()));
         }
     }
 

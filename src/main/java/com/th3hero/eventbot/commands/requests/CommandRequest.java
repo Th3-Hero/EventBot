@@ -3,6 +3,7 @@ package com.th3hero.eventbot.commands.requests;
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
+import com.th3hero.eventbot.exceptions.UnsupportedResponseException;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.Getter;
 import lombok.NonNull;
@@ -96,7 +97,7 @@ public class CommandRequest extends InteractionRequest {
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
             default ->
-                throw new IllegalInteractionException("Unable to process response of type '%s' for slash commands".formatted(response.getClass().getSimpleName()));
+                throw new UnsupportedResponseException("Unable to process response of type '%s' for slash commands".formatted(response.getClass().getSimpleName()));
         }
     }
 

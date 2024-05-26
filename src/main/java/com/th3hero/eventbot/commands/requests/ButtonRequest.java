@@ -3,6 +3,7 @@ package com.th3hero.eventbot.commands.requests;
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.ButtonAction;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
+import com.th3hero.eventbot.exceptions.UnsupportedResponseException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.Getter;
@@ -74,7 +75,7 @@ public class ButtonRequest extends InteractionRequest {
      * @param response The response to send
      * @param mode The mode used when sending the response
      * @param success Successful response callback
-     * @throws IllegalInteractionException If given unsupported interaction
+     * @throws UnsupportedResponseException If given unsupported interaction
      */
     @Override
     public void sendResponse(@NonNull Object response, MessageMode mode, Consumer<Message> success) {
@@ -84,7 +85,7 @@ public class ButtonRequest extends InteractionRequest {
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
             default ->
-                throw new IllegalInteractionException("Unsupported button event response type %s".formatted(response.getClass().getSimpleName()));
+                throw new UnsupportedResponseException("Unsupported button event response type %s".formatted(response.getClass().getSimpleName()));
         }
     }
 

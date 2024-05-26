@@ -33,7 +33,8 @@ public final class EmbedBuilderFactory {
     public static MessageEmbed help() {
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .setColor(BLUE)
-            .setTitle("Help:");
+            .setTitle("Help")
+            .setDescription("NOTE: In order to receive notification from the bot, the **bot must be able to send you direct messages.**");
 
         for (Command command : Command.values()) {
             embedBuilder.addField(

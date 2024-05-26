@@ -10,6 +10,7 @@ import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
+import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.repositories.StudentRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ import static com.th3hero.eventbot.utils.DiscordFieldsUtils.OFFSET;
 public class StudentService {
     private final StudentRepository studentRepository;
     private final SchedulingService schedulingService;
+    private final EventRepository eventRepository;
 
     /**
      * Fetches a student based on the provided studentId or creates a new student if one does not exist.
@@ -156,6 +158,14 @@ public class StudentService {
             return;
         }
         studentJpa.getReminderOffsetTimes().add(newOffset);
+        eventRepository.findAllByCourse(studentJpa.getCourses())
+                .forEach(event -> schedulingService.addEventReminderTrigger(
+                    event.getId(),
+                    studentJpa.getId(),
+                    newOffset,
+                    event.getEventDate().minusHours(newOffset)
+                ));
+        request.sendResponse("You will now be reminded %d hours before an event.".formatted(newOffset), MessageMode.USER);
     }
 
     private void removeReminderOffsets(CommandRequest request, StudentJpa studentJpa) {
@@ -165,5 +175,12 @@ public class StudentService {
             return;
         }
         studentJpa.getReminderOffsetTimes().remove(targetOffset);
+        eventRepository.findAllByCourse(studentJpa.getCourses())
+                .forEach(event -> schedulingService.removeEventReminderTriggers(
+                    event.getId(),
+                    studentJpa.getId(),
+                    targetOffset
+                ));
+        request.sendResponse("You will no longer be reminded %d hours before an event.".formatted(targetOffset), MessageMode.USER);
     }
 }

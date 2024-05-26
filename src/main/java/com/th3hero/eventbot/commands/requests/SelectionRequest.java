@@ -3,6 +3,7 @@ package com.th3hero.eventbot.commands.requests;
 import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.SelectionAction;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
+import com.th3hero.eventbot.exceptions.UnsupportedResponseException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import lombok.Getter;
@@ -52,7 +53,7 @@ public class SelectionRequest extends InteractionRequest {
      * @throws IllegalInteractionException If the interaction is not supported
      * @see SelectionAction SelectionAction for supported interactions
      */
-    public static SelectionRequest fromInteraction(@NonNull final StringSelectInteractionEvent event) {
+    public static SelectionRequest fromInteraction(@NonNull final StringSelectInteractionEvent event) throws IllegalInteractionException {
         final List<String> selectionIdSplits = List.of(event.getSelectMenu().getId().split("-"));
         final String selectionActionString = selectionIdSplits.getFirst();
         final List<String> idArguments = selectionIdSplits.subList(1, selectionIdSplits.size());
@@ -94,7 +95,7 @@ public class SelectionRequest extends InteractionRequest {
             case Modal modal -> sendModalResponse(modal);
             case MessageCreateData createData -> sendMessageCreateData(createData, mode, success);
             default ->
-                throw new IllegalInteractionException("Unsupported selection event response type %s".formatted(response.getClass().getSimpleName()));
+                throw new UnsupportedResponseException("Unsupported selection event response type %s".formatted(response.getClass().getSimpleName()));
         }
     }
 
