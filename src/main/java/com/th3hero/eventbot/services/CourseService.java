@@ -52,6 +52,8 @@ public class CourseService {
         List<CourseJpa> courses = courseUploads.stream()
             .map(CourseUpload::toJpa)
             .toList();
+
+        log.debug("Saving courses:\n {}", courses.stream().map(CourseJpa::getCode).collect(Collectors.joining("\n")));
         return courseRepository.saveAll(courses).stream()
             .map(CourseJpa::toDto)
             .toList();
@@ -68,6 +70,7 @@ public class CourseService {
             courseJpa.setName(courseUpload.name());
         }
 
+        log.debug("Updating course: {}", courseId);
         return courseRepository.save(courseJpa).toDto();
     }
 
@@ -78,6 +81,7 @@ public class CourseService {
         studentService.removeCourseFromAllStudents(courseJpa);
 
         courseRepository.deleteById(courseId);
+        log.debug("Deleted course: {}", courseId);
     }
 
     /**
@@ -89,6 +93,7 @@ public class CourseService {
     public StringSelectMenu createCourseSelectionMenu(String selectMenuId, List<CourseJpa> defaultOptions) {
         List<SelectOption> options = selectOptionFromJpas(courseRepository.findAll());
         if (options.isEmpty()) {
+            log.error("No courses are currently setup.");
             throw new EntityNotFoundException("No courses are currently setup. Contact the bot owner.");
         }
         return StringSelectMenu.create(selectMenuId)
@@ -124,6 +129,7 @@ public class CourseService {
                 .map(CourseJpa::getCode)
                 .filter(code -> !values.contains(code))
                 .collect(Collectors.joining("\n"));
+            log.warn("The following courses were not found in the database. This may be from an outdated dropdown menu:\n{}", missingCourses);
             throw new EntityNotFoundException("The following courses were not found in the database:\n%s".formatted(missingCourses));
         }
 

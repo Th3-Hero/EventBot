@@ -101,6 +101,7 @@ public class EventDraftService {
             ModalFactory.draftCreationData(eventDraft.getId()),
             MessageMode.USER
         );
+        log.debug("Created new event draft {}", eventDraft.getId());
     }
 
     public void addDraftDetails(ModalRequest request) {
@@ -129,6 +130,7 @@ public class EventDraftService {
             ),
             MessageMode.USER
         );
+        log.debug("Added details to draft {}", eventDraftJpa.getId());
     }
 
     public void setCoursesOnDraft(SelectionRequest request) {
@@ -146,6 +148,7 @@ public class EventDraftService {
         eventDraftJpa.get().getCourses().addAll(selectedCourses);
 
         sendDraft(request, eventDraftJpa.get());
+        log.debug("Added courses to draft {}", eventDraftJpa.get().getId());
     }
 
     public void updateDraftDetails(ModalRequest request) {
@@ -179,6 +182,7 @@ public class EventDraftService {
         eventDraftJpa.setEventDate(eventDate);
 
         sendDraft(request, eventDraftJpa);
+        log.debug("Updated details for draft {}", eventDraftJpa.getId());
     }
 
     public void deleteDraft(ButtonRequest request) {
@@ -192,6 +196,7 @@ public class EventDraftService {
 
         request.sendResponse("Draft has been deleted.", MessageMode.USER);
         request.getEvent().getMessage().delete().queue();
+        log.debug("Deleted draft {}", draftId);
     }
 
     private EventDraftJpa fetchDraft(Long draftId) {

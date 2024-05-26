@@ -115,6 +115,7 @@ public class SchedulingService {
         try {
             String groupKey = REMINDER_TRIGGER_GROUP_FORMAT.formatted(eventId, studentId);
             scheduler.unscheduleJob(TriggerKey.triggerKey(offset.toString(), groupKey));
+            log.debug("Removed trigger for event %d for student %d with offset %s".formatted(eventId, studentId, offset));
         } catch (SchedulerException e) {
             log.error("Failed to remove trigger for event %d for student %d with offset %s".formatted(eventId, studentId, offset));
             throw new SchedulingException("Failed to remove event reminder.");
@@ -166,6 +167,7 @@ public class SchedulingService {
         try {
             Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupStartsWith("%d-".formatted(eventId)));
             scheduler.unscheduleJobs(new ArrayList<>(keys));
+            log.debug("Removed all triggers for event: %d".formatted(eventId));
         } catch (SchedulerException e) {
             log.error("Failed to remove reminder trigger for event: %d".formatted(eventId), e);
         }

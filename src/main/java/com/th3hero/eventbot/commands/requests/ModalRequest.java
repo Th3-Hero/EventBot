@@ -104,6 +104,7 @@ public class ModalRequest extends InteractionRequest {
     @Override
     public void deferReply(MessageMode mode) {
         DiscordActionUtils.deferResponse(event, MessageMode.USER == mode);
+        log.debug("Deferred response sent for modal event {}", action);
     }
 
     private void sendTextResponse(final String text, final MessageMode mode, final Consumer<Message> success) {

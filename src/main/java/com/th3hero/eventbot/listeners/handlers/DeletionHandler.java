@@ -67,6 +67,7 @@ public class DeletionHandler {
                 eventRepository.save(eventJpa.get());
             });
         channel.sendMessage("Event messages cannot be deleted directly. You must use the delete button on the message.").queue();
+        log.info("Reposted deleted event message for event {}", eventJpa.get().getId());
     }
 
     public void handleDeletedChannel(ChannelDeleteEvent event) {
@@ -93,6 +94,7 @@ public class DeletionHandler {
         );
 
         // Updating the event channel here reposts the events
+        log.info("Recreating event channel");
         event.getGuild().createTextChannel(event.getChannel().getName())
             .setTopic("Event Channel")
             .addRolePermissionOverride(event.getGuild().getPublicRole().getIdLong(), allow, deny)

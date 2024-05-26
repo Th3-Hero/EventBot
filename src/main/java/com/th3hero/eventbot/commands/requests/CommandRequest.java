@@ -110,6 +110,7 @@ public class CommandRequest extends InteractionRequest {
     @Override
     public void deferReply(final MessageMode mode) {
         DiscordActionUtils.deferResponse(event, MessageMode.USER == mode);
+        log.debug("Deferred response sent for command {}", command);
     }
 
     private void sendTextResponse(final String text, final MessageMode mode, final Consumer<Message> success) {

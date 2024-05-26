@@ -146,6 +146,7 @@ public class EventService {
         Long eventId = request.getArguments().get(EVENT_ID);
         if (!eventRepository.existsByIdAndDeletedIsFalse(eventId)) {
             request.sendResponse(FAILED_TO_FIND_EVENT.formatted(eventId), MessageMode.USER);
+            log.error("User tried to mark a deleted event as complete (id: %d)".formatted(eventId));
             return;
         }
         studentService.unscheduleStudentRemindersForEvent(request, eventId);
@@ -233,6 +234,7 @@ public class EventService {
             eventJpa.setEventDate(eventDate);
             schedulingService.removeReminderTriggers(eventJpa.getId());
             scheduleEventReminders(eventJpa);
+            log.debug("Event date was updated, rescheduling reminders for event (id: %d)".formatted(eventJpa.getId()));
         }
 
         eventJpa = eventRepository.save(eventJpa);
@@ -340,6 +342,7 @@ public class EventService {
                 .orElse(MarkdownUtil.italics("Unknown User"));
             repostEvent(eventChannel, event, author);
         }
+        log.debug("All events reposted to event channel");
     }
 
     /**
@@ -351,6 +354,7 @@ public class EventService {
     private boolean requesterIsAdmin(InteractionRequest request) {
         if (!request.getRequester().hasPermission(Permission.ADMINISTRATOR)) {
             request.sendResponse("This action requires administrator permissions", MessageMode.USER);
+            log.debug("User %s attempted to preform an action that requires administrator permissions".formatted(request.getRequester().getAsMention()));
             return false;
         }
         return true;
