@@ -5,6 +5,7 @@ import com.th3hero.eventbot.commands.actions.ButtonAction;
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
+import com.th3hero.eventbot.factories.ButtonFactory;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.repositories.EventRepository;
@@ -34,6 +35,8 @@ public class DeletionHandler {
     private final ConfigService configService;
 
     public void handleDeletedMessage(MessageDeleteEvent event) {
+        // We can't stop users with permission from deleting messages, so we just repost the message
+
         Long deletedMessageId = event.getMessageIdLong();
         ConfigJpa configJpa = configService.getConfigJpa();
 
@@ -44,23 +47,22 @@ public class DeletionHandler {
 
         Optional<EventJpa> eventJpa = eventRepository.findByMessageId(deletedMessageId);
         if (eventJpa.isEmpty()) {
+            // The message wasn't an event message, so ignore it
             return;
         }
         Long eventChannelId = configJpa.getEventChannel();
         TextChannel channel = Optional.ofNullable(event.getJDA().getTextChannelById(eventChannelId))
             .orElseThrow(() -> new ConfigErrorException("Configured event channel does not exist. Make sure config is setup correctly"));
 
+        // If the user has left the server we can't get their mention
         String author = Optional.ofNullable(event.getJDA().getUserById(eventJpa.get().getAuthorId()))
             .map(IMentionable::getAsMention)
             .orElse(MarkdownUtil.italics("Unknown User"));
 
         channel.sendMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa.get(), author))
-            .addActionRow(
-                Button.success(InteractionArguments.createInteractionIdString(ButtonAction.MARK_COMPLETE, eventJpa.get().getId()), "Mark Complete"),
-                Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_EVENT, eventJpa.get().getId()), "Edit Event"),
-                Button.danger(InteractionArguments.createInteractionIdString(ButtonAction.DELETE_EVENT, eventJpa.get().getId()), "Delete Event")
-            )
+            .addComponents(ButtonFactory.eventButtons(eventJpa.get().getId()))
             .queue(success -> {
+                // Save the new message id to the event
                 eventJpa.get().setMessageId(success.getIdLong());
                 eventRepository.save(eventJpa.get());
             });
@@ -68,6 +70,8 @@ public class DeletionHandler {
     }
 
     public void handleDeletedChannel(ChannelDeleteEvent event) {
+        // We can't stop users with permission from deleting channels, so we just recreate the channel
+
         ConfigJpa configJpa = configService.getConfigJpa();
 
         Long eventChannelId = configJpa.getEventChannel();
@@ -88,6 +92,7 @@ public class DeletionHandler {
             Permission.MESSAGE_SEND
         );
 
+        // Updating the event channel here reposts the events
         event.getGuild().createTextChannel(event.getChannel().getName())
             .setTopic("Event Channel")
             .addRolePermissionOverride(event.getGuild().getPublicRole().getIdLong(), allow, deny)

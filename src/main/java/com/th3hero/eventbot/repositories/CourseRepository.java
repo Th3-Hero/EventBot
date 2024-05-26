@@ -8,6 +8,12 @@ import java.util.List;
 
 @Repository
 public interface CourseRepository extends JpaRepository<CourseJpa, Long> {
+
+    /**
+     * Find a list of courses by their course codes
+     * @param courseCodes List of course codes
+     * @return List of courses with the given course codes
+     */
     List<CourseJpa> findByCodeIn(List<String> courseCodes);
 
 }

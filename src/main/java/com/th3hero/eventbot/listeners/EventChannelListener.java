@@ -13,6 +13,10 @@ public class EventChannelListener {
     private final EventService eventService;
     private final JDA jda;
 
+    /**
+     * Listens for UpdatedEventChannelEvent and sends all events to the event channel
+     * @param event UpdatedEventChannelEvent
+     */
     @EventListener
     public void updatedEventChannelListener(UpdatedEventChannelEvent event) {
         eventService.sendAllEventsToEventChannel(jda);

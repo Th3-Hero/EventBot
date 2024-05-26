@@ -27,6 +27,7 @@ public class ConfigService {
         if (configList.isEmpty()) {
             throw new EntityNotFoundException("No existing config was found. Contact the bot owner to fix this issue.");
         }
+        // As it stands we should only have one config for the bot
         if (configList.size() > 1) {
             throw new IllegalStateException("The application has managed to reach an invalid state with multiple configurations. No clue how we got here ¯\\_(ツ)_/¯");
         }
@@ -44,8 +45,7 @@ public class ConfigService {
         }
 
         ConfigJpa.ConfigJpaBuilder configJpaBuilder = ConfigJpa.builder()
-            .eventChannel(configUpload.eventChannel())
-            .botOwnerId(configUpload.botOwnerId());
+            .eventChannel(configUpload.eventChannel());
 
         if (configUpload.deletedEventCleanupDelay() != null) {
             configJpaBuilder.deletedEventCleanupDelay(configUpload.deletedEventCleanupDelay());
@@ -63,9 +63,6 @@ public class ConfigService {
         }
 
         ConfigJpa configJpa = getConfigJpa();
-        if (configUpload.botOwnerId() != null) {
-            configJpa.setBotOwnerId(configUpload.botOwnerId());
-        }
         if (configUpload.deletedEventCleanupDelay() != null) {
             configJpa.setDeletedEventCleanupDelay(configUpload.deletedEventCleanupDelay());
         }

@@ -27,6 +27,11 @@ public class SchedulingService {
 
     private static final String REMINDER_TRIGGER_GROUP_FORMAT = "%d-%d";
 
+    /**
+     * Adds a trigger to the scheduler to clean up a draft after a certain amount of time.
+     * @param draftId The id of the draft to clean up
+     * @param draftCreationDate The date the draft was created
+     */
     public void addDraftCleanupTrigger(Long draftId, LocalDateTime draftCreationDate) {
         try {
             createJobIfNone(DraftCleanupJob.JOB_KEY, DraftCleanupJob.class, "Automated cleanup of abandoned jobs");
@@ -49,6 +54,10 @@ public class SchedulingService {
         }
     }
 
+    /**
+     * Removes the cleanup trigger for a draft.
+     * @param draftId The id of the draft to remove the trigger for
+     */
     public void removeDraftCleanupTrigger(Long draftId) {
         try {
             scheduler.unscheduleJob(TriggerKey.triggerKey(draftId.toString(), DRAFT_CLEANUP_GROUP));
@@ -58,6 +67,13 @@ public class SchedulingService {
         }
     }
 
+    /**
+     * Adds a trigger to the scheduler to send a reminder notification for an event.
+     * @param eventId The id of the event to send a reminder for
+     * @param studentId The id of the student to send the reminder to
+     * @param offset The offset in hours from the event time to send the reminder
+     * @param eventTime The date/time of the event
+     */
     public void addEventReminderTrigger(Long eventId, Long studentId, Integer offset, LocalDateTime eventTime) {
         try {
             createJobIfNone(EventReminderJob.JOB_KEY, EventReminderJob.class, "Reminder notifications for events");
@@ -89,6 +105,12 @@ public class SchedulingService {
         }
     }
 
+    /**
+     * Removes all reminder triggers for a student on a specific event.
+     * @param eventId The id of the event
+     * @param studentId The id of the student
+     * @return True if triggers were removed, false if no triggers were found
+     */
     public boolean removeEventReminderTriggers(Long eventId, Long studentId) {
         try {
             Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(REMINDER_TRIGGER_GROUP_FORMAT.formatted(eventId, studentId)));
@@ -103,6 +125,10 @@ public class SchedulingService {
         }
     }
 
+    /**
+     * Removes all reminder triggers for a student from all events.
+     * @param studentId The id of the student
+     */
     public void removeAllEventReminderTriggers(Long studentId) {
         try {
             Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEndsWith("-%s".formatted(studentId)));
@@ -116,6 +142,10 @@ public class SchedulingService {
         }
     }
 
+    /**
+     * Removes all reminder triggers for an event from all students.
+     * @param eventId The id of the event
+     */
     public void removeReminderTriggers(Long eventId) {
         try {
             Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupStartsWith("%d-".formatted(eventId)));
@@ -125,6 +155,12 @@ public class SchedulingService {
         }
     }
 
+    /**
+     * Adds a trigger to the scheduler to clean up a deleted event after a certain amount of time.
+     * @param eventId The id of the event to clean up
+     * @param cleanupMessageId The id of the cleanup/recovery message
+     * @param cleanupTime The date/time to clean up the event
+     */
     public void addDeletedEventCleanupTrigger(Long eventId, Long cleanupMessageId, LocalDateTime cleanupTime) {
         try {
             createJobIfNone(DeletedEventCleanupJob.JOB_KEY, DeletedEventCleanupJob.class, "Cleanup of deleted events");
@@ -149,6 +185,10 @@ public class SchedulingService {
         }
     }
 
+    /**
+     * Removes the cleanup trigger for a deleted event.
+     * @param eventId The id of the event to remove the trigger for
+     */
     public void removeDeletedEventCleanupTrigger(Long eventId) {
         try {
             TriggerKey key = TriggerKey.triggerKey(eventId.toString(), DELETE_EVENT_CLEANUP_GROUP);
@@ -159,6 +199,13 @@ public class SchedulingService {
         }
     }
 
+    /**
+     * Creates a quartz job if one does not already exist.
+     * @param jobKey The key of the job
+     * @param jobClass The class of the job
+     * @param description The description of the job
+     * @throws SchedulerException If the job cannot be created
+     */
     private <T extends Job> void createJobIfNone(JobKey jobKey, Class<T> jobClass, String description) throws SchedulerException {
         if (!scheduler.checkExists(jobKey)) {
             JobDetail job = JobBuilder.newJob(jobClass)

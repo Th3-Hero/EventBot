@@ -65,6 +65,7 @@ public class EventService {
 
 
     public void publishEvent(ButtonRequest request, EventDraftJpa draftJpa) {
+        // Publish event via draft conformation
         publishEvent(request, eventRepository.save(EventJpa.create(draftJpa)));
         eventDraftRepository.deleteById(draftJpa.getId());
         schedulingService.removeDraftCleanupTrigger(draftJpa.getId());
@@ -104,7 +105,9 @@ public class EventService {
 
         request.getEvent().getChannel().retrieveMessageById(eventJpa.getMessageId()).queue(
             message -> {
+                // Get the message tied to the event and strip the buttons
                 message.editMessageComponents().queue();
+                // Send a message saying that the event has been deleted and giving the recovery option
                 deleteEventConsumer(request, message, eventJpa, reason, deletedEventCleanupDelay);
             },
             new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e ->
@@ -290,6 +293,7 @@ public class EventService {
 
         String courseField = request.getArguments().get(COURSE);
 
+        // If they didn't specify a course, use the courses they are signed up for
         List<CourseJpa> courses;
         if (courseField == null) {
             courses = studentJpa.getCourses();
@@ -301,6 +305,8 @@ public class EventService {
             }
         }
 
+        // We don't want to list events that have already passed and
+        // if they haven't specified a time period we don't limit how far in the future we show events for
         LocalDateTime minDate = LocalDateTime.now();
         LocalDateTime maxDate = timePeriodField != null ? minDate.plusDays(timePeriodField) : null;
 
@@ -334,6 +340,11 @@ public class EventService {
         }
     }
 
+    /**
+     * Checks if the requester has administrator permissions and sends a response if they do not.
+     * @param request The request to check
+     * @return True if the requester has administrator permissions, otherwise False
+     */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean requesterIsAdmin(InteractionRequest request) {
         if (!request.getRequester().hasPermission(Permission.ADMINISTRATOR)) {
@@ -343,6 +354,10 @@ public class EventService {
         return true;
     }
 
+    /**
+     * Schedules reminders for all students in the courses associated with the event.
+     * @param eventJpa The event to schedule reminders for
+     */
     private void scheduleEventReminders(EventJpa eventJpa) {
         for (CourseJpa courseJpa : eventJpa.getCourses()) {
             courseJpa.getStudents().forEach(student -> studentService.scheduleStudentForEvent(eventJpa, student));
@@ -365,10 +380,12 @@ public class EventService {
     private void deleteEventConsumer(ModalRequest request, Message message, EventJpa eventJpa, String reason, int deletedEventCleanupDelay) {
         String jumpUrl = message.getJumpUrl();
 
+        // remove all the reminders and soft delete the event
         schedulingService.removeReminderTriggers(eventJpa.getId());
         eventJpa.setDeleted(true);
         eventRepository.save(eventJpa);
 
+        // Send the deleted event message with the recovery button
         request.getEvent().getChannel().sendMessageEmbeds(
                 EmbedBuilderFactory.deletedEvent(
                     reason,
@@ -379,10 +396,12 @@ public class EventService {
             ).addActionRow(
                 Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.UNDO_EVENT_DELETION, eventJpa.getId()), "Recover Event")
             )
-            .queue(success -> schedulingService.addDeletedEventCleanupTrigger(
-                eventJpa.getId(),
-                success.getIdLong(),
-                LocalDateTime.now().plusHours(deletedEventCleanupDelay)
+            .queue(success ->
+            // Schedule the cleanup trigger for the deleted event after the recovery period ends
+                schedulingService.addDeletedEventCleanupTrigger(
+                    eventJpa.getId(),
+                    success.getIdLong(),
+                    LocalDateTime.now().plusHours(deletedEventCleanupDelay)
             ));
 
         request.sendResponse("Event has been deleted. %s".formatted(jumpUrl), MessageMode.USER);
@@ -392,12 +411,13 @@ public class EventService {
         channel.sendMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa, author))
             .addComponents(ButtonFactory.eventButtons(eventJpa.getId()))
             .queue(success -> {
+                // Save the new message id to the event
                     eventJpa.setMessageId(success.getIdLong());
                     eventRepository.save(eventJpa);
                     log.info("Event reposted (id:%d) in channel %s".formatted(eventJpa.getId(), success.getChannel().getName()));
                 },
-                error -> log.error("Failed to repost event (id:%d) in channel %s".formatted(eventJpa.getId(), channel.getName())
-                ));
+                error -> log.error("Failed to repost event (id:%d) in channel %s".formatted(eventJpa.getId(), channel.getName()))
+            );
     }
 
     private void publishEvent(ButtonRequest request, EventJpa eventJpa) {
@@ -410,6 +430,7 @@ public class EventService {
         channel.sendMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa, request.getRequester().getAsMention()))
             .addComponents(ButtonFactory.eventButtons(eventJpa.getId()))
             .queue(success -> {
+                // Save the new message id to the event
                 eventJpa.setMessageId(success.getIdLong());
                 eventRepository.save(eventJpa);
                 request.sendResponse("Event has been posted to the event channel. %s".formatted(success.getJumpUrl()), MessageMode.USER);
@@ -456,16 +477,14 @@ public class EventService {
             .orElseThrow(() -> new ConfigErrorException("The event channel could not be found. Please contact a bot administrator."));
 
 
+        // Retrieve all the messages associated with the events and store them in a map
         Map<EventJpa, CompletableFuture<Message>> futureMap = new LinkedHashMap<>();
         for (EventJpa event : events) {
             futureMap.put(event, channel.retrieveMessageById(event.getMessageId()).submit());
         }
 
-        List<CompletableFuture<Message>> futures = events.stream()
-            .map(eventJpa -> channel.retrieveMessageById(eventJpa.getMessageId()).submit())
-            .toList();
-
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+        // Once all the messages have been retrieved, send the list of events
+        CompletableFuture.allOf(futureMap.values().toArray(new CompletableFuture[0]))
             .thenRun(() -> {
                 Map<EventJpa, String> eventMessageMap = new LinkedHashMap<>();
                 for (EventJpa event : events) {
@@ -473,6 +492,7 @@ public class EventService {
                 }
 
                 request.sendResponse(EmbedBuilderFactory.listEvents(eventMessageMap), MessageMode.USER);
-            });
+            }
+        );
     }
 }

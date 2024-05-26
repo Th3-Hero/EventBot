@@ -80,6 +80,12 @@ public class CourseService {
         courseRepository.deleteById(courseId);
     }
 
+    /**
+     * Creates a select menu populated with the given courses as options
+     * @param selectMenuId The id of the select menu
+     * @param defaultOptions The default preselected options
+     * @return A select menu with all courses as options
+     */
     public StringSelectMenu createCourseSelectionMenu(String selectMenuId, List<CourseJpa> defaultOptions) {
         List<SelectOption> options = selectOptionFromJpas(courseRepository.findAll());
         if (options.isEmpty()) {
@@ -105,6 +111,12 @@ public class CourseService {
         request.sendResponse(data, InteractionRequest.MessageMode.USER);
     }
 
+    /**
+     * Gets a list of courses from the database based on the provided course codes
+     * @param values The course codes to search for
+     * @return A list of courses
+     * @throws EntityNotFoundException If any of the provided course codes are not found in the database
+     */
     public List<CourseJpa> coursesFromCourseCodes(List<String> values) {
         List<CourseJpa> courses = courseRepository.findByCodeIn(values);
         if (courses.size() != values.size()) {
@@ -121,11 +133,13 @@ public class CourseService {
     public void processStudentSelectedCourses(SelectionRequest request) {
         StudentJpa studentJpa = studentService.fetchStudent(request.getRequester().getIdLong());
 
+        // Get the new list of selected course
         List<CourseJpa> updatedCourses = coursesFromCourseCodes(request.getEvent().getValues());
         List<CourseJpa> removedCourses = studentJpa.getCourses().stream()
             .filter(course -> !updatedCourses.contains(course))
             .toList();
 
+        // Remove reminders for any courses that were removed
         List<EventJpa> eventsToRemove = eventRepository.findAllByCourse(removedCourses);
         for (EventJpa event : eventsToRemove) {
             schedulingService.removeEventReminderTriggers(event.getId(), studentJpa.getId());
@@ -134,6 +148,7 @@ public class CourseService {
         studentJpa.getCourses().clear();
         studentJpa.getCourses().addAll(updatedCourses);
 
+        // Add reminders for any new courses
         List<EventJpa> events = eventRepository.findAllByCourse(studentJpa.getCourses());
         for (EventJpa event : events) {
             studentService.scheduleStudentForEvent(event, studentJpa);
@@ -148,6 +163,7 @@ public class CourseService {
     public void autoCompleteCourseOptions(CommandAutoCompleteInteractionEvent event) {
         StudentJpa studentJpa = studentService.fetchStudent(event.getUser().getIdLong());
 
+        // Based on the courses the student has, filter the current input
         List<Command.Choice> choices = studentJpa.getCourses().stream()
             .filter(course -> course.getCode().startsWith(event.getFocusedOption().getValue()))
             .map(course -> new Command.Choice(course.getCode(), course.getCode()))

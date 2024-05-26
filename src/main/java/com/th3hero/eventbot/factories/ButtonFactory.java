@@ -13,6 +13,11 @@ public final class ButtonFactory {
     private static final String EDIT_DETAILS = "Edit Details";
     private static final String EDIT_COURSES = "Edit Courses";
 
+    /**
+     * Creates buttons for a draft letting the user edit, delete, and confirm the draft
+     * @param draftId The id of the draft to create buttons for
+     * @return An ActionRow with the buttons
+     */
     public static ActionRow draftButtons(Long draftId) {
         return ActionRow.of(
             Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_DRAFT_DETAILS, draftId), EDIT_DETAILS),
@@ -22,6 +27,11 @@ public final class ButtonFactory {
         );
     }
 
+    /**
+     * Creates buttons for an event letting the user mark the event as complete, edit the event, and delete the event
+     * @param eventId The id of the event to create buttons for
+     * @return An ActionRow with the buttons
+     */
     public static ActionRow eventButtons(Long eventId) {
         return ActionRow.of(
             Button.success(InteractionArguments.createInteractionIdString(ButtonAction.MARK_COMPLETE, eventId), "Mark Complete"),
@@ -30,6 +40,11 @@ public final class ButtonFactory {
         );
     }
 
+    /**
+     * Creates buttons for an event letting the user edit the event details and courses
+     * @param eventId The id of the event to create buttons for
+     * @return An ActionRow with the buttons
+     */
     public static ActionRow editEventButtons(Long eventId) {
         return ActionRow.of(
             Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_EVENT_DETAILS, eventId), EDIT_DETAILS),

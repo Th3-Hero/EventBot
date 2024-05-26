@@ -23,6 +23,7 @@ public final class InteractionArguments {
      * @return The created interaction ID string to be used in discord interactions.
      */
     public static String createInteractionIdString(DiscordActionArguments enumValue, Long id) {
+        // currently there is only requests with one key, later on this may change and another method can be made for a collection of longs
         if (enumValue.getRequestKeys().size() != 1) {
             throw new IllegalArgumentException("Enum value must have exactly one request key");
         }

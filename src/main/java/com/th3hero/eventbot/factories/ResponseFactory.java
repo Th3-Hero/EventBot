@@ -11,6 +11,12 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 @NoArgsConstructor(access = AccessLevel.NONE)
 public final class ResponseFactory {
 
+    /**
+     * Create a response with the given embed and components
+     * @param embed The embed which will be displayed
+     * @param components The components attached to the message
+     * @return The message data
+     */
     public static MessageCreateData createResponse(MessageEmbed embed, ItemComponent... components) {
         return new MessageCreateBuilder()
             .addEmbeds(embed)

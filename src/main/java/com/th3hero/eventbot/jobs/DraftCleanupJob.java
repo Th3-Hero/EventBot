@@ -19,7 +19,8 @@ public class DraftCleanupJob implements Job {
     public void execute(JobExecutionContext executionContext) {
         Long draftId = executionContext.getTrigger().getJobDataMap().getLong(JOB_DRAFT_KEY);
         if (!eventDraftRepository.existsById(draftId)) {
-            log.warn("No existing draft for cleanup job. Draft id: %s".formatted(draftId));
+            // Drafts deleted by the user should remove cleanup triggers so if we got here something went wrong
+            log.error("No existing draft for cleanup job. Draft id: %s".formatted(draftId));
             return;
         }
 

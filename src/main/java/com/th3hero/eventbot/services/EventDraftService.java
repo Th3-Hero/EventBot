@@ -111,10 +111,6 @@ public class EventDraftService {
             .filter(StringUtils::isNoneBlank)
             .orElseThrow(() -> new DataAccessException("Failed to get title from modal."));
 
-        if (StringUtils.isBlank(title)) {
-            throw new DataAccessException("Failed to get title from modal. Title is required.");
-        }
-
         String note = Optional.ofNullable(request.getEvent().getValue(NOTE))
             .map(ModalMapping::getAsString)
             .filter(StringUtils::isNotBlank)

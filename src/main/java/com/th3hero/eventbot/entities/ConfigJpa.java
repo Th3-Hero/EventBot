@@ -29,10 +29,6 @@ public class ConfigJpa implements Serializable {
     @Column
     private Long eventChannel;
 
-    @NotNull
-    @Column
-    private Long botOwnerId;
-
     /**
      * The number of hours to wait before cleaning up an event that has been deleted by the user.
      */
@@ -51,7 +47,6 @@ public class ConfigJpa implements Serializable {
         return new Config(
             this.getId(),
             this.getEventChannel(),
-            this.getBotOwnerId(),
             this.getDeletedEventCleanupDelay(),
             this.getDraftCleanupDelay()
         );

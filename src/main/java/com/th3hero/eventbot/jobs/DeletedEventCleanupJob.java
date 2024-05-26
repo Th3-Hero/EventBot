@@ -44,6 +44,7 @@ public class DeletedEventCleanupJob implements Job {
         TextChannel channel = Optional.ofNullable(jda.getTextChannelById(config.getEventChannel()))
             .orElseThrow(() -> new ConfigErrorException("Failed to get event channel. Make sure config is setup correctly. Channel id: %d".formatted(config.getEventChannel())));
 
+        // Delete the message associated with the event
         DiscordActionUtils.deleteMessage(
             channel,
             eventJpa.getMessageId(),
@@ -53,6 +54,7 @@ public class DeletedEventCleanupJob implements Job {
 
         long deletionMessage = executionContext.getTrigger().getJobDataMap().getLongFromString(DELETION_MESSAGE_ID);
 
+        // Delete the deletion/recovery message
         DiscordActionUtils.deleteMessage(
             channel,
             deletionMessage,

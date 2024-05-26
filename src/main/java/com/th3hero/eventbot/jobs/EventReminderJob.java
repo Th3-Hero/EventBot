@@ -45,6 +45,7 @@ public class EventReminderJob implements Job {
         Long userId = executionContext.getTrigger().getJobDataMap().getLong(STUDENT_ID);
         int offset = executionContext.getTrigger().getJobDataMap().getInt(OFFSET_ID);
 
+        // Get the event message and send the reminder to the user with the link to the message
         DiscordActionUtils.retrieveMessage(
             channel,
             eventJpa.getMessageId(),

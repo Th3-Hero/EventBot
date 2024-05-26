@@ -92,6 +92,11 @@ public class StudentService {
     }
 
 
+    /**
+     * Schedules a student for reminders on an event.
+     * @param eventJpa the event to schedule the student for
+     * @param studentJpa the student to schedule reminders for
+     */
     public void scheduleStudentForEvent(EventJpa eventJpa, StudentJpa studentJpa) {
         for (Integer offset : studentJpa.getReminderOffsetTimes()) {
             if (eventJpa.getEventDate().minusHours(offset).isBefore(LocalDateTime.now())) {
@@ -116,6 +121,10 @@ public class StudentService {
         request.sendResponse(message, MessageMode.USER);
     }
 
+    /**
+     * Removes a course from all students.
+     * @param courseJpa the course to remove from all students
+     */
     public void removeCourseFromAllStudents(CourseJpa courseJpa) {
         studentRepository.findAllByCoursesContains(courseJpa).forEach(studentJpa -> studentJpa.getCourses().remove(courseJpa));
     }
