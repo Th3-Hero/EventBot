@@ -1,5 +1,9 @@
 package com.th3hero.eventbot;
 
+import com.th3hero.eventbot.dto.config.ConfigUpdate;
+import com.th3hero.eventbot.dto.config.ConfigUpload;
+import com.th3hero.eventbot.dto.course.CourseUpdate;
+import com.th3hero.eventbot.dto.course.CourseUpload;
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
@@ -22,6 +26,19 @@ import static org.mockito.Mockito.*;
 
 public class TestEntities {
 
+    // DTOs
+    public static ConfigUpload configUpload() {
+        return new ConfigUpload(1234L, 48, 24);
+    }
+    public static ConfigUpload configUpload_nullDefaults() {
+        return new ConfigUpload(1234L, null, null);
+    }
+
+    public static CourseUpload courseUpload(int seed) {
+        return new CourseUpload("TEST%s".formatted(seed), "Test Course%s".formatted(seed));
+    }
+
+    // Entities
     public static EventJpa createEventJpa() {
         return EventJpa.builder()
             .id(1234L)
@@ -33,10 +50,10 @@ public class TestEntities {
             .build();
     }
 
-    public static ConfigJpa createConfigJpa() {
+    public static ConfigJpa configJpa() {
         return ConfigJpa.builder()
             .id(1234)
-            .eventChannel(1234L)
+            .eventChannel(4321L)
             .build();
     }
 
@@ -47,13 +64,22 @@ public class TestEntities {
             .build();
     }
 
+    public static CourseUpdate courseUpdate(int seed) {
+        return new CourseUpdate("TEST%s".formatted(seed), "Test Course%s".formatted(seed));
+    }
+
+    public static EventJpa eventJpa(int seed) {
+        return eventJpa(seed, List.of());
+    }
+
     public static EventJpa eventJpa(int seed, List<CourseJpa> courses) {
         return EventJpa.builder()
+//            .id(1234L + seed)
             .authorId(1234L + seed)
             .messageId(1234L + seed)
             .title("Test Event%s".formatted(seed))
             .note("Test Note%s".formatted(seed))
-            .eventDate(LocalDateTime.of(2025, 1, 1, 1, 1, 1))
+            .eventDate(LocalDateTime.of(2099, 1, 1, 1, 1, 1))
             .type(EventJpa.EventType.ASSIGNMENT)
             .courses(new ArrayList<>(courses))
             .build();
@@ -62,7 +88,7 @@ public class TestEntities {
     public static StudentJpa studentJpa(int seed, List<CourseJpa> courses) {
         return StudentJpa.builder()
             .id(1234L + seed)
-            .reminderOffsetTimes(List.of(24, 72))
+            .reminderOffsetTimes(new ArrayList<>(List.of(24, 72)))
             .courses(new ArrayList<>(courses))
             .build();
     }

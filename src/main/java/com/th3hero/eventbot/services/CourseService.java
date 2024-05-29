@@ -49,6 +49,9 @@ public class CourseService {
     }
 
     public List<Course> createCourses(List<CourseUpload> courseUploads) {
+        if (courseUploads.isEmpty()) {
+            throw new IllegalArgumentException("No courses provided to create.");
+        }
         List<CourseJpa> courses = courseUploads.stream()
             .map(CourseUpload::toJpa)
             .toList();

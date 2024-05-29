@@ -45,7 +45,7 @@ class StudentRepositoryTest {
     }
 
     @Test
-    void findAllByCoursesContains_notStudentsWithCourse() {
+    void findAllByCoursesContains_noStudentsWithCourse() {
         CourseJpa courseOne = TestEntities.courseJpa(1);
         CourseJpa courseTwo = TestEntities.courseJpa(2);
         CourseJpa courseThree = TestEntities.courseJpa(3);

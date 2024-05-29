@@ -84,12 +84,39 @@ class EventRepositoryTest {
     }
 
     @Test
+    void findAllByDeletedIsFalse() {
+        EventJpa eventOne = TestEntities.eventJpa(1);
+        EventJpa eventTwo = TestEntities.eventJpa(2);
+        EventJpa eventThree = TestEntities.eventJpa(3);
+        eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo, eventThree));
+        entityManager.clear();
+
+        List<EventJpa> events = eventRepository.findAllByDeletedIsFalse();
+
+        assertThat(events).containsExactlyInAnyOrder(eventOne, eventTwo, eventThree);
+    }
+
+    @Test
+    void findAllByDeletedIsFalse_deleted() {
+        EventJpa eventOne = TestEntities.eventJpa(1);
+        EventJpa eventTwo = TestEntities.eventJpa(2);
+        eventTwo.setDeleted(true);
+        EventJpa eventThree = TestEntities.eventJpa(3);
+        eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo, eventThree));
+        entityManager.clear();
+
+        List<EventJpa> events = eventRepository.findAllByDeletedIsFalse();
+
+        assertThat(events).containsExactlyInAnyOrder(eventOne, eventThree);
+    }
+
+    @Test
     void findEventJpaByMessageId() {
         Long targetEventId = 1111L;
-        EventJpa eventOne = TestEntities.eventJpa(1, List.of());
-        EventJpa eventTwo = TestEntities.eventJpa(2, List.of());
+        EventJpa eventOne = TestEntities.eventJpa(1);
+        EventJpa eventTwo = TestEntities.eventJpa(2);
         eventTwo.setMessageId(targetEventId);
-        EventJpa eventThree = TestEntities.eventJpa(3, List.of());
+        EventJpa eventThree = TestEntities.eventJpa(3);
 
         eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo, eventThree));
         entityManager.clear();
@@ -102,9 +129,9 @@ class EventRepositoryTest {
     @Test
     void findEventJpaByMessageId_noEvent() {
         Long targetEventId = 1111L;
-        EventJpa eventOne = TestEntities.eventJpa(1, List.of());
-        EventJpa eventTwo = TestEntities.eventJpa(2, List.of());
-        EventJpa eventThree = TestEntities.eventJpa(3, List.of());
+        EventJpa eventOne = TestEntities.eventJpa(1);
+        EventJpa eventTwo = TestEntities.eventJpa(2);
+        EventJpa eventThree = TestEntities.eventJpa(3);
 
         eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo, eventThree));
         entityManager.clear();
@@ -112,5 +139,45 @@ class EventRepositoryTest {
         Optional<EventJpa> event = eventRepository.findByMessageId(targetEventId);
 
         assertThat(event).isEmpty();
+    }
+
+    @Test
+    void existsByIdAndDeletedIsFalse() {
+        EventJpa eventOne = TestEntities.eventJpa(1);
+        EventJpa eventTwo = TestEntities.eventJpa(2);
+        EventJpa eventThree = TestEntities.eventJpa(3);
+        eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo, eventThree));
+        entityManager.clear();
+
+        boolean exists = eventRepository.existsByIdAndDeletedIsFalse(eventTwo.getId());
+
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    void existsByIdAndDeletedIsFalse_deleted() {
+        EventJpa eventOne = TestEntities.eventJpa(1);
+        EventJpa eventTwo = TestEntities.eventJpa(2);
+        eventTwo.setDeleted(true);
+        EventJpa eventThree = TestEntities.eventJpa(3);
+        eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo, eventThree));
+        entityManager.clear();
+
+        boolean exists = eventRepository.existsByIdAndDeletedIsFalse(eventTwo.getId());
+
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    void existsByIdAndDeletedIsFalse_noEvent() {
+        EventJpa eventOne = TestEntities.eventJpa(1);
+        EventJpa eventTwo = TestEntities.eventJpa(2);
+        EventJpa eventThree = TestEntities.eventJpa(3);
+        eventRepository.saveAllAndFlush(List.of(eventOne, eventTwo, eventThree));
+        entityManager.clear();
+
+        boolean exists = eventRepository.existsByIdAndDeletedIsFalse(69L);
+
+        assertThat(exists).isFalse();
     }
 }

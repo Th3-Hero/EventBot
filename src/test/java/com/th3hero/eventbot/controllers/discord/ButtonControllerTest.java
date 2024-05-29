@@ -32,12 +32,12 @@ class ButtonControllerTest {
 
     @Test
     void onButtonInteraction_failedCommandRequest() {
-        final var event = mock(ButtonInteractionEvent.class);
+        final var event = event(ButtonAction.CONFIRM_DRAFT);
 
         when(event.getButton())
             .thenReturn(mock(Button.class));
         when(event.getButton().getId())
-            .thenReturn("INVALID_BUTTON_ACTION-4234");
+            .thenReturn("INVALID_BUTTON_ACTION-4321");
         when(event.isAcknowledged())
             .thenReturn(false);
         when(event.reply(anyString()))

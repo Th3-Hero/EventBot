@@ -10,7 +10,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,4 +24,32 @@ class CourseRepositoryTest {
     private EntityManager entityManager;
 
 
+    @Test
+    void findByCodeIn() {
+        CourseJpa courseOne = TestEntities.courseJpa(1);
+        CourseJpa courseTwo = TestEntities.courseJpa(2);
+        CourseJpa courseThree = TestEntities.courseJpa(3);
+
+        courseRepository.saveAllAndFlush(List.of(courseOne, courseTwo, courseThree));
+        entityManager.clear();
+
+        List<CourseJpa> courses = courseRepository.findByCodeIn(List.of(courseOne.getCode(), courseThree.getCode()));
+
+        assertThat(courses).containsExactlyInAnyOrder(courseOne, courseThree);
+    }
+
+    @Test
+    void findByCodeIn_noMatchingCourse() {
+        CourseJpa courseOne = TestEntities.courseJpa(1);
+        CourseJpa courseTwo = TestEntities.courseJpa(2);
+        CourseJpa courseThree = TestEntities.courseJpa(3);
+        CourseJpa courseFour = TestEntities.courseJpa(4);
+
+        courseRepository.saveAllAndFlush(List.of(courseOne, courseTwo, courseThree));
+        entityManager.clear();
+
+        List<CourseJpa> courses = courseRepository.findByCodeIn(List.of(courseFour.getCode()));
+
+        assertThat(courses).isEmpty();
+    }
 }

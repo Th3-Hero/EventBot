@@ -5,6 +5,7 @@ import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.exceptions.UnsupportedResponseException;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
+import com.th3hero.eventbot.utils.DiscordFieldsUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,7 @@ public class CommandRequest extends InteractionRequest {
 
         Map<String, String> arguments = parseOptions(event.getOptions());
         if (event.getSubcommandName() != null) {
-            arguments.put("sub_command", event.getSubcommandName().toLowerCase());
+            arguments.put(DiscordFieldsUtils.SUB_COMMAND, event.getSubcommandName().toLowerCase());
         }
 
         return new CommandRequest(command, event, event.getMember(), event.getGuild(), arguments);

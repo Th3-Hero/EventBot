@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DiscordFieldsUtils {
+    public static final String SUB_COMMAND = "sub_command";
+
     public static final String TITLE = "title";
     public static final String NOTE = "note";
     public static final String DATE = "date";

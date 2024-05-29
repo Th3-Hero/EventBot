@@ -17,8 +17,7 @@ class DraftCleanupJobTest {
     @Mock
     private EventDraftRepository eventDraftRepository;
 
-    @Mock
-    private Trigger trigger;
+    private final Trigger trigger = mock(Trigger.class);
 
     @InjectMocks
     private DraftCleanupJob draftCleanupJob;
@@ -28,7 +27,7 @@ class DraftCleanupJobTest {
         final Long draftId = 1234L;
         final JobExecutionContext executionContext = mock(JobExecutionContext.class);
         final JobDataMap dataMap = new JobDataMap();
-        dataMap.put(DraftCleanupJob.JOB_DRAFT_KEY, draftId);
+        dataMap.put(DraftCleanupJob.DRAFT_ID, draftId);
 
         when(executionContext.getTrigger())
             .thenReturn(trigger);
@@ -47,7 +46,7 @@ class DraftCleanupJobTest {
         final Long draftId = 1234L;
         final JobExecutionContext executionContext = mock(JobExecutionContext.class);
         final JobDataMap dataMap = new JobDataMap();
-        dataMap.put(DraftCleanupJob.JOB_DRAFT_KEY, draftId);
+        dataMap.put(DraftCleanupJob.DRAFT_ID, draftId);
 
         when(executionContext.getTrigger())
             .thenReturn(trigger);

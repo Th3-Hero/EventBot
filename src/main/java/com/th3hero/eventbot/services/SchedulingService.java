@@ -31,6 +31,7 @@ public class SchedulingService {
      * Adds a trigger to the scheduler to clean up a draft after a certain amount of time.
      * @param draftId The id of the draft to clean up
      * @param draftCreationDate The date the draft was created
+     * @throws SchedulingException If the trigger cannot be added
      */
     public void addDraftCleanupTrigger(Long draftId, LocalDateTime draftCreationDate) {
         try {
@@ -40,7 +41,7 @@ public class SchedulingService {
             Trigger cleanupTrigger = TriggerBuilder.newTrigger()
                 .withIdentity(key)
                 .forJob(DraftCleanupJob.JOB_KEY)
-                .usingJobData(DraftCleanupJob.JOB_DRAFT_KEY, draftId)
+                .usingJobData(DraftCleanupJob.DRAFT_ID, draftId)
                 .startAt(DateFormatter.toDate(draftCreationDate.plusHours(configService.getConfigJpa().getDraftCleanupDelay())))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                     .withMisfireHandlingInstructionFireNow()
@@ -57,6 +58,7 @@ public class SchedulingService {
     /**
      * Removes the cleanup trigger for a draft.
      * @param draftId The id of the draft to remove the trigger for
+     * @throws SchedulingException If the trigger cannot be removed
      */
     public void removeDraftCleanupTrigger(Long draftId) {
         try {
@@ -73,6 +75,7 @@ public class SchedulingService {
      * @param studentId The id of the student to send the reminder to
      * @param offset The offset in hours from the event time to send the reminder
      * @param eventTime The date/time of the event
+     * @throws SchedulingException If the trigger cannot be added
      */
     public void addEventReminderTrigger(Long eventId, Long studentId, Integer offset, LocalDateTime eventTime) {
         try {
@@ -110,6 +113,7 @@ public class SchedulingService {
      * @param eventId The id of the event
      * @param studentId The id of the student
      * @param offset The offset of the reminder from the event date
+     * @throws SchedulingException If the trigger cannot be removed
      */
     public void removeEventReminderTriggers(Long eventId, Long studentId, Integer offset) {
         try {
@@ -127,6 +131,7 @@ public class SchedulingService {
      * @param eventId The id of the event
      * @param studentId The id of the student
      * @return True if triggers were removed, false if no triggers were found
+     * @throws SchedulingException If the triggers cannot be removed
      */
     public boolean removeEventReminderTriggers(Long eventId, Long studentId) {
         try {
@@ -145,6 +150,7 @@ public class SchedulingService {
     /**
      * Removes all reminder triggers for a student from all events.
      * @param studentId The id of the student
+     * @throws SchedulingException If the triggers cannot be removed
      */
     public void removeAllEventReminderTriggers(Long studentId) {
         try {
@@ -162,10 +168,14 @@ public class SchedulingService {
     /**
      * Removes all reminder triggers for an event from all students.
      * @param eventId The id of the event
+     * @throws SchedulingException If the triggers cannot be removed
      */
     public void removeReminderTriggers(Long eventId) {
         try {
             Set<TriggerKey> keys = scheduler.getTriggerKeys(GroupMatcher.triggerGroupStartsWith("%d-".formatted(eventId)));
+            if (keys.isEmpty()) {
+                return;
+            }
             scheduler.unscheduleJobs(new ArrayList<>(keys));
             log.debug("Removed all triggers for event: %d".formatted(eventId));
         } catch (SchedulerException e) {
@@ -178,6 +188,7 @@ public class SchedulingService {
      * @param eventId The id of the event to clean up
      * @param cleanupMessageId The id of the cleanup/recovery message
      * @param cleanupTime The date/time to clean up the event
+     * @throws SchedulingException If the trigger cannot be added
      */
     public void addDeletedEventCleanupTrigger(Long eventId, Long cleanupMessageId, LocalDateTime cleanupTime) {
         try {
@@ -206,6 +217,7 @@ public class SchedulingService {
     /**
      * Removes the cleanup trigger for a deleted event.
      * @param eventId The id of the event to remove the trigger for
+     * @throws SchedulingException If the trigger cannot be removed
      */
     public void removeDeletedEventCleanupTrigger(Long eventId) {
         try {
