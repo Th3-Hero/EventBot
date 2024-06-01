@@ -4,14 +4,14 @@ import com.th3hero.eventbot.dto.config.ConfigUpdate;
 import com.th3hero.eventbot.dto.config.ConfigUpload;
 import com.th3hero.eventbot.dto.course.CourseUpdate;
 import com.th3hero.eventbot.dto.course.CourseUpload;
-import com.th3hero.eventbot.entities.ConfigJpa;
-import com.th3hero.eventbot.entities.CourseJpa;
-import com.th3hero.eventbot.entities.EventJpa;
-import com.th3hero.eventbot.entities.StudentJpa;
+import com.th3hero.eventbot.entities.*;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.components.Component;
+import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.dv8tion.jda.api.utils.data.DataObject;
 import net.dv8tion.jda.internal.JDAImpl;
 import net.dv8tion.jda.internal.entities.GuildImpl;
 import net.dv8tion.jda.internal.entities.MemberImpl;
@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
@@ -68,8 +69,42 @@ public class TestEntities {
         return new CourseUpdate("TEST%s".formatted(seed), "Test Course%s".formatted(seed));
     }
 
+    public static EventDraftJpa draftMissingDetailsAndCourses() {
+        return EventDraftJpa.builder()
+            .authorId(1234L)
+            .eventDate(LocalDateTime.now())
+            .type(EventJpa.EventType.ASSIGNMENT)
+            .build();
+    }
+
+    public static EventDraftJpa eventDraftJpa(int seed) {
+        return EventDraftJpa.builder()
+            .id(1234L + seed)
+            .authorId(1234L + seed)
+            .title("Test Event%s".formatted(seed))
+            .note("Test Note%s".formatted(seed))
+            .eventDate(LocalDateTime.of(2099, 1, 1, 1, 1, 1))
+            .draftCreationDate(LocalDateTime.of(2099, 1, 1, 1, 1, 1))
+            .type(EventJpa.EventType.ASSIGNMENT)
+            .courses(new ArrayList<>(List.of()))
+            .build();
+    }
+
     public static EventJpa eventJpa(int seed) {
         return eventJpa(seed, List.of());
+    }
+
+    public static EventJpa eventJpaWithId(int seed) {
+        return EventJpa.builder()
+            .id(1234L + seed)
+            .authorId(1234L + seed)
+            .messageId(1234L + seed)
+            .title("Test Event%s".formatted(seed))
+            .note("Test Note%s".formatted(seed))
+            .eventDate(LocalDateTime.of(2099, 1, 1, 1, 1, 1))
+            .type(EventJpa.EventType.ASSIGNMENT)
+            .courses(new ArrayList<>(List.of()))
+            .build();
     }
 
     public static EventJpa eventJpa(int seed, List<CourseJpa> courses) {
@@ -112,5 +147,13 @@ public class TestEntities {
 
     public static Member member(final Guild guild) {
         return new MemberImpl((GuildImpl) guild, user());
+    }
+
+    public static ModalMapping modalMapping(String key, Object value) {
+        final DataObject data = DataObject.empty();
+        data.put("custom_id", key);
+        data.put("type", Component.Type.TEXT_INPUT.getKey());
+        data.put("value", value);
+        return new ModalMapping(data);
     }
 }

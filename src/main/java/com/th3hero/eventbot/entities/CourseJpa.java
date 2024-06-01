@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.Hibernate;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,8 +36,9 @@ public class CourseJpa implements Serializable {
     @Column
     private String name;
 
+    @Builder.Default
     @ManyToMany(mappedBy = "courses")
-    private List<StudentJpa> students;
+    private List<StudentJpa> students = new ArrayList<>();
 
     public Course toDto() {
         return new Course(

@@ -19,7 +19,7 @@ create table student (
 
 create table student_reminder_offsets (
     student_id bigint not null,
-    reminder_offset_time integer,
+    reminder_offset_time integer not null,
     constraint fk_student_notification_times foreign key (student_id)
         references student(id)
 );

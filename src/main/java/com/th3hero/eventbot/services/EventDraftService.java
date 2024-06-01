@@ -57,7 +57,6 @@ public class EventDraftService {
         String dateString = request.getArguments().get(DATE);
         String timeString = request.getArguments().get(TIME);
 
-
         EventJpa.EventType eventType = EnumUtils.getEnumIgnoreCase(
             EventJpa.EventType.class,
             request.getArguments().get(TYPE)

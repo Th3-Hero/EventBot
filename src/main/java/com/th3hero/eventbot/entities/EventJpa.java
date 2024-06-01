@@ -46,9 +46,10 @@ public class EventJpa implements Serializable {
     @Column
     private LocalDateTime eventDate;
 
+    @Builder.Default
     @OrderBy("code ASC")
     @ManyToMany
-    private List<CourseJpa> courses;
+    private List<CourseJpa> courses = new ArrayList<>();
 
     @NonNull
     @Enumerated(EnumType.STRING)

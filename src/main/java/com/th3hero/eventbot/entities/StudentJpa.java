@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,14 +27,16 @@ public class StudentJpa implements Serializable {
     @Setter(AccessLevel.NONE)
     private Long id;
 
+    @Builder.Default
     @OrderBy("code ASC")
     @ManyToMany
-    private List<CourseJpa> courses;
+    private List<CourseJpa> courses = new ArrayList<>();
 
+    @Builder.Default
     @ElementCollection
     @CollectionTable(name = "student_reminder_offsets", joinColumns = @JoinColumn(name = "student_id"))
     @Column(name = "reminder_offset_time")
-    private List<Integer> reminderOffsetTimes;
+    private List<Integer> reminderOffsetTimes = new ArrayList<>();
 
     public static StudentJpa create(
         Long studentId

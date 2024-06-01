@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,9 +40,10 @@ public class EventDraftJpa {
     @Column
     private LocalDateTime eventDate;
 
+    @Builder.Default
     @OrderBy("code ASC")
     @ManyToMany
-    private List<CourseJpa> courses;
+    private List<CourseJpa> courses = new ArrayList<>();
 
     @NonNull
     @Enumerated(EnumType.STRING)
