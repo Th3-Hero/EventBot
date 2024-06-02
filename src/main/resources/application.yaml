@@ -1,12 +1,14 @@
 server:
-  port: 5555
-# Token for discord bot
+  port: 5001
 discord:
   token:
 spring:
+  application:
+    name: event-bot
   profiles:
-#   This can be changed to prod later
-    active: dev
+# Add prod later
+    active:
+      - dev
 # DB info
   datasource:
     url:
@@ -32,11 +34,3 @@ spring:
 springdoc:
   swagger-ui:
     use-root-path: true
-management:
-  endpoints:
-    web:
-      exposure:
-        include: loggers
-  endpoint:
-    loggers:
-      enabled: true

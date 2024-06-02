@@ -10,11 +10,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ProblemDetail entityNotFoundException(EntityNotFoundException e) {
-        return ProblemDetailFactory.createProblemDetail(HttpStatus.NOT_FOUND, e);
-    }
-
     @ExceptionHandler(EntityExistsException.class)
     public ProblemDetail entityExistsException(EntityExistsException e) {
         return ProblemDetailFactory.createProblemDetail(HttpStatus.BAD_REQUEST, e);
