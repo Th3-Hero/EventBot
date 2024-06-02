@@ -46,6 +46,7 @@ public class EventJpa implements Serializable {
     @Column
     private LocalDateTime eventDate;
 
+    @Setter(AccessLevel.NONE)
     @Builder.Default
     @OrderBy("code ASC")
     @ManyToMany

@@ -27,11 +27,13 @@ public class StudentJpa implements Serializable {
     @Setter(AccessLevel.NONE)
     private Long id;
 
+    @Setter(AccessLevel.NONE)
     @Builder.Default
     @OrderBy("code ASC")
     @ManyToMany
     private List<CourseJpa> courses = new ArrayList<>();
 
+    @Setter(AccessLevel.NONE)
     @Builder.Default
     @ElementCollection
     @CollectionTable(name = "student_reminder_offsets", joinColumns = @JoinColumn(name = "student_id"))

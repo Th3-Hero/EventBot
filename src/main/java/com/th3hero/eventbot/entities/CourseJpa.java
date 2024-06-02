@@ -36,6 +36,7 @@ public class CourseJpa implements Serializable {
     @Column
     private String name;
 
+    @Setter(AccessLevel.NONE)
     @Builder.Default
     @ManyToMany(mappedBy = "courses")
     private List<StudentJpa> students = new ArrayList<>();
