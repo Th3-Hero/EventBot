@@ -1,12 +1,12 @@
 package com.th3hero.eventbot;
 
-import com.th3hero.eventbot.dto.config.ConfigUpdate;
 import com.th3hero.eventbot.dto.config.ConfigUpload;
 import com.th3hero.eventbot.dto.course.CourseUpdate;
 import com.th3hero.eventbot.dto.course.CourseUpload;
 import com.th3hero.eventbot.entities.*;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.Component;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
@@ -147,6 +146,10 @@ public class TestEntities {
 
     public static Member member(final Guild guild) {
         return new MemberImpl((GuildImpl) guild, user());
+    }
+
+    public static Message message() {
+        return mock(Message.class);
     }
 
     public static ModalMapping modalMapping(String key, Object value) {

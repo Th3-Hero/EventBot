@@ -2,7 +2,6 @@ package com.th3hero.eventbot.services;
 
 import com.th3hero.eventbot.TestEntities;
 import com.th3hero.eventbot.commands.actions.ButtonAction;
-import com.th3hero.eventbot.commands.actions.SelectionAction;
 import com.th3hero.eventbot.commands.requests.ButtonRequest;
 import com.th3hero.eventbot.commands.requests.CommandRequest;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
@@ -16,20 +15,18 @@ import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.repositories.CourseRepository;
 import com.th3hero.eventbot.repositories.EventDraftRepository;
-import com.th3hero.eventbot.utils.DiscordFieldsUtils;
+import jakarta.persistence.EntityNotFoundException;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.modals.Modal;
-import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -41,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.th3hero.eventbot.formatting.InteractionArguments.DRAFT_ID;
+import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -146,9 +144,9 @@ class EventDraftServiceTest {
         final var memberId = 1234L;
         final var request = mock(CommandRequest.class);
         final Map<String, String> arguments = new HashMap<>();
-        arguments.put(DiscordFieldsUtils.DATE, "2025-05-5");
-        arguments.put(DiscordFieldsUtils.TIME, "14:30");
-        arguments.put(DiscordFieldsUtils.TYPE, EventJpa.EventType.ASSIGNMENT.name());
+        arguments.put(DATE, "2025-05-5");
+        arguments.put(TIME, "14:30");
+        arguments.put(TYPE, EventJpa.EventType.ASSIGNMENT.name());
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -163,7 +161,7 @@ class EventDraftServiceTest {
 
         verify(eventDraftRepository).save(argThat(draft ->
             draft.getType().equals(EventJpa.EventType.ASSIGNMENT) &&
-            draft.getEventDate().isEqual(LocalDateTime.of(2025, 5, 5, 14, 30))
+                draft.getEventDate().isEqual(LocalDateTime.of(2025, 5, 5, 14, 30))
         ));
         verify(schedulingService).addDraftCleanupTrigger(eq(54321L), any(LocalDateTime.class));
         verify(request).sendResponse(any(Modal.class), eq(MessageMode.USER));
@@ -173,9 +171,9 @@ class EventDraftServiceTest {
     void createEventDraft_invalidEventType() {
         final var request = mock(CommandRequest.class);
         final Map<String, String> arguments = new HashMap<>();
-        arguments.put(DiscordFieldsUtils.DATE, "2025-05-5");
-        arguments.put(DiscordFieldsUtils.TIME, "14:30");
-        arguments.put(DiscordFieldsUtils.TYPE, "INVALID_TYPE");
+        arguments.put(DATE, "2025-05-5");
+        arguments.put(TIME, "14:30");
+        arguments.put(TYPE, "INVALID_TYPE");
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -191,9 +189,9 @@ class EventDraftServiceTest {
     void createEventDraft_invalidDateTime() {
         final var request = mock(CommandRequest.class);
         final Map<String, String> arguments = new HashMap<>();
-        arguments.put(DiscordFieldsUtils.DATE, "NOT_A_DATE");
-        arguments.put(DiscordFieldsUtils.TIME, "NOT_A_TIME");
-        arguments.put(DiscordFieldsUtils.TYPE, EventJpa.EventType.ASSIGNMENT.name());
+        arguments.put(DATE, "NOT_A_DATE");
+        arguments.put(TIME, "NOT_A_TIME");
+        arguments.put(TYPE, EventJpa.EventType.ASSIGNMENT.name());
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -216,9 +214,9 @@ class EventDraftServiceTest {
     void createEventDraft_dateInPast() {
         final var request = mock(CommandRequest.class);
         final Map<String, String> arguments = new HashMap<>();
-        arguments.put(DiscordFieldsUtils.DATE, "1999-5-24");
-        arguments.put(DiscordFieldsUtils.TIME, "14:30");
-        arguments.put(DiscordFieldsUtils.TYPE, EventJpa.EventType.ASSIGNMENT.name());
+        arguments.put(DATE, "1999-5-24");
+        arguments.put(TIME, "14:30");
+        arguments.put(TYPE, EventJpa.EventType.ASSIGNMENT.name());
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -241,8 +239,8 @@ class EventDraftServiceTest {
 
         final var title = "Test Title";
         final var note = "Test Note";
-        final var titleModalMap = TestEntities.modalMapping(DiscordFieldsUtils.TITLE, title);
-        final var noteModalMap = TestEntities.modalMapping(DiscordFieldsUtils.NOTE, note);
+        final var titleModalMap = TestEntities.modalMapping(TITLE, title);
+        final var noteModalMap = TestEntities.modalMapping(NOTE, note);
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -250,9 +248,9 @@ class EventDraftServiceTest {
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
-        when(jdaEvent.getValue(DiscordFieldsUtils.TITLE))
+        when(jdaEvent.getValue(TITLE))
             .thenReturn(titleModalMap);
-        when(jdaEvent.getValue(DiscordFieldsUtils.NOTE))
+        when(jdaEvent.getValue(NOTE))
             .thenReturn(noteModalMap);
         when(courseService.createCourseSelectionMenu(any(), any()))
             .thenReturn(testCourseSelectMenu());
@@ -274,7 +272,7 @@ class EventDraftServiceTest {
         final var draft = TestEntities.draftMissingDetailsAndCourses();
         final var jdaEvent = mock(ModalInteractionEvent.class);
 
-        final var titleModalMap = TestEntities.modalMapping(DiscordFieldsUtils.TITLE, "");
+        final var titleModalMap = TestEntities.modalMapping(TITLE, "");
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -282,7 +280,7 @@ class EventDraftServiceTest {
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
-        when(jdaEvent.getValue(DiscordFieldsUtils.TITLE))
+        when(jdaEvent.getValue(TITLE))
             .thenReturn(titleModalMap);
 
         assertThatExceptionOfType(DataAccessException.class)
@@ -300,8 +298,8 @@ class EventDraftServiceTest {
 
         final var title = "Test Title";
         final var note = "";
-        final var titleModalMap = TestEntities.modalMapping(DiscordFieldsUtils.TITLE, title);
-        final var noteModalMap = TestEntities.modalMapping(DiscordFieldsUtils.NOTE, note);
+        final var titleModalMap = TestEntities.modalMapping(TITLE, title);
+        final var noteModalMap = TestEntities.modalMapping(NOTE, note);
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -309,9 +307,9 @@ class EventDraftServiceTest {
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
-        when(jdaEvent.getValue(DiscordFieldsUtils.TITLE))
+        when(jdaEvent.getValue(TITLE))
             .thenReturn(titleModalMap);
-        when(jdaEvent.getValue(DiscordFieldsUtils.NOTE))
+        when(jdaEvent.getValue(NOTE))
             .thenReturn(noteModalMap);
         when(courseService.createCourseSelectionMenu(any(), any()))
             .thenReturn(testCourseSelectMenu());
@@ -365,7 +363,7 @@ class EventDraftServiceTest {
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(DRAFT_ID, draftId);
         final var jdaEvent = mock(StringSelectInteractionEvent.class);
-        final var message = mock(Message.class);
+        final var message = TestEntities.message();
         final AuditableRestAction<Void> restAction = mock(AuditableRestAction.class);
 
         when(request.getArguments())
@@ -387,11 +385,289 @@ class EventDraftServiceTest {
 
     @Test
     void updateDraftDetails() {
+        final var draftId = 1234L;
+        final var request = mock(ModalRequest.class);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(DRAFT_ID, draftId);
+        final var draft = TestEntities.draftMissingDetailsAndCourses();
+        final var jdaEvent = mock(ModalInteractionEvent.class);
+        final var requester = TestEntities.member(TestEntities.guild());
 
+        final var title = "Updated Title";
+        final var note = "Updated Note";
+        final var date = "2000-05-05";
+        final var time = "14:30";
+        final var titleModalMap = TestEntities.modalMapping(TITLE, title);
+        final var noteModalMap = TestEntities.modalMapping(NOTE, note);
+        final var dateModalMap = TestEntities.modalMapping(DATE, date);
+        final var timeModalMap = TestEntities.modalMapping(TIME, time);
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(eventDraftRepository.findById(draftId))
+            .thenReturn(Optional.of(draft));
+        when(request.getEvent())
+            .thenReturn(jdaEvent);
+        when(jdaEvent.getValue(TITLE))
+            .thenReturn(titleModalMap);
+        when(jdaEvent.getValue(NOTE))
+            .thenReturn(noteModalMap);
+        when(jdaEvent.getValue(DATE))
+            .thenReturn(dateModalMap);
+        when(jdaEvent.getValue(TIME))
+            .thenReturn(timeModalMap);
+        when(configService.getConfigJpa())
+            .thenReturn(TestEntities.configJpa());
+        when(request.getRequester())
+            .thenReturn(requester);
+
+
+        eventDraftService.updateDraftDetails(request);
+
+        assertThat(draft.getTitle()).isEqualTo(title);
+        assertThat(draft.getNote()).isEqualTo(note);
+        assertThat(draft.getEventDate()).isEqualTo(LocalDateTime.of(2000, 5, 5, 14, 30));
+
+        verify(request).sendResponse(any(MessageCreateData.class), eq(MessageMode.USER));
+        verify(request, never()).sendResponse(any(String.class), eq(MessageMode.USER));
+    }
+
+    @Test
+    void updateDraftDetails_failedToGetTitleFromModal() {
+        final var draftId = 1234L;
+        final var request = mock(ModalRequest.class);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(DRAFT_ID, draftId);
+        final var draft = TestEntities.draftMissingDetailsAndCourses();
+        final var jdaEvent = mock(ModalInteractionEvent.class);
+
+        final var title = "";
+        final var titleModalMap = TestEntities.modalMapping(TITLE, title);
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(eventDraftRepository.findById(draftId))
+            .thenReturn(Optional.of(draft));
+        when(request.getEvent())
+            .thenReturn(jdaEvent);
+        when(jdaEvent.getValue(TITLE))
+            .thenReturn(titleModalMap);
+
+        assertThatExceptionOfType(DataAccessException.class)
+            .isThrownBy(() -> eventDraftService.updateDraftDetails(request));
+
+        verify(request, never()).sendResponse(any(MessageCreateData.class), eq(MessageMode.USER));
+    }
+
+    @Test
+    void updateDraftDetails_failedToGetNoteFromModal() {
+        final var draftId = 1234L;
+        final var request = mock(ModalRequest.class);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(DRAFT_ID, draftId);
+        final var draft = TestEntities.draftMissingDetailsAndCourses();
+        final var jdaEvent = mock(ModalInteractionEvent.class);
+        final var requester = TestEntities.member(TestEntities.guild());
+
+        final var title = "Updated Title";
+        final var note = "";
+        final var date = "2000-05-05";
+        final var time = "14:30";
+        final var titleModalMap = TestEntities.modalMapping(TITLE, title);
+        final var noteModalMap = TestEntities.modalMapping(NOTE, note);
+        final var dateModalMap = TestEntities.modalMapping(DATE, date);
+        final var timeModalMap = TestEntities.modalMapping(TIME, time);
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(eventDraftRepository.findById(draftId))
+            .thenReturn(Optional.of(draft));
+        when(request.getEvent())
+            .thenReturn(jdaEvent);
+        when(jdaEvent.getValue(TITLE))
+            .thenReturn(titleModalMap);
+        when(jdaEvent.getValue(NOTE))
+            .thenReturn(noteModalMap);
+        when(jdaEvent.getValue(DATE))
+            .thenReturn(dateModalMap);
+        when(jdaEvent.getValue(TIME))
+            .thenReturn(timeModalMap);
+        when(configService.getConfigJpa())
+            .thenReturn(TestEntities.configJpa());
+        when(request.getRequester())
+            .thenReturn(requester);
+
+
+        eventDraftService.updateDraftDetails(request);
+
+        assertThat(draft.getTitle()).isEqualTo(title);
+        assertThat(draft.getNote()).isNull();
+        assertThat(draft.getEventDate()).isEqualTo(LocalDateTime.of(2000, 5, 5, 14, 30));
+
+        verify(request).sendResponse(any(MessageCreateData.class), eq(MessageMode.USER));
+        verify(request, never()).sendResponse(any(String.class), eq(MessageMode.USER));
+    }
+
+    @Test
+    void updateDraftDetails_failedToGetDateFromModal() {
+        final var draftId = 1234L;
+        final var request = mock(ModalRequest.class);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(DRAFT_ID, draftId);
+        final var draft = TestEntities.draftMissingDetailsAndCourses();
+        final var jdaEvent = mock(ModalInteractionEvent.class);
+
+        final var title = "Updated Title";
+        final var note = "Updated Note";
+        final var date = "";
+        final var titleModalMap = TestEntities.modalMapping(TITLE, title);
+        final var noteModalMap = TestEntities.modalMapping(NOTE, note);
+        final var dateModalMap = TestEntities.modalMapping(DATE, date);
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(eventDraftRepository.findById(draftId))
+            .thenReturn(Optional.of(draft));
+        when(request.getEvent())
+            .thenReturn(jdaEvent);
+        when(jdaEvent.getValue(TITLE))
+            .thenReturn(titleModalMap);
+        when(jdaEvent.getValue(NOTE))
+            .thenReturn(noteModalMap);
+        when(jdaEvent.getValue(DATE))
+            .thenReturn(dateModalMap);
+
+        assertThatExceptionOfType(DataAccessException.class)
+            .isThrownBy(() -> eventDraftService.updateDraftDetails(request));
+
+        verify(request, never()).sendResponse(any(MessageCreateData.class), eq(MessageMode.USER));
+    }
+
+    @Test
+    void updateDraftDetails_failedToGetTimeFromModal() {
+        final var draftId = 1234L;
+        final var request = mock(ModalRequest.class);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(DRAFT_ID, draftId);
+        final var draft = TestEntities.draftMissingDetailsAndCourses();
+        final var jdaEvent = mock(ModalInteractionEvent.class);
+
+        final var title = "Updated Title";
+        final var note = "Updated Note";
+        final var date = "2000-05-05";
+        final var time = "";
+        final var titleModalMap = TestEntities.modalMapping(TITLE, title);
+        final var noteModalMap = TestEntities.modalMapping(NOTE, note);
+        final var dateModalMap = TestEntities.modalMapping(DATE, date);
+        final var timeModalMap = TestEntities.modalMapping(TIME, time);
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(eventDraftRepository.findById(draftId))
+            .thenReturn(Optional.of(draft));
+        when(request.getEvent())
+            .thenReturn(jdaEvent);
+        when(jdaEvent.getValue(TITLE))
+            .thenReturn(titleModalMap);
+        when(jdaEvent.getValue(NOTE))
+            .thenReturn(noteModalMap);
+        when(jdaEvent.getValue(DATE))
+            .thenReturn(dateModalMap);
+        when(jdaEvent.getValue(TIME))
+            .thenReturn(timeModalMap);
+
+        assertThatExceptionOfType(DataAccessException.class)
+            .isThrownBy(() -> eventDraftService.updateDraftDetails(request));
+
+        verify(request, never()).sendResponse(any(MessageCreateData.class), eq(MessageMode.USER));
+    }
+
+    @Test
+    void updateDraftDetails_invalidDateTime() {
+        final var draftId = 1234L;
+        final var request = mock(ModalRequest.class);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(DRAFT_ID, draftId);
+        final var draft = TestEntities.draftMissingDetailsAndCourses();
+        final var jdaEvent = mock(ModalInteractionEvent.class);
+
+        final var title = "Updated Title";
+        final var note = "Updated Note";
+        final var date = "NOT_A_DATE";
+        final var time = "NOT_A_TIME";
+        final var titleModalMap = TestEntities.modalMapping(TITLE, title);
+        final var noteModalMap = TestEntities.modalMapping(NOTE, note);
+        final var dateModalMap = TestEntities.modalMapping(DATE, date);
+        final var timeModalMap = TestEntities.modalMapping(TIME, time);
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(eventDraftRepository.findById(draftId))
+            .thenReturn(Optional.of(draft));
+        when(request.getEvent())
+            .thenReturn(jdaEvent);
+        when(jdaEvent.getValue(TITLE))
+            .thenReturn(titleModalMap);
+        when(jdaEvent.getValue(NOTE))
+            .thenReturn(noteModalMap);
+        when(jdaEvent.getValue(DATE))
+            .thenReturn(dateModalMap);
+        when(jdaEvent.getValue(TIME))
+            .thenReturn(timeModalMap);
+
+        eventDraftService.updateDraftDetails(request);
+
+        verify(request).sendResponse("Failed to parse date and time.", MessageMode.USER);
+        verify(request, never()).sendResponse(any(MessageCreateData.class), eq(MessageMode.USER));
     }
 
     @Test
     void deleteDraft() {
+        final var draftId = 1234L;
+        final var request = mock(ButtonRequest.class);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(DRAFT_ID, draftId);
+        final var jdaEvent = mock(ButtonInteractionEvent.class);
+        final var message = TestEntities.message();
+        final AuditableRestAction<Void> restAction = mock(AuditableRestAction.class);
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(eventDraftRepository.existsById(draftId))
+            .thenReturn(true);
+        when(request.getEvent())
+            .thenReturn(jdaEvent);
+        when(jdaEvent.getMessage())
+            .thenReturn(message);
+        when(message.delete())
+            .thenReturn(restAction);
+
+        eventDraftService.deleteDraft(request);
+
+        verify(eventDraftRepository).deleteById(draftId);
+        verify(schedulingService).removeDraftCleanupTrigger(draftId);
+        verify(request).sendResponse("Draft has been deleted.", MessageMode.USER);
+        verify(message).delete();
+    }
+
+    @Test
+    void deleteDraft_missingDraft() {
+        final var draftId = 1234L;
+        final var request = mock(ButtonRequest.class);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(DRAFT_ID, draftId);
+
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(eventDraftRepository.existsById(draftId))
+            .thenReturn(false);
+
+        assertThatExceptionOfType(EntityNotFoundException.class)
+            .isThrownBy(() -> eventDraftService.deleteDraft(request));
+
+        verify(eventDraftRepository, never()).deleteById(draftId);
+        verify(schedulingService, never()).removeDraftCleanupTrigger(draftId);
 
     }
 

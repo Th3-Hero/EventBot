@@ -111,10 +111,10 @@ public class EventService {
                 deleteEventConsumer(request, message, eventJpa, reason, deletedEventCleanupDelay);
             },
             new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> {
-                log.error("Failed to retrieve message tied to event (id: %d)".formatted(eventJpa.getId()));
-                request.sendResponse("Failed to retrieve message tied to event.", MessageMode.USER);
-            }
-        ));
+                    log.error("Failed to retrieve message tied to event (id: %d)".formatted(eventJpa.getId()));
+                    request.sendResponse("Failed to retrieve message tied to event.", MessageMode.USER);
+                }
+            ));
     }
 
 
@@ -347,6 +347,7 @@ public class EventService {
 
     /**
      * Checks if the requester has administrator permissions and sends a response if they do not.
+     *
      * @param request The request to check
      * @return True if the requester has administrator permissions, otherwise False
      */
@@ -362,6 +363,7 @@ public class EventService {
 
     /**
      * Schedules reminders for all students in the courses associated with the event.
+     *
      * @param eventJpa The event to schedule reminders for
      */
     private void scheduleEventReminders(EventJpa eventJpa) {
@@ -403,12 +405,12 @@ public class EventService {
                 Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.UNDO_EVENT_DELETION, eventJpa.getId()), "Recover Event")
             )
             .queue(success ->
-            // Schedule the cleanup trigger for the deleted event after the recovery period ends
+                // Schedule the cleanup trigger for the deleted event after the recovery period ends
                 schedulingService.addDeletedEventCleanupTrigger(
                     eventJpa.getId(),
                     success.getIdLong(),
                     LocalDateTime.now().plusHours(deletedEventCleanupDelay)
-            ));
+                ));
 
         request.sendResponse("Event has been deleted. %s".formatted(jumpUrl), MessageMode.USER);
     }
@@ -417,7 +419,7 @@ public class EventService {
         channel.sendMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa, author))
             .addComponents(ButtonFactory.eventButtons(eventJpa.getId()))
             .queue(success -> {
-                // Save the new message id to the event
+                    // Save the new message id to the event
                     eventJpa.setMessageId(success.getIdLong());
                     eventRepository.save(eventJpa);
                     log.info("Event reposted (id:%d) in channel %s".formatted(eventJpa.getId(), success.getChannel().getName()));
@@ -492,13 +494,13 @@ public class EventService {
         // Once all the messages have been retrieved, send the list of events
         CompletableFuture.allOf(futureMap.values().toArray(new CompletableFuture[0]))
             .thenRun(() -> {
-                Map<EventJpa, String> eventMessageMap = new LinkedHashMap<>();
-                for (EventJpa event : events) {
-                    eventMessageMap.put(event, futureMap.get(event).join().getJumpUrl());
-                }
+                    Map<EventJpa, String> eventMessageMap = new LinkedHashMap<>();
+                    for (EventJpa event : events) {
+                        eventMessageMap.put(event, futureMap.get(event).join().getJumpUrl());
+                    }
 
-                request.sendResponse(EmbedBuilderFactory.listEvents(eventMessageMap), MessageMode.USER);
-            }
-        );
+                    request.sendResponse(EmbedBuilderFactory.listEvents(eventMessageMap), MessageMode.USER);
+                }
+            );
     }
 }

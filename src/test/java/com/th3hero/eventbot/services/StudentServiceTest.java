@@ -7,7 +7,6 @@ import com.th3hero.eventbot.commands.requests.InteractionRequest;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.repositories.StudentRepository;
-import com.th3hero.eventbot.utils.DiscordFieldsUtils;
 import jakarta.persistence.EntityNotFoundException;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;

@@ -6,7 +6,6 @@ import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
-import com.th3hero.eventbot.utils.DiscordActionUtils;
 import jakarta.persistence.EntityNotFoundException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -48,7 +47,7 @@ class DeletedEventCleanupJobTest {
         dataMap.put(DeletedEventCleanupJob.EVENT_ID, eventId);
         dataMap.put(DeletedEventCleanupJob.DELETION_MESSAGE_ID, deletionMessageId);
 
-        final Message message = mock(Message.class);
+        final Message message = TestEntities.message();
         final MessageChannel channel = mock(MessageChannel.class);
 
         final EventJpa event = TestEntities.eventJpa(1);

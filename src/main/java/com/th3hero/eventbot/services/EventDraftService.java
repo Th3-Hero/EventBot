@@ -164,10 +164,12 @@ public class EventDraftService {
 
         String dateString = Optional.ofNullable(request.getEvent().getValue(DATE))
             .map(ModalMapping::getAsString)
+            .filter(StringUtils::isNoneBlank)
             .orElseThrow(() -> new DataAccessException("Failed to get date from modal"));
 
         String timeString = Optional.ofNullable(request.getEvent().getValue(TIME))
             .map(ModalMapping::getAsString)
+            .filter(StringUtils::isNoneBlank)
             .orElseThrow(() -> new DataAccessException("Failed to get time from modal"));
 
         LocalDateTime eventDate = DateFormatter.parseDate(dateString, timeString);

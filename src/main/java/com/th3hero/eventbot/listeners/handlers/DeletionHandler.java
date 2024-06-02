@@ -1,13 +1,11 @@
 package com.th3hero.eventbot.listeners.handlers;
 
 
-import com.th3hero.eventbot.commands.actions.ButtonAction;
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.factories.ButtonFactory;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
-import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
 import jakarta.transaction.Transactional;
@@ -18,7 +16,6 @@ import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,6 @@
 package com.th3hero.eventbot.controllers.discord;
 
 import com.th3hero.eventbot.commands.requests.ButtonRequest;
-import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
