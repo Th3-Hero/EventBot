@@ -248,7 +248,7 @@ class CourseServiceTest {
         final var eventsToRemove = List.of(TestEntities.eventJpaWithId(1));
         final var eventsToAdd = List.of(TestEntities.eventJpa(2));
 
-        final var member = TestEntities.member(TestEntities.guild());
+        final var member = TestEntities.member();
 
         when(request.getRequester())
             .thenReturn(member);

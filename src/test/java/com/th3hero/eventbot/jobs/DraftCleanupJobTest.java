@@ -17,13 +17,12 @@ class DraftCleanupJobTest {
     @Mock
     private EventDraftRepository eventDraftRepository;
 
-    private final Trigger trigger = mock(Trigger.class);
-
     @InjectMocks
     private DraftCleanupJob draftCleanupJob;
 
     @Test
     void execute() {
+        final Trigger trigger = mock(Trigger.class);
         final Long draftId = 1234L;
         final JobExecutionContext executionContext = mock(JobExecutionContext.class);
         final JobDataMap dataMap = new JobDataMap();
@@ -43,6 +42,7 @@ class DraftCleanupJobTest {
 
     @Test
     void execute_noDraft() {
+        final Trigger trigger = mock(Trigger.class);
         final Long draftId = 1234L;
         final JobExecutionContext executionContext = mock(JobExecutionContext.class);
         final JobDataMap dataMap = new JobDataMap();

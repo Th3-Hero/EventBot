@@ -1,6 +1,9 @@
 package com.th3hero.eventbot.commands.actions;
 
+import org.apache.commons.lang3.EnumUtils;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface DiscordActionArguments {
 
@@ -11,4 +14,7 @@ public interface DiscordActionArguments {
      */
     List<String> getRequestKeys();
 
+    static <T extends Enum<T>> Optional<T> from(Class<T> enumType, String name) {
+        return Optional.ofNullable(EnumUtils.getEnumIgnoreCase(enumType, name));
+    }
 }

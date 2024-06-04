@@ -63,7 +63,6 @@ public class EventService {
 
     private static final String EVENT_DATE = "eventDate";
 
-
     public void publishEvent(ButtonRequest request, EventDraftJpa draftJpa) {
         // Publish event via draft conformation
         publishEvent(request, eventRepository.save(EventJpa.create(draftJpa)));
@@ -71,12 +70,13 @@ public class EventService {
         schedulingService.removeDraftCleanupTrigger(draftJpa.getId());
     }
 
-
     public void sendDeleteConformation(ButtonRequest request) {
         if (!requesterIsAdmin(request)) {
             return;
         }
 
+        // we fetch deleted events as well so that we can handle responses differently
+        // either by informing the user the event doesn't exist, or that it's already deleted
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
             .orElseThrow(() -> new EntityNotFoundException(FAILED_TO_FIND_EVENT.formatted(request.getArguments().get(EVENT_ID))));
 
@@ -86,7 +86,6 @@ public class EventService {
 
         request.sendResponse(ModalFactory.deleteDraftReason(eventJpa), MessageMode.USER);
     }
-
 
     public void handleDeleteConformation(ModalRequest request) {
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
@@ -116,7 +115,6 @@ public class EventService {
                 }
             ));
     }
-
 
     public void undoEventDeletion(ButtonRequest request) {
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
@@ -201,7 +199,6 @@ public class EventService {
         );
     }
 
-
     public void editEventDetails(ModalRequest request) {
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
             .orElseThrow(() -> new EntityNotFoundException(FAILED_TO_FIND_EVENT.formatted(request.getArguments().get(EVENT_ID))));
@@ -248,7 +245,6 @@ public class EventService {
         );
     }
 
-
     public void editEventCourses(SelectionRequest request) {
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
             .orElseThrow(() -> new EntityNotFoundException(FAILED_TO_FIND_EVENT.formatted(request.getArguments().get(EVENT_ID))));
@@ -277,7 +273,7 @@ public class EventService {
         StudentJpa studentJpa = studentService.fetchStudent(request.getRequester().getIdLong());
         if (studentJpa.getCourses().isEmpty()) {
             request.sendResponse(
-                "You are not signed up for any courses with the bot. Please use `%s`".formatted(Command.SELECT_COURSES.getDisplayName()),
+                "You are not signed up for any courses with the bot. Please use `/%s`".formatted(Command.SELECT_COURSES.getDisplayName()),
                 MessageMode.USER
             );
             return;

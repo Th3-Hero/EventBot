@@ -20,8 +20,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -86,6 +84,7 @@ class EventDraftServiceTest {
         final var request = mock(ButtonRequest.class);
         final Map<String, Long> arguments = Map.of(DRAFT_ID, draftId);
         final var draft = TestEntities.eventDraftJpa(1);
+        final var menu = TestEntities.courseSelectMenu();
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -94,7 +93,7 @@ class EventDraftServiceTest {
         when(request.getAction())
             .thenReturn(ButtonAction.EDIT_DRAFT_COURSES);
         when(courseService.createCourseSelectionMenu(any(), any()))
-            .thenReturn(testCourseSelectMenu());
+            .thenReturn(menu);
 
         eventDraftService.handleEventDraftActions(request);
 
@@ -236,6 +235,7 @@ class EventDraftServiceTest {
         arguments.put(DRAFT_ID, draftId);
         final var draft = TestEntities.draftMissingDetailsAndCourses();
         final var jdaEvent = mock(ModalInteractionEvent.class);
+        final var menu = TestEntities.courseSelectMenu();
 
         final var title = "Test Title";
         final var note = "Test Note";
@@ -253,7 +253,7 @@ class EventDraftServiceTest {
         when(jdaEvent.getValue(NOTE))
             .thenReturn(noteModalMap);
         when(courseService.createCourseSelectionMenu(any(), any()))
-            .thenReturn(testCourseSelectMenu());
+            .thenReturn(menu);
 
         eventDraftService.addDraftDetails(request);
 
@@ -295,6 +295,7 @@ class EventDraftServiceTest {
         arguments.put(DRAFT_ID, draftId);
         final var draft = TestEntities.draftMissingDetailsAndCourses();
         final var jdaEvent = mock(ModalInteractionEvent.class);
+        final var menu = TestEntities.courseSelectMenu();
 
         final var title = "Test Title";
         final var note = "";
@@ -312,7 +313,7 @@ class EventDraftServiceTest {
         when(jdaEvent.getValue(NOTE))
             .thenReturn(noteModalMap);
         when(courseService.createCourseSelectionMenu(any(), any()))
-            .thenReturn(testCourseSelectMenu());
+            .thenReturn(menu);
 
         eventDraftService.addDraftDetails(request);
 
@@ -330,7 +331,7 @@ class EventDraftServiceTest {
         arguments.put(DRAFT_ID, draftId);
         final var draft = TestEntities.draftMissingDetailsAndCourses();
         final var jdaEvent = mock(StringSelectInteractionEvent.class);
-        final var requester = TestEntities.member(TestEntities.guild());
+        final var requester = TestEntities.member();
 
         final var courses = List.of(TestEntities.courseJpa(1), TestEntities.courseJpa(2), TestEntities.courseJpa(3));
 
@@ -391,7 +392,7 @@ class EventDraftServiceTest {
         arguments.put(DRAFT_ID, draftId);
         final var draft = TestEntities.draftMissingDetailsAndCourses();
         final var jdaEvent = mock(ModalInteractionEvent.class);
-        final var requester = TestEntities.member(TestEntities.guild());
+        final var requester = TestEntities.member();
 
         final var title = "Updated Title";
         final var note = "Updated Note";
@@ -467,7 +468,7 @@ class EventDraftServiceTest {
         arguments.put(DRAFT_ID, draftId);
         final var draft = TestEntities.draftMissingDetailsAndCourses();
         final var jdaEvent = mock(ModalInteractionEvent.class);
-        final var requester = TestEntities.member(TestEntities.guild());
+        final var requester = TestEntities.member();
 
         final var title = "Updated Title";
         final var note = "";
@@ -683,17 +684,4 @@ class EventDraftServiceTest {
             .draftCreationDate(draft.getDraftCreationDate())
             .build();
     }
-
-    private StringSelectMenu testCourseSelectMenu() {
-        List<CourseJpa> courses = List.of(TestEntities.courseJpa(1), TestEntities.courseJpa(2), TestEntities.courseJpa(3));
-        List<SelectOption> options = courses.stream()
-            .map(course -> SelectOption.of(course.getCode(), course.getCode()).withDescription(course.getName()))
-            .toList();
-        return StringSelectMenu.create("course-select-test")
-            .setPlaceholder("Select Courses")
-            .setMaxValues(options.size())
-            .addOptions(options)
-            .build();
-    }
-
 }

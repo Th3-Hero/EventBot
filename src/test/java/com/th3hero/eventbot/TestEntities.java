@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.Component;
+import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.utils.data.DataObject;
@@ -25,6 +27,8 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 public class TestEntities {
+
+    public static final LocalDateTime TEST_DATE = LocalDateTime.of(2099, 1, 1, 1, 1);
 
     // DTOs
     public static ConfigUpload configUpload() {
@@ -82,8 +86,8 @@ public class TestEntities {
             .authorId(1234L + seed)
             .title("Test Event%s".formatted(seed))
             .note("Test Note%s".formatted(seed))
-            .eventDate(LocalDateTime.of(2099, 1, 1, 1, 1, 1))
-            .draftCreationDate(LocalDateTime.of(2099, 1, 1, 1, 1, 1))
+            .eventDate(TEST_DATE)
+            .draftCreationDate(TEST_DATE)
             .type(EventJpa.EventType.ASSIGNMENT)
             .courses(new ArrayList<>(List.of()))
             .build();
@@ -94,15 +98,20 @@ public class TestEntities {
     }
 
     public static EventJpa eventJpaWithId(int seed) {
+        final var courses = List.of(
+            TestEntities.courseJpa(seed+1),
+            TestEntities.courseJpa(seed+2),
+            TestEntities.courseJpa(seed+3)
+        );
         return EventJpa.builder()
             .id(1234L + seed)
             .authorId(1234L + seed)
             .messageId(1234L + seed)
             .title("Test Event%s".formatted(seed))
             .note("Test Note%s".formatted(seed))
-            .eventDate(LocalDateTime.of(2099, 1, 1, 1, 1, 1))
+            .eventDate(TEST_DATE)
             .type(EventJpa.EventType.ASSIGNMENT)
-            .courses(new ArrayList<>(List.of()))
+            .courses(new ArrayList<>(courses))
             .build();
     }
 
@@ -113,7 +122,7 @@ public class TestEntities {
             .messageId(1234L + seed)
             .title("Test Event%s".formatted(seed))
             .note("Test Note%s".formatted(seed))
-            .eventDate(LocalDateTime.of(2099, 1, 1, 1, 1, 1))
+            .eventDate(TEST_DATE)
             .type(EventJpa.EventType.ASSIGNMENT)
             .courses(new ArrayList<>(courses))
             .build();
@@ -144,8 +153,8 @@ public class TestEntities {
         return new UserImpl(1, mock(JDAImpl.class)).setName("user").setGlobalName("test_user").setBot(false);
     }
 
-    public static Member member(final Guild guild) {
-        return new MemberImpl((GuildImpl) guild, user());
+    public static Member member() {
+        return spy(new MemberImpl((GuildImpl)guild(), user()));
     }
 
     public static Message message() {
@@ -157,6 +166,18 @@ public class TestEntities {
         data.put("custom_id", key);
         data.put("type", Component.Type.TEXT_INPUT.getKey());
         data.put("value", value);
-        return new ModalMapping(data);
+        return spy(new ModalMapping(data));
+    }
+
+    public static StringSelectMenu courseSelectMenu() {
+        List<CourseJpa> courses = List.of(TestEntities.courseJpa(1), TestEntities.courseJpa(2), TestEntities.courseJpa(3));
+        List<SelectOption> options = courses.stream()
+            .map(course -> SelectOption.of(course.getCode(), course.getCode()).withDescription(course.getName()))
+            .toList();
+        return StringSelectMenu.create("course-select-test")
+            .setPlaceholder("Select Courses")
+            .setMaxValues(options.size())
+            .addOptions(options)
+            .build();
     }
 }

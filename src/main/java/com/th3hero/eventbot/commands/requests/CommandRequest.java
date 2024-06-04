@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.commands.requests;
 
-import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.Command;
+import com.th3hero.eventbot.commands.actions.DiscordActionArguments;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.exceptions.UnsupportedResponseException;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
@@ -56,7 +56,8 @@ public class CommandRequest extends InteractionRequest {
      * @see Command Command for supported interactions
      */
     public static CommandRequest fromInteraction(@NonNull final SlashCommandInteractionEvent event) throws IllegalInteractionException {
-        final Command command = EnumUtils.valueOf(Command.class, event.getName(), new IllegalInteractionException("Unsupported interaction with command %s".formatted(event.getName())));
+        final Command command = DiscordActionArguments.from(Command.class, event.getName())
+            .orElseThrow(() ->  new IllegalInteractionException("Unsupported interaction with command %s".formatted(event.getName())));
 
         Map<String, String> arguments = parseOptions(event.getOptions());
         if (event.getSubcommandName() != null) {

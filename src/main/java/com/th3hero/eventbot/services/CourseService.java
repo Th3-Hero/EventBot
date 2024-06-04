@@ -1,6 +1,5 @@
 package com.th3hero.eventbot.services;
 
-import com.kseth.development.util.CollectionUtils;
 import com.th3hero.eventbot.commands.actions.SelectionAction;
 import com.th3hero.eventbot.commands.requests.InteractionRequest;
 import com.th3hero.eventbot.commands.requests.SelectionRequest;
@@ -42,10 +41,9 @@ public class CourseService {
     private static final String MISSING_COURSE_WITH_ID = "Unable to find Course with provided id.";
 
     public Collection<Course> getAllCourses() {
-        return CollectionUtils.transform(
-            courseRepository.findAll(),
-            CourseJpa::toDto
-        );
+        return courseRepository.findAll().stream()
+            .map(CourseJpa::toDto)
+            .toList();
     }
 
     public List<Course> createCourses(List<CourseUpload> courseUploads) {

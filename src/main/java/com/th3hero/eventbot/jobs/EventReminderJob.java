@@ -62,7 +62,7 @@ public class EventReminderJob implements Job {
                     err -> log.warn("Cannot send private message to user %d".formatted(userId))
                 )
             ),
-            () -> log.warn("Failed to find user %d to message".formatted(userId))
+            () -> log.debug("Failed to find user %d to message".formatted(userId))
         );
     }
 

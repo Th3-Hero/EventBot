@@ -1,6 +1,6 @@
 package com.th3hero.eventbot.commands.requests;
 
-import com.kseth.development.util.EnumUtils;
+import com.th3hero.eventbot.commands.actions.DiscordActionArguments;
 import com.th3hero.eventbot.commands.actions.SelectionAction;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.exceptions.UnsupportedResponseException;
@@ -57,11 +57,8 @@ public class SelectionRequest extends InteractionRequest {
         final List<String> selectionIdSplits = List.of(event.getSelectMenu().getId().split("-"));
         final String selectionActionString = selectionIdSplits.getFirst();
         final List<String> idArguments = selectionIdSplits.subList(1, selectionIdSplits.size());
-        final SelectionAction action = EnumUtils.valueOf(
-            SelectionAction.class,
-            selectionActionString,
-            new IllegalInteractionException("Unsupported interaction with selection menu %s".formatted(event.getSelectMenu().getId()))
-        );
+        final SelectionAction action = DiscordActionArguments.from(SelectionAction.class, selectionActionString)
+            .orElseThrow(() -> new IllegalInteractionException("Unsupported interaction with selection menu %s".formatted(event.getSelectMenu().getId())));
 
         return new SelectionRequest(
             action,

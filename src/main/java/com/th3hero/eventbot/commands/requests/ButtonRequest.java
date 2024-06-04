@@ -1,7 +1,7 @@
 package com.th3hero.eventbot.commands.requests;
 
-import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.actions.ButtonAction;
+import com.th3hero.eventbot.commands.actions.DiscordActionArguments;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.exceptions.UnsupportedResponseException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
@@ -57,9 +57,16 @@ public class ButtonRequest extends InteractionRequest {
         final List<String> buttonIdSplits = List.of(event.getButton().getId().split("-"));
         final String buttonActionString = buttonIdSplits.subList(0, 1).getFirst();
         final List<String> idArguments = buttonIdSplits.subList(1, buttonIdSplits.size());
-        final ButtonAction action = EnumUtils.valueOf(ButtonAction.class, buttonActionString, new IllegalInteractionException("Unsupported interaction with button %s".formatted(event.getButton().getId())));
+        final ButtonAction action = DiscordActionArguments.from(ButtonAction.class, buttonActionString)
+            .orElseThrow(() -> new IllegalInteractionException("Unsupported interaction with button %s".formatted(event.getButton().getId())));
 
-        return new ButtonRequest(action, event, event.getMember(), event.getGuild(), InteractionArguments.parseArguments(action, idArguments));
+        return new ButtonRequest(
+            action,
+            event,
+            event.getMember(),
+            event.getGuild(),
+            InteractionArguments.parseArguments(action, idArguments)
+        );
     }
 
     /**

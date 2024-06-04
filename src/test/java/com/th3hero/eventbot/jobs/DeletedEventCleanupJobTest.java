@@ -69,6 +69,7 @@ class DeletedEventCleanupJobTest {
             .thenReturn((RestAction<Message>) mock(RestAction.class));
 
 
+        // NOTE: I'm lost as to how to test this
 
         deletedEventCleanupJob.execute(executionContext);
 

@@ -1,6 +1,5 @@
 package com.th3hero.eventbot.services;
 
-import com.kseth.development.util.EnumUtils;
 import com.th3hero.eventbot.commands.requests.ButtonRequest;
 import com.th3hero.eventbot.commands.requests.CommandRequest;
 import com.th3hero.eventbot.commands.requests.InteractionRequest;
@@ -17,12 +16,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.th3hero.eventbot.utils.DiscordFieldsUtils.OFFSET;
 
@@ -78,11 +79,11 @@ public class StudentService {
      * @param request the command request
      */
     public void reminderOffsetSubcommandHandler(CommandRequest request) {
-        ReminderConfigOptions option = EnumUtils.valueOf(
+        ReminderConfigOptions option = Optional.ofNullable(EnumUtils.getEnumIgnoreCase(
             ReminderConfigOptions.class,
-            request.getArguments().get("sub_command"),
-            new IllegalInteractionException("Unknown sub command %s".formatted(request.getArguments().get("sub_command")))
-        );
+                request.getArguments().get("sub_command"))
+            )
+            .orElseThrow(() -> new IllegalInteractionException("Unknown sub command %s".formatted(request.getArguments().get("sub_command"))));
 
         StudentJpa studentJpa = fetchStudent(request.getRequester().getIdLong());
 
