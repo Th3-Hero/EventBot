@@ -3,6 +3,7 @@ package com.th3hero.eventbot.jobs;
 
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
+import com.th3hero.eventbot.exceptions.MissingEventChannelException;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
@@ -37,10 +38,8 @@ public class EventReminderJob implements Job {
         final EventJpa eventJpa = eventRepository.findById(eventId)
             .orElseThrow(() -> new EntityNotFoundException("Failed to find event in the database when trying to send a reminder. Event id: %d".formatted(eventId)));
 
-
         TextChannel channel = Optional.ofNullable(jda.getTextChannelById(configService.getConfigJpa().getEventChannel()))
-            .orElseThrow(() -> new ConfigErrorException("Failed to find event channel in the database when trying to send a reminder. Make sure config is setup correctly"));
-
+            .orElseThrow(() -> new MissingEventChannelException("Failed to retrieve the event channel for the event bot. Make sure the config is setup correctly."));
 
         Long userId = executionContext.getTrigger().getJobDataMap().getLong(STUDENT_ID);
         int offset = executionContext.getTrigger().getJobDataMap().getInt(OFFSET_ID);
@@ -50,7 +49,7 @@ public class EventReminderJob implements Job {
             channel,
             eventJpa.getMessageId(),
             message -> sendUserReminder(userId, offset, message.getJumpUrl()),
-            err -> log.warn("Failed to find message for event %d".formatted(eventId))
+            err -> log.warn("Failed to find message for event {}", eventId)
         );
     }
 
@@ -58,11 +57,11 @@ public class EventReminderJob implements Job {
         Optional.ofNullable(jda.getUserById(userId)).ifPresentOrElse(
             user -> user.openPrivateChannel().queue(privateChannel ->
                 privateChannel.sendMessage("%d hour reminder for event: %s".formatted(offset, jumpUrl)).queue(
-                    message -> log.debug("Sent notification to user %d".formatted(userId)),
+                    message -> log.debug("Sent notification to user {}", userId),
                     err -> log.warn("Cannot send private message to user %d".formatted(userId))
                 )
             ),
-            () -> log.debug("Failed to find user %d to message".formatted(userId))
+            () -> log.debug("Failed to message user {}", userId)
         );
     }
 

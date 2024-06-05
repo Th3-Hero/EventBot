@@ -14,7 +14,7 @@ public interface DiscordActionArguments {
      */
     List<String> getRequestKeys();
 
-    static <T extends Enum<T>> Optional<T> from(Class<T> enumType, String name) {
+    static <T extends Enum<T>> Optional<T> actionFrom(Class<T> enumType, String name) {
         return Optional.ofNullable(EnumUtils.getEnumIgnoreCase(enumType, name));
     }
 }

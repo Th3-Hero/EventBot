@@ -103,6 +103,12 @@ public class TestEntities {
             TestEntities.courseJpa(seed+2),
             TestEntities.courseJpa(seed+3)
         );
+        for (int i = 0; i < courses.size(); i++) {
+            for (int j = 0; j < courses.size(); j++) {
+                courses.get(i).getStudents().add(TestEntities.studentJpa(j, List.of()));
+            }
+        }
+
         return EventJpa.builder()
             .id(1234L + seed)
             .authorId(1234L + seed)

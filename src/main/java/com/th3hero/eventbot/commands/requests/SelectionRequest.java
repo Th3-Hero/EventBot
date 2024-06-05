@@ -57,7 +57,7 @@ public class SelectionRequest extends InteractionRequest {
         final List<String> selectionIdSplits = List.of(event.getSelectMenu().getId().split("-"));
         final String selectionActionString = selectionIdSplits.getFirst();
         final List<String> idArguments = selectionIdSplits.subList(1, selectionIdSplits.size());
-        final SelectionAction action = DiscordActionArguments.from(SelectionAction.class, selectionActionString)
+        final SelectionAction action = DiscordActionArguments.actionFrom(SelectionAction.class, selectionActionString)
             .orElseThrow(() -> new IllegalInteractionException("Unsupported interaction with selection menu %s".formatted(event.getSelectMenu().getId())));
 
         return new SelectionRequest(

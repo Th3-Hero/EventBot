@@ -57,7 +57,7 @@ public class ButtonRequest extends InteractionRequest {
         final List<String> buttonIdSplits = List.of(event.getButton().getId().split("-"));
         final String buttonActionString = buttonIdSplits.subList(0, 1).getFirst();
         final List<String> idArguments = buttonIdSplits.subList(1, buttonIdSplits.size());
-        final ButtonAction action = DiscordActionArguments.from(ButtonAction.class, buttonActionString)
+        final ButtonAction action = DiscordActionArguments.actionFrom(ButtonAction.class, buttonActionString)
             .orElseThrow(() -> new IllegalInteractionException("Unsupported interaction with button %s".formatted(event.getButton().getId())));
 
         return new ButtonRequest(

@@ -6,6 +6,7 @@ import com.th3hero.eventbot.commands.requests.*;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.formatting.InteractionArguments;
@@ -31,6 +32,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -40,6 +42,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import static com.th3hero.eventbot.TestEntities.TEST_DATE;
 import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
@@ -77,7 +80,10 @@ class EventServiceTest {
         final var requester = TestEntities.member();
         final var jda = mock(JDA.class);
         final var channel = mock(TextChannel.class);
-        final var sendMessageEmbed = mock(MessageCreateAction.class);
+        final var channelUnion = mock(MessageChannelUnion.class);
+        final var messageCreateAction = mock(MessageCreateAction.class);
+        final var messageId = 5678L;
+        final var message = mock(Message.class);
 
         when(eventRepository.save(any(EventJpa.class)))
             .thenReturn(event);
@@ -90,19 +96,35 @@ class EventServiceTest {
         when(jda.getTextChannelById(config.getEventChannel()))
             .thenReturn(channel);
         when(channel.sendMessageEmbeds(any(MessageEmbed.class)))
-            .thenReturn(sendMessageEmbed);
-        when(sendMessageEmbed.addComponents(any(LayoutComponent.class)))
-            .thenReturn(sendMessageEmbed);
-
+            .thenReturn(messageCreateAction);
+        when(messageCreateAction.addComponents(any(LayoutComponent.class)))
+            .thenReturn(messageCreateAction);
+        when(message.getIdLong())
+            .thenReturn(messageId);
         when(request.getRequester())
             .thenReturn(requester);
+        when(message.getChannel())
+            .thenReturn(channelUnion);
 
         eventService.publishEvent(request, draft);
 
         verify(eventDraftRepository).deleteById(draft.getId());
         verify(schedulingService).removeDraftCleanupTrigger(draft.getId());
 
-        // NOTE: I'm not sure how to test the success callback code
+        verify(studentService, times(9)).scheduleStudentForEvent(eq(event), any(StudentJpa.class));
+
+        @SuppressWarnings("unchecked")
+        final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(messageCreateAction).queue(messageCaptor.capture());
+        final Consumer<Message> messageConsumer = messageCaptor.getValue();
+        messageConsumer.accept(message);
+
+        final ArgumentCaptor<EventJpa> jpaCaptor = ArgumentCaptor.forClass(EventJpa.class);
+        verify(eventRepository, times(2)).save(jpaCaptor.capture());
+        final EventJpa savedEvent = jpaCaptor.getValue();
+        assertThat(savedEvent.getMessageId()).isEqualTo(messageId);
+
+        verify(request).sendResponse("Event has been posted to the event channel. null", MessageMode.USER);
     }
 
     @Test
@@ -250,6 +272,7 @@ class EventServiceTest {
             .thenReturn(channel);
         when(channel.retrieveMessageById(event.getMessageId()))
             .thenReturn(messageRestAction);
+
 
         eventService.handleDeleteConformation(request);
 

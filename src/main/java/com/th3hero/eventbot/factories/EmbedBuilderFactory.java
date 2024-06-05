@@ -34,7 +34,8 @@ public final class EmbedBuilderFactory {
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .setColor(BLUE)
             .setTitle("Help")
-            .setDescription("NOTE: In order to receive notification from the bot, the **bot must be able to send you direct messages.**");
+            .setDescription("NOTE: In order to receive notification from the bot, the %s".formatted(MarkdownUtil.bold("bot must be able to send you direct messages.")))
+            .setFooter("Disclaimer: This bot is a tool provided 'as is'. The developer/maintainer is not responsible for any missed events or any other issues that may arise from the use of this bot. Use at your own risk.");
 
         for (Command command : Command.values()) {
             embedBuilder.addField(

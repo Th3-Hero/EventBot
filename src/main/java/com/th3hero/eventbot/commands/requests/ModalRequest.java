@@ -56,7 +56,7 @@ public class ModalRequest extends InteractionRequest {
         final List<String> modalIdSplits = List.of(event.getModalId().split("-"));
         final String modalActionString = modalIdSplits.subList(0, 1).getFirst();
         final List<String> idArguments = modalIdSplits.subList(1, modalIdSplits.size());
-        final ModalAction action = DiscordActionArguments.from(ModalAction.class, modalActionString)
+        final ModalAction action = DiscordActionArguments.actionFrom(ModalAction.class, modalActionString)
             .orElseThrow(() -> new IllegalInteractionException("Unsupported interaction with modal %s".formatted(event.getModalId())));
 
         return new ModalRequest(

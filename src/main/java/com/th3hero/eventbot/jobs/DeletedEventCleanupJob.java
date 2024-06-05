@@ -3,6 +3,7 @@ package com.th3hero.eventbot.jobs;
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
+import com.th3hero.eventbot.exceptions.MissingEventChannelException;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
@@ -42,7 +43,7 @@ public class DeletedEventCleanupJob implements Job {
         eventRepository.delete(eventJpa);
 
         TextChannel channel = Optional.ofNullable(jda.getTextChannelById(config.getEventChannel()))
-            .orElseThrow(() -> new ConfigErrorException("Failed to get event channel. Make sure config is setup correctly. Channel id: %d".formatted(config.getEventChannel())));
+            .orElseThrow(() -> new MissingEventChannelException("Failed to retrieve the event channel for the event bot. Make sure the config is setup correctly."));
 
         // Delete the message associated with the event
         DiscordActionUtils.deleteMessage(
@@ -52,7 +53,7 @@ public class DeletedEventCleanupJob implements Job {
             e -> log.warn("Failed to find event message for cleanup. The message may have already been deleted outside of the bot. Otherwise something has went wrong. Message id: %d".formatted(eventJpa.getMessageId()))
         );
 
-        long deletionMessage = executionContext.getTrigger().getJobDataMap().getLongFromString(DELETION_MESSAGE_ID);
+        long deletionMessage = executionContext.getTrigger().getJobDataMap().getLong(DELETION_MESSAGE_ID);
 
         // Delete the deletion/recovery message
         DiscordActionUtils.deleteMessage(

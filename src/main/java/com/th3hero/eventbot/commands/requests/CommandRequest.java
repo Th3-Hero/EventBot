@@ -56,15 +56,21 @@ public class CommandRequest extends InteractionRequest {
      * @see Command Command for supported interactions
      */
     public static CommandRequest fromInteraction(@NonNull final SlashCommandInteractionEvent event) throws IllegalInteractionException {
-        final Command command = DiscordActionArguments.from(Command.class, event.getName())
-            .orElseThrow(() ->  new IllegalInteractionException("Unsupported interaction with command %s".formatted(event.getName())));
+        final Command command = DiscordActionArguments.actionFrom(Command.class, event.getName())
+            .orElseThrow(() -> new IllegalInteractionException("Unsupported interaction with command %s".formatted(event.getName())));
 
         Map<String, String> arguments = parseOptions(event.getOptions());
         if (event.getSubcommandName() != null) {
             arguments.put(DiscordFieldsUtils.SUB_COMMAND, event.getSubcommandName().toLowerCase());
         }
 
-        return new CommandRequest(command, event, event.getMember(), event.getGuild(), arguments);
+        return new CommandRequest(
+            command,
+            event,
+            event.getMember(),
+            event.getGuild(),
+            arguments
+        );
     }
 
     private static Map<String, String> parseOptions(final List<OptionMapping> optionMappings) {

@@ -21,7 +21,7 @@ public class AutoCompleteController extends ListenerAdapter {
 
     @Override
     public void onCommandAutoCompleteInteraction(@NonNull CommandAutoCompleteInteractionEvent event) {
-        final Command command = DiscordActionArguments.from(Command.class, event.getName())
+        final Command command = DiscordActionArguments.actionFrom(Command.class, event.getName())
             .orElseThrow(() ->  new IllegalInteractionException("Failed to parse auto complete interaction: %s".formatted(event.getName())));
 
         switch (command) {
