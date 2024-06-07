@@ -389,7 +389,7 @@ public class EventService {
         eventJpa.setDeleted(true);
         eventRepository.save(eventJpa);
 
-        // Send the deleted event message with the recovery button
+        // Send the recovery message
         request.getEvent().getChannel().sendMessageEmbeds(
                 EmbedBuilderFactory.deletedEvent(
                     reason,

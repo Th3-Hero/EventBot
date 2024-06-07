@@ -9,6 +9,7 @@ import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.exceptions.DataAccessException;
+import com.th3hero.eventbot.factories.ButtonFactory;
 import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.repositories.EventDraftRepository;
 import com.th3hero.eventbot.repositories.EventRepository;
@@ -25,10 +26,12 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +73,7 @@ class EventServiceTest {
     @InjectMocks
     private EventService eventService;
 
+    @SuppressWarnings("unchecked")
     @Test
     void publishEvent() {
         final var request = mock(ButtonRequest.class);
@@ -113,7 +117,6 @@ class EventServiceTest {
 
         verify(studentService, times(9)).scheduleStudentForEvent(eq(event), any(StudentJpa.class));
 
-        @SuppressWarnings("unchecked")
         final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
         verify(messageCreateAction).queue(messageCaptor.capture());
         final Consumer<Message> messageConsumer = messageCaptor.getValue();
@@ -244,16 +247,21 @@ class EventServiceTest {
         verify(request, never()).sendResponse(any(Modal.class), eq(MessageMode.USER));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void handleDeleteConformation() {
         final var config = TestEntities.configJpa();
         final var request = mock(ModalRequest.class);
+        final var requester = TestEntities.member();
         final var event = TestEntities.eventJpaWithId(1);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
         final var jdaEvent = mock(ModalInteractionEvent.class);
         final var channel = mock(MessageChannelUnion.class);
         final RestAction<Message> messageRestAction = mock(RestAction.class);
+        final var message = mock(Message.class);
+        final var messageEditAction = mock(MessageEditAction.class);
+        final var messageCreateAction = mock(MessageCreateAction.class);
 
         final var reason = "The assignment was cancelled";
         final var reasonModalMap = TestEntities.modalMapping(REASON, reason);
@@ -272,13 +280,34 @@ class EventServiceTest {
             .thenReturn(channel);
         when(channel.retrieveMessageById(event.getMessageId()))
             .thenReturn(messageRestAction);
+        when(message.editMessageComponents())
+            .thenReturn(messageEditAction);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(channel.sendMessageEmbeds(any(MessageEmbed.class)))
+            .thenReturn(messageCreateAction);
+        when(messageCreateAction.addActionRow(any(Button.class)))
+            .thenReturn(messageCreateAction);
 
 
         eventService.handleDeleteConformation(request);
 
-        // NOTE I don't know how to test this in any meaningfully way due to callbacks
+        final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(messageRestAction).queue(messageCaptor.capture(), any());
+        final Consumer<Message> messageValue = messageCaptor.getValue();
+        messageValue.accept(message);
+        verify(messageEditAction).queue();
 
-        assertThat(true).isFalse();
+        verify(schedulingService).removeReminderTriggers(event.getId());
+        verify(eventRepository).save(argThat(EventJpa::getDeleted));
+
+        final ArgumentCaptor<Consumer<Message>> recoveryMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(messageCreateAction).queue(recoveryMessageCaptor.capture());
+        final Consumer<Message> recoveryMessageValue = recoveryMessageCaptor.getValue();
+        recoveryMessageValue.accept(message);
+        verify(schedulingService).addDeletedEventCleanupTrigger(eq(event.getId()), anyLong(), any(LocalDateTime.class));
+
+        verify(request).sendResponse("Event has been deleted. null", MessageMode.USER);
     }
 
     @Test
@@ -343,9 +372,11 @@ class EventServiceTest {
             .isThrownBy(() -> eventService.handleDeleteConformation(request));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void undoEventDeletion() {
         final var request = mock(ButtonRequest.class);
+        final var requester = TestEntities.member();
         final var event = TestEntities.eventJpaWithId(1);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
@@ -354,6 +385,8 @@ class EventServiceTest {
         final AuditableRestAction<Void> restAction = mock(AuditableRestAction.class);
         final var channel = mock(MessageChannelUnion.class);
         final RestAction<Message> messageRestAction = mock(RestAction.class);
+        final var messageCreateAction = mock(MessageCreateAction.class);
+        final var messageEditAction = mock(MessageEditAction.class);
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -369,13 +402,25 @@ class EventServiceTest {
             .thenReturn(channel);
         when(channel.retrieveMessageById(event.getMessageId()))
             .thenReturn(messageRestAction);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(message.replyEmbeds(any(MessageEmbed.class)))
+            .thenReturn(messageCreateAction);
+        when(message.editMessageComponents(any(ActionRow.class)))
+            .thenReturn(messageEditAction);
 
         eventService.undoEventDeletion(request);
 
         verify(schedulingService).removeDeletedEventCleanupTrigger(event.getId());
         verify(request).sendResponse("Event has been restored.", MessageMode.USER);
 
-        // NOTE: I'm not sure how to test the success callback code
+        final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(messageRestAction).queue(messageCaptor.capture(), any());
+        final Consumer<Message> messageValue = messageCaptor.getValue();
+        messageValue.accept(message);
+
+        verify(message).replyEmbeds(any(MessageEmbed.class));
+        verify(message).editMessageComponents(ButtonFactory.eventButtons(event.getId()));
     }
 
     @Test
@@ -610,6 +655,7 @@ class EventServiceTest {
         verify(request, never()).sendResponse(any(MessageCreateData.class), eq(MessageMode.USER));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void editEventDetails() {
         final var request = mock(ModalRequest.class);
@@ -620,6 +666,9 @@ class EventServiceTest {
         final var jdaEvent = mock(ModalInteractionEvent.class);
         final var channel = mock(MessageChannelUnion.class);
         final RestAction<Message> messageRestAction = mock(RestAction.class);
+        final var message = mock(Message.class);
+        final var messageCreateAction = mock(MessageCreateAction.class);
+        final var messageEditAction = mock(MessageEditAction.class);
 
 
         final var title = "New Title";
@@ -638,8 +687,6 @@ class EventServiceTest {
             .thenReturn(Optional.of(event));
         when(request.getEvent())
             .thenReturn(jdaEvent);
-        // NOTE: would it be better to change this to one when(getValue(anyString())) stub with multiple returns?
-        //  (Same in event draft service tests)
         when(jdaEvent.getValue(TITLE))
             .thenReturn(titleModalMap);
         when(jdaEvent.getValue(NOTE))
@@ -656,6 +703,10 @@ class EventServiceTest {
             .thenAnswer(i -> i.getArgument(0));
         when(channel.retrieveMessageById(event.getMessageId()))
             .thenReturn(messageRestAction);
+        when(message.replyEmbeds(any(MessageEmbed.class)))
+            .thenReturn(messageCreateAction);
+        when(message.editMessageEmbeds(any(MessageEmbed.class)))
+            .thenReturn(messageEditAction);
 
         eventService.editEventDetails(request);
 
@@ -668,7 +719,15 @@ class EventServiceTest {
         verify(schedulingService).removeReminderTriggers(event.getId());
         verify(request, never()).sendResponse("Failed to parse date and time", MessageMode.USER);
 
-        // NOTE: I'm not sure how to test the success callback code
+        final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(messageRestAction).queue(messageCaptor.capture(), any());
+        final Consumer<Message> messageConsumer = messageCaptor.getValue();
+        messageConsumer.accept(message);
+
+        verify(message).editMessageEmbeds(any(MessageEmbed.class));
+        verify(message).replyEmbeds(any(MessageEmbed.class));
+
+        verify(request).sendResponse("The event has been updated. null", MessageMode.USER);
     }
 
     @Test
@@ -896,6 +955,7 @@ class EventServiceTest {
         verify(request, never()).sendResponse(any(), any());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void editEventCourses() {
         final var request = mock(SelectionRequest.class);
@@ -907,6 +967,9 @@ class EventServiceTest {
         final var courses = List.of(TestEntities.courseJpa(1), TestEntities.courseJpa(2), TestEntities.courseJpa(3));
         final var channel = mock(MessageChannelUnion.class);
         final RestAction<Message> messageRestAction = mock(RestAction.class);
+        final var message = mock(Message.class);
+        final var messageCreateAction = mock(MessageCreateAction.class);
+        final var messageEditAction = mock(MessageEditAction.class);
 
         when(request.getArguments())
             .thenReturn(arguments);
@@ -924,6 +987,10 @@ class EventServiceTest {
             .thenReturn(requester);
         when(channel.retrieveMessageById(event.getMessageId()))
             .thenReturn(messageRestAction);
+        when(message.replyEmbeds(any(MessageEmbed.class)))
+            .thenReturn(messageCreateAction);
+        when(message.editMessageEmbeds(any(MessageEmbed.class)))
+            .thenReturn(messageEditAction);
 
         eventService.editEventCourses(request);
 
@@ -931,8 +998,15 @@ class EventServiceTest {
 
         verify(schedulingService).removeReminderTriggers(event.getId());
 
-        // NOTE: not sure how to verify the reminders are scheduled correctly
-        //  and I'm not sure how to test the success callback code
+        final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(messageRestAction).queue(messageCaptor.capture(), any());
+        final Consumer<Message> messageConsumer = messageCaptor.getValue();
+        messageConsumer.accept(message);
+
+        verify(message).editMessageEmbeds(any(MessageEmbed.class));
+        verify(message).replyEmbeds(any(MessageEmbed.class));
+
+        verify(request).sendResponse("The event has been updated. null", MessageMode.USER);
     }
 
     @Test
@@ -1077,7 +1151,7 @@ class EventServiceTest {
         assertThat(true).isFalse();
     }
 
-
+    @SuppressWarnings("unchecked")
     @Test
     void sendAllEventsToEventChannel() {
         final var jda = mock(JDA.class);
@@ -1085,6 +1159,9 @@ class EventServiceTest {
         final var channel = mock(TextChannel.class);
         final var messageCreateAction = mock(MessageCreateAction.class);
         final var events = List.of(TestEntities.eventJpaWithId(1), TestEntities.eventJpaWithId(2), TestEntities.eventJpaWithId(3));
+        final var message = mock(Message.class);
+        final var messageIds = List.of(123L, 456L, 789L);
+        final var channelUnion = mock(MessageChannelUnion.class);
 
         when(configService.getConfigJpa())
             .thenReturn(config);
@@ -1098,13 +1175,25 @@ class EventServiceTest {
             .thenReturn(messageCreateAction);
         when(messageCreateAction.addComponents(any(ActionRow.class)))
             .thenReturn(messageCreateAction);
+        when(message.getChannel())
+            .thenReturn(channelUnion);
+        when(message.getIdLong())
+            .thenReturn(messageIds.get(0), messageIds.get(1), messageIds.get(2));
 
         eventService.sendAllEventsToEventChannel(jda);
 
         verify(channel).sendMessage("This channel is now the event channel. All events will be posted here going forward.");
         verify(channel, times(events.size())).sendMessageEmbeds(any(MessageEmbed.class));
 
-        // NOTE: I'm not sure how to test the success callback code
+        final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(messageCreateAction, times(events.size())).queue(messageCaptor.capture(), any());
+        final List<Consumer<Message>> messageConsumers = messageCaptor.getAllValues();
+        for (int i = 0; i < messageConsumers.size(); i++) {
+            final Consumer<Message> messageConsumer = messageConsumers.get(i);
+            messageConsumer.accept(message);
+            int finalI = i;
+            verify(eventRepository).save(argThat(e -> e.getMessageId().equals(messageIds.get(finalI))));
+        }
     }
 
     @Test
