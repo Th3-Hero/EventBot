@@ -58,7 +58,7 @@ public class EventReminderJob implements Job {
             user -> user.openPrivateChannel().queue(privateChannel ->
                 privateChannel.sendMessage("%d hour reminder for event: %s".formatted(offset, jumpUrl)).queue(
                     message -> log.debug("Sent notification to user {}", userId),
-                    err -> log.warn("Cannot send private message to user %d".formatted(userId))
+                    err -> log.warn("Cannot send private message to user {}", userId)
                 )
             ),
             () -> log.debug("Failed to message user {}", userId)

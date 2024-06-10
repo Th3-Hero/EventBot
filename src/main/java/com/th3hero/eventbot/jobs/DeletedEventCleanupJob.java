@@ -49,8 +49,8 @@ public class DeletedEventCleanupJob implements Job {
         DiscordActionUtils.deleteMessage(
             channel,
             eventJpa.getMessageId(),
-            success -> log.info("Cleaned up deleted event %d".formatted(eventId)),
-            e -> log.warn("Failed to find event message for cleanup. The message may have already been deleted outside of the bot. Otherwise something has went wrong. Message id: %d".formatted(eventJpa.getMessageId()))
+            success -> log.info("Cleaned up deleted event {}", eventId),
+            e -> log.warn("Failed to find event message for cleanup. The message may have already been deleted outside of the bot. Otherwise something has went wrong. Message id: {}", eventJpa.getMessageId())
         );
 
         long deletionMessage = executionContext.getTrigger().getJobDataMap().getLong(DELETION_MESSAGE_ID);
@@ -59,7 +59,7 @@ public class DeletedEventCleanupJob implements Job {
         DiscordActionUtils.deleteMessage(
             channel,
             deletionMessage,
-            success -> log.info("Cleaned up deleted event %d".formatted(eventId)),
+            success -> log.info("Cleaned up deleted event {}", eventId),
             e -> log.warn("Failed to find deletion message")
         );
     }

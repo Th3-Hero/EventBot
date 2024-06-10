@@ -110,7 +110,7 @@ public class EventService {
                 deleteEventConsumer(request, message, eventJpa, reason, deletedEventCleanupDelay);
             },
             new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> {
-                    log.error("Failed to retrieve message tied to event (id: %d)".formatted(eventJpa.getId()));
+                    log.error("Failed to retrieve message tied to event (id: {})", eventJpa.getId());
                     request.sendResponse("Failed to retrieve message tied to event.", MessageMode.USER);
                 }
             ));
@@ -144,7 +144,7 @@ public class EventService {
         Long eventId = request.getArguments().get(EVENT_ID);
         if (!eventRepository.existsByIdAndDeletedIsFalse(eventId)) {
             request.sendResponse(FAILED_TO_FIND_EVENT.formatted(eventId), MessageMode.USER);
-            log.error("User tried to mark a deleted event as complete (id: %d)".formatted(eventId));
+            log.error("User tried to mark a deleted event as complete (id: {})", eventId);
             return;
         }
         studentService.unscheduleStudentRemindersForEvent(request, eventId);
@@ -231,7 +231,7 @@ public class EventService {
             eventJpa.setEventDate(eventDate);
             schedulingService.removeReminderTriggers(eventJpa.getId());
             scheduleEventReminders(eventJpa);
-            log.debug("Event date was updated, rescheduling reminders for event (id: %d)".formatted(eventJpa.getId()));
+            log.debug("Event date was updated, rescheduling reminders for event (id: {})", eventJpa.getId());
         }
 
         eventJpa = eventRepository.save(eventJpa);
@@ -325,7 +325,7 @@ public class EventService {
         Long eventChannelId = configService.getConfigJpa().getEventChannel();
         TextChannel eventChannel = jda.getTextChannelById(eventChannelId);
         if (eventChannel == null) {
-            log.error("Failed to find event channel with id %d".formatted(eventChannelId));
+            log.error("Failed to find event channel with id {}", eventChannelId);
             return;
         }
 
@@ -351,12 +351,12 @@ public class EventService {
     private boolean requesterIsAdmin(InteractionRequest request) {
         if (!request.getRequester().hasPermission(Permission.ADMINISTRATOR)) {
             request.sendResponse("This action requires administrator permissions", MessageMode.USER);
-            log.debug("User %s attempted to preform an action that requires administrator permissions".formatted(request.getRequester().getAsMention()));
+            log.debug("User {} attempted to preform an action that requires administrator permissions", request.getRequester().getAsMention());
             return false;
         }
         return true;
     }
-
+    {}
     /**
      * Schedules reminders for all students in the courses associated with the event.
      *
@@ -418,9 +418,9 @@ public class EventService {
                     // Save the new message id to the event
                     eventJpa.setMessageId(success.getIdLong());
                     eventRepository.save(eventJpa);
-                    log.info("Event reposted (id:%d) in channel %s".formatted(eventJpa.getId(), success.getChannel().getName()));
+                    log.info("Event reposted (id:{}) in channel {}", eventJpa.getId(), success.getChannel().getName());
                 },
-                error -> log.error("Failed to repost event (id:%d) in channel %s".formatted(eventJpa.getId(), channel.getName()))
+                error -> log.error("Failed to repost event (id:{}) in channel {}", eventJpa.getId(), channel.getName())
             );
     }
 
@@ -438,7 +438,7 @@ public class EventService {
                 eventJpa.setMessageId(success.getIdLong());
                 eventRepository.save(eventJpa);
                 request.sendResponse("Event has been posted to the event channel. %s".formatted(success.getJumpUrl()), MessageMode.USER);
-                log.info("New event published (id:%d) in channel %s".formatted(eventJpa.getId(), success.getChannel().getName()));
+                log.info("New event published (id:{}) in channel {}", eventJpa.getId(), success.getChannel().getName());
             });
     }
 
