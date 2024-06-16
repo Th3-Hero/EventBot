@@ -2,6 +2,7 @@ package com.th3hero.eventbot.services;
 
 import com.th3hero.eventbot.commands.actions.SelectionAction;
 import com.th3hero.eventbot.commands.requests.InteractionRequest;
+import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.commands.requests.SelectionRequest;
 import com.th3hero.eventbot.dto.course.Course;
 import com.th3hero.eventbot.dto.course.CourseUpdate;
@@ -92,6 +93,10 @@ public class CourseService {
      * @return A select menu with all courses as options
      */
     public StringSelectMenu createCourseSelectionMenu(String selectMenuId, List<CourseJpa> defaultOptions) {
+        return createCourseSelectionMenu(selectMenuId, defaultOptions, 1);
+    }
+
+    public StringSelectMenu createCourseSelectionMenu(String selectMenuId, List<CourseJpa> defaultOptions, int minValues) {
         List<SelectOption> options = selectOptionFromJpas(courseRepository.findAll());
         if (options.isEmpty()) {
             log.error("No courses are currently setup.");
@@ -99,6 +104,7 @@ public class CourseService {
         }
         return StringSelectMenu.create(selectMenuId)
             .setPlaceholder("Select Courses")
+            .setMinValues(minValues)
             .setMaxValues(options.size())
             .addOptions(options)
             .setDefaultValues(defaultOptions.stream().map(CourseJpa::getCode).toList())
@@ -111,10 +117,11 @@ public class CourseService {
             .addActionRow(
                 createCourseSelectionMenu(
                     SelectionAction.SELECT_COURSES.toString(),
-                    studentService.fetchStudent(request.getRequester().getIdLong()).getCourses()
+                    studentService.fetchStudent(request.getRequester().getIdLong()).getCourses(),
+                    0
                 )
             ).build();
-        request.sendResponse(data, InteractionRequest.MessageMode.USER);
+        request.sendResponse(data, MessageMode.USER);
     }
 
     /**
@@ -140,6 +147,7 @@ public class CourseService {
     public void processStudentSelectedCourses(SelectionRequest request) {
         StudentJpa studentJpa = studentService.fetchStudent(request.getRequester().getIdLong());
 
+
         // Get the new list of selected course
         List<CourseJpa> updatedCourses = coursesFromCourseCodes(request.getEvent().getValues());
         List<CourseJpa> removedCourses = studentJpa.getCourses().stream()
@@ -153,6 +161,11 @@ public class CourseService {
         }
 
         studentJpa.getCourses().clear();
+        if (request.getEvent().getValues().isEmpty()) {
+            request.sendResponse("No courses selected. You will not receive notifications for any courses.", MessageMode.USER);
+            return;
+        }
+
         studentJpa.getCourses().addAll(updatedCourses);
 
         // Add reminders for any new courses
@@ -163,7 +176,7 @@ public class CourseService {
 
         request.sendResponse(
             EmbedBuilderFactory.selectedCourses(studentJpa.getCourses()),
-            InteractionRequest.MessageMode.USER
+            MessageMode.USER
         );
     }
 

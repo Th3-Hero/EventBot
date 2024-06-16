@@ -80,7 +80,7 @@ public class StudentService {
      */
     public void reminderOffsetSubcommandHandler(CommandRequest request) {
         ReminderConfigOptions option = Optional.ofNullable(EnumUtils.getEnumIgnoreCase(
-            ReminderConfigOptions.class,
+                ReminderConfigOptions.class,
                 request.getArguments().get("sub_command"))
             )
             .orElseThrow(() -> new IllegalInteractionException("Unknown sub command %s".formatted(request.getArguments().get("sub_command"))));
@@ -97,6 +97,7 @@ public class StudentService {
 
     /**
      * Schedules a student for reminders on an event.
+     *
      * @param eventJpa the event to schedule the student for
      * @param studentJpa the student to schedule reminders for
      */
@@ -126,10 +127,20 @@ public class StudentService {
 
     /**
      * Removes a course from all students.
+     *
      * @param courseJpa the course to remove from all students
      */
     public void removeCourseFromAllStudents(CourseJpa courseJpa) {
         studentRepository.findAllByCoursesContains(courseJpa).forEach(studentJpa -> studentJpa.getCourses().remove(courseJpa));
+    }
+
+    public void notificationTest(CommandRequest request) {
+        request.getRequester().getUser().openPrivateChannel().queue(
+            channel -> channel.sendMessage("This is a test notification. You're all good to receive reminders from the bot for your selected courses.").queue(
+                success -> request.sendResponse("Test notification sent.", MessageMode.USER),
+                error -> request.sendResponse("Failed to send test notification. Make sure your discord settings allow direct messages from server members.", MessageMode.USER)
+            )
+        );
     }
 
     public enum ReminderConfigOptions {
@@ -160,12 +171,12 @@ public class StudentService {
         }
         studentJpa.getReminderOffsetTimes().add(newOffset);
         eventRepository.findAllByCourse(studentJpa.getCourses())
-                .forEach(event -> schedulingService.addEventReminderTrigger(
-                    event.getId(),
-                    studentJpa.getId(),
-                    newOffset,
-                    event.getEventDate().minusHours(newOffset)
-                ));
+            .forEach(event -> schedulingService.addEventReminderTrigger(
+                event.getId(),
+                studentJpa.getId(),
+                newOffset,
+                event.getEventDate().minusHours(newOffset)
+            ));
         request.sendResponse("You will now be reminded %d hours before an event.".formatted(newOffset), MessageMode.USER);
     }
 
@@ -177,11 +188,11 @@ public class StudentService {
         }
         studentJpa.getReminderOffsetTimes().remove(targetOffset);
         eventRepository.findAllByCourse(studentJpa.getCourses())
-                .forEach(event -> schedulingService.removeEventReminderTriggers(
-                    event.getId(),
-                    studentJpa.getId(),
-                    targetOffset
-                ));
+            .forEach(event -> schedulingService.removeEventReminderTriggers(
+                event.getId(),
+                studentJpa.getId(),
+                targetOffset
+            ));
         request.sendResponse("You will no longer be reminded %d hours before an event.".formatted(targetOffset), MessageMode.USER);
     }
 }

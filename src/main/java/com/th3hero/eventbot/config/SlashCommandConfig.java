@@ -29,6 +29,7 @@ public class SlashCommandConfig {
     public void registerSlashCommands() {
         jda.updateCommands().addCommands(
             Commands.slash(Command.HELP.getDisplayName(), Command.DESCRIPTIONS.get(Command.HELP.getDisplayName())),
+            Commands.slash(Command.TEST_NOTIFICATION.getDisplayName(), Command.DESCRIPTIONS.get(Command.TEST_NOTIFICATION.getDisplayName())),
             Commands.slash(Command.SELECT_COURSES.getDisplayName(), Command.DESCRIPTIONS.get(Command.SELECT_COURSES.getDisplayName())),
             Commands.slash(Command.MY_COURSES.getDisplayName(), Command.DESCRIPTIONS.get(Command.MY_COURSES.getDisplayName())),
             Commands.slash(Command.CREATE_EVENT.getDisplayName(), Command.DESCRIPTIONS.get(Command.CREATE_EVENT.getDisplayName())).addOptions(

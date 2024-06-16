@@ -2,12 +2,14 @@ package com.th3hero.eventbot.services;
 
 import com.th3hero.eventbot.TestEntities;
 import com.th3hero.eventbot.commands.requests.InteractionRequest;
+import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.commands.requests.SelectionRequest;
 import com.th3hero.eventbot.dto.course.CourseUpdate;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.repositories.CourseRepository;
 import com.th3hero.eventbot.repositories.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.AutoCompleteQuery;
@@ -269,7 +271,39 @@ class CourseServiceTest {
 
         verify(schedulingService).removeEventReminderTriggers(anyLong(), anyLong());
         verify(studentService).scheduleStudentForEvent(any(), eq(student));
-        verify(request).sendResponse(any(), eq(InteractionRequest.MessageMode.USER));
+        verify(request).sendResponse(any(), eq(MessageMode.USER));
+    }
+
+    @Test
+    void processStudentSelectedCourses_noCoursesSelected() {
+        final var request = mock(SelectionRequest.class);
+        final var event = mock(StringSelectInteractionEvent.class);
+        final var courseOne = TestEntities.courseJpa(1);
+        final var courseTwo = TestEntities.courseJpa(2);
+        final var courseThree = TestEntities.courseJpa(3);
+        final var student = TestEntities.studentJpa(1, List.of(courseOne, courseTwo, courseThree));
+        final var removedCourses = List.of(courseOne, courseTwo, courseThree);
+        final var eventsToRemove = List.of(TestEntities.eventJpaWithId(1));
+        final var member = TestEntities.member();
+
+        when(request.getRequester())
+            .thenReturn(member);
+        when(request.getEvent())
+            .thenReturn(event);
+        when(event.getValues())
+            .thenReturn(List.of());
+        when(studentService.fetchStudent(student.getId()))
+            .thenReturn(student);
+        when(eventRepository.findAllByCourse(removedCourses))
+            .thenReturn(eventsToRemove);
+
+        courseService.processStudentSelectedCourses(request);
+
+        verify(request).sendResponse("No courses selected. You will not receive notifications for any courses.", MessageMode.USER);
+        verify(eventRepository).findAllByCourse(any());
+        verify(schedulingService).removeEventReminderTriggers(anyLong(), anyLong());
+        verify(studentService, never()).scheduleStudentForEvent(any(), any());
+        verify(request, never()).sendResponse(any(MessageEmbed.class), any());
     }
 
     @Test

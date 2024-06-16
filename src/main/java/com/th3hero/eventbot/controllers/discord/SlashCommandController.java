@@ -63,6 +63,7 @@ public class SlashCommandController extends ListenerAdapter {
             case CREATE_EVENT -> eventDraftService.createEventDraft(request);
             case REMINDER_OFFSETS_CONFIG -> studentService.reminderOffsetSubcommandHandler(request);
             case VIEW_EVENTS -> eventService.filterViewEvents(request);
+            case TEST_NOTIFICATION -> studentService.notificationTest(request);
             default -> log.error("Received an unsupported command: {}", request.getEvent().getName());
         }
     }
