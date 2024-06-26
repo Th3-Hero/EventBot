@@ -288,6 +288,8 @@ class CourseServiceTest {
 
         when(request.getRequester())
             .thenReturn(member);
+        when(member.getIdLong())
+            .thenReturn(student.getId());
         when(request.getEvent())
             .thenReturn(event);
         when(event.getValues())

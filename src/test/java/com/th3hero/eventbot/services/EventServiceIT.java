@@ -60,16 +60,6 @@ class EventServiceIT {
     private StudentRepository studentRepository;
     @Autowired
     private ConfigRepository configRepository;
-    @Autowired
-    private CourseService courseService;
-    @Autowired
-    private ConfigService configService;
-    @Autowired
-    private EventDraftRepository eventDraftRepository;
-    @Autowired
-    private SchedulingService schedulingService;
-    @Autowired
-    private StudentService studentService;
 
     @Autowired
     private EventService eventService;
@@ -98,10 +88,10 @@ class EventServiceIT {
         final var eventFour = createEvent(4, courseOne);
         eventFour.setEventDate(currentDate.plusDays(3));
         // after min and max
-        final var eventFive = createEvent(6, courseOne);
+        final var eventFive = createEvent(5, courseOne);
         eventFive.setEventDate(currentDate.plusDays(20));
         // doesn't match course
-        final var eventSix = createEvent(7, courseTwo);
+        final var eventSix = createEvent(6, courseTwo);
         eventSix.setEventDate(currentDate.plusDays(1));
         final var events = List.of(eventOne, eventTwo, eventThree, eventFour, eventFive, eventSix);
         eventRepository.saveAllAndFlush(events);
@@ -176,7 +166,7 @@ class EventServiceIT {
         final var eventFour = createEvent(4, courseOne);
         eventFour.setEventDate(currentDate.plusDays(30));
         // doesn't match course
-        final var eventFive = createEvent(7, courseTwo);
+        final var eventFive = createEvent(5, courseTwo);
         eventFive.setEventDate(currentDate.plusDays(1));
         final var events = List.of(eventOne, eventTwo, eventThree, eventFour, eventFive);
         eventRepository.saveAllAndFlush(events);
@@ -249,10 +239,10 @@ class EventServiceIT {
         final var eventFour = createEvent(4, courseOne);
         eventFour.setEventDate(currentDate.plusDays(3));
         // after min and max
-        final var eventFive = createEvent(6, courseOne);
+        final var eventFive = createEvent(5, courseOne);
         eventFive.setEventDate(currentDate.plusDays(20));
         // doesn't match course
-        final var eventSix = createEvent(7, courseTwo);
+        final var eventSix = createEvent(6, courseTwo);
         eventSix.setEventDate(currentDate.plusDays(1));
         final var events = List.of(eventOne, eventTwo, eventThree, eventFour, eventFive, eventSix);
         eventRepository.saveAllAndFlush(events);
@@ -323,10 +313,10 @@ class EventServiceIT {
         // after min and before max
         final var eventTwo = createEvent(2, courseOne);
         eventTwo.setEventDate(currentDate.plusDays(1));
-        final var eventThree = createEvent(6, courseOne);
+        final var eventThree = createEvent(3, courseOne);
         eventThree.setEventDate(currentDate.plusDays(20));
         // doesn't match course
-        final var eventFour = createEvent(7, courseTwo);
+        final var eventFour = createEvent(4, courseTwo);
         eventFour.setEventDate(currentDate.plusDays(3));
         final var events = List.of(eventOne, eventTwo, eventThree, eventFour);
         eventRepository.saveAllAndFlush(events);
@@ -391,7 +381,6 @@ class EventServiceIT {
 
     private EventJpa createEvent(int seed, CourseJpa course) {
         return EventJpa.builder()
-            .id((long) seed)
             .authorId(1234L + seed)
             .messageId(1234L + seed)
             .title("Test Event%s".formatted(seed))

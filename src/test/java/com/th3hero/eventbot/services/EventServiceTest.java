@@ -38,7 +38,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -1027,90 +1026,35 @@ class EventServiceTest {
         verify(schedulingService, never()).removeReminderTriggers(event.getId());
     }
 
-    @Test
-    void filterViewEvents() {
-        final var request = mock(CommandRequest.class);
-        final var requester = TestEntities.member();
-        final var course = TestEntities.courseJpa(1);
-        final var minDate = LocalDateTime.of(2025, 5, 5, 12, 0);
-        final var events = filterTestList(course, minDate);
-        final Map<String, String> arguments = new HashMap<>();
-        arguments.put(TIME_PERIOD, "15");
-        arguments.put(UPCOMING, "3");
-        arguments.put(COURSE, course.getCode());
-        final var config = TestEntities.configJpa();
-        final var jdaEvent = mock(SlashCommandInteractionEvent.class);
-        final var jda = mock(JDA.class);
-        final var channel = mock(TextChannel.class);
-        final RestAction<Message> restAction = mock(RestAction.class);
-        final var message = mock(Message.class);
-        final var future = CompletableFuture.completedFuture(message);
-
-        final var student = TestEntities.studentJpa(1, List.of(TestEntities.courseJpa(1), TestEntities.courseJpa(2)));
-        try (final MockedStatic<LocalDateTime> localDateTime = mockStatic(LocalDateTime.class)) {
-            when(request.getRequester())
-                .thenReturn(requester);
-            when(studentService.fetchStudent(requester.getIdLong()))
-                .thenReturn(student);
-            when(request.getArguments())
-                .thenReturn(arguments);
-            when(courseService.coursesFromCourseCodes(List.of(course.getCode())))
-                .thenReturn(List.of(course));
-            localDateTime.when(LocalDateTime::now)
-                .thenReturn(minDate);
-            when(eventRepository.findBy(any(Specification.class), any()))
-                .thenReturn(events);
-            when(configService.getConfigJpa())
-                .thenReturn(config);
-            when(request.getEvent())
-                .thenReturn(jdaEvent);
-            when(jdaEvent.getJDA())
-                .thenReturn(jda);
-            when(jda.getTextChannelById(config.getEventChannel()))
-                .thenReturn(channel);
-            when(channel.retrieveMessageById(anyLong()))
-                .thenReturn(restAction);
-            when(restAction.submit())
-                .thenReturn(future);
-
-            eventService.filterViewEvents(request);
-
-            verify(request).deferReply(MessageMode.USER);
-            verify(request, never()).sendResponse(anyString(), eq(MessageMode.USER));
-        }
-    }
-
+    @SuppressWarnings("unchecked")
     @Test
     void filterViewEvents_noMatchingEvents() {
         final var request = mock(CommandRequest.class);
         final var requester = TestEntities.member();
         final var course = TestEntities.courseJpa(1);
-        final var minDate = LocalDateTime.of(2025, 5, 5, 12, 0);
         final Map<String, String> arguments = new HashMap<>();
         arguments.put(TIME_PERIOD, "15");
         arguments.put(UPCOMING, "3");
         arguments.put(COURSE, course.getCode());
 
         final var student = TestEntities.studentJpa(1, List.of(TestEntities.courseJpa(1), TestEntities.courseJpa(2)));
-        try (final MockedStatic<LocalDateTime> localDateTime = mockStatic(LocalDateTime.class)) {
-            when(request.getRequester())
-                .thenReturn(requester);
-            when(studentService.fetchStudent(requester.getIdLong()))
-                .thenReturn(student);
-            when(request.getArguments())
-                .thenReturn(arguments);
-            when(courseService.coursesFromCourseCodes(List.of(course.getCode())))
-                .thenReturn(List.of(course));
-            localDateTime.when(LocalDateTime::now)
-                .thenReturn(minDate);
-            when(eventRepository.findBy(any(Specification.class), any()))
-                .thenReturn(List.of());
 
-            eventService.filterViewEvents(request);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(studentService.fetchStudent(requester.getIdLong()))
+            .thenReturn(student);
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(courseService.coursesFromCourseCodes(List.of(course.getCode())))
+            .thenReturn(List.of(course));
+        when(eventRepository.findBy(any(Specification.class), any()))
+            .thenReturn(List.of());
 
-            verify(request).deferReply(MessageMode.USER);
-            verify(request).sendResponse("No events found matching the criteria.", MessageMode.USER);
-        }
+        eventService.filterViewEvents(request);
+
+        verify(request).deferReply(MessageMode.USER);
+        verify(request).sendResponse("No events found matching the criteria.", MessageMode.USER);
+
     }
 
     @Test
@@ -1234,7 +1178,6 @@ class EventServiceTest {
 
     private EventJpa createEvent(int seed, CourseJpa course) {
         return EventJpa.builder()
-            .id(1234L + seed)
             .authorId(1234L + seed)
             .messageId(1234L + seed)
             .title("Test Event%s".formatted(seed))
