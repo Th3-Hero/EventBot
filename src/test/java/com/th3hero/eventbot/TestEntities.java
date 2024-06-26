@@ -32,10 +32,10 @@ public class TestEntities {
 
     // DTOs
     public static ConfigUpload configUpload() {
-        return new ConfigUpload(1234L, 48, 24);
+        return new ConfigUpload(1234L, 69L, 48, 24);
     }
     public static ConfigUpload configUpload_nullDefaults() {
-        return new ConfigUpload(1234L, null, null);
+        return new ConfigUpload(1234L, 4321L, null, null);
     }
 
     public static CourseUpload courseUpload(int seed) {
@@ -57,6 +57,7 @@ public class TestEntities {
     public static ConfigJpa configJpa() {
         return ConfigJpa.builder()
             .id(1234)
+            .serverId(5678L)
             .eventChannel(4321L)
             .build();
     }

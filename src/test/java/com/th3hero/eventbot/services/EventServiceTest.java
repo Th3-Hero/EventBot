@@ -1133,24 +1133,6 @@ class EventServiceTest {
         verify(request, never()).deferReply(any());
     }
 
-//    @Test
-//    void filterViewEvents_noTimePeriodSpecified() {
-//        // NOTE: I really don't know how to test these at this point
-//        assertThat(true).isFalse();
-//    }
-//
-//    @Test
-//    void filterViewEvents_noUpcomingSpecified() {
-//
-//        assertThat(true).isFalse();
-//    }
-//
-//    @Test
-//    void filterViewEvents_noCourseSpecified() {
-//
-//        assertThat(true).isFalse();
-//    }
-
     @SuppressWarnings("unchecked")
     @Test
     void sendAllEventsToEventChannel() {

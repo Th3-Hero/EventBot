@@ -49,6 +49,7 @@ public class ConfigService {
         }
 
         ConfigJpa.ConfigJpaBuilder configJpaBuilder = ConfigJpa.builder()
+            .serverId(configUpload.serverId())
             .eventChannel(configUpload.eventChannel());
 
         if (configUpload.deletedEventCleanupDelay() != null) {
@@ -68,6 +69,10 @@ public class ConfigService {
         }
 
         ConfigJpa configJpa = getConfigJpa();
+
+        if(configUpload.serverId() != null) {
+            configJpa.setServerId(configUpload.serverId());
+        }
         if (configUpload.deletedEventCleanupDelay() != null) {
             configJpa.setDeletedEventCleanupDelay(configUpload.deletedEventCleanupDelay());
         }

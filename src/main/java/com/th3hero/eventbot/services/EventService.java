@@ -17,6 +17,7 @@ import com.th3hero.eventbot.formatting.InteractionArguments;
 import com.th3hero.eventbot.repositories.EventDraftRepository;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
+import com.th3hero.eventbot.utils.DiscordUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
@@ -41,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static com.th3hero.eventbot.formatting.InteractionArguments.EVENT_ID;
 import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
@@ -356,7 +356,7 @@ public class EventService {
         }
         return true;
     }
-    {}
+
     /**
      * Schedules reminders for all students in the courses associated with the event.
      *
@@ -477,26 +477,11 @@ public class EventService {
 
         ConfigJpa configJpa = configService.getConfigJpa();
 
-        TextChannel channel = Optional.ofNullable(request.getEvent().getJDA().getTextChannelById(configJpa.getEventChannel()))
-            .orElseThrow(() -> new ConfigErrorException("The event channel could not be found. Please contact a bot administrator."));
-
-
-        // Retrieve all the messages associated with the events and store them in a map
-        Map<EventJpa, CompletableFuture<Message>> futureMap = new LinkedHashMap<>();
+        Map<EventJpa, String> eventMessageMap = new LinkedHashMap<>();
         for (EventJpa event : events) {
-            futureMap.put(event, channel.retrieveMessageById(event.getMessageId()).submit());
+            eventMessageMap.put(event, DiscordUtils.generateJumpUrl(configJpa, event.getMessageId()));
         }
 
-        // Once all the messages have been retrieved, send the list of events
-        CompletableFuture.allOf(futureMap.values().toArray(new CompletableFuture[0]))
-            .thenRun(() -> {
-                    Map<EventJpa, String> eventMessageMap = new LinkedHashMap<>();
-                    for (EventJpa event : events) {
-                        eventMessageMap.put(event, futureMap.get(event).join().getJumpUrl());
-                    }
-
-                    request.sendResponse(EmbedBuilderFactory.listEvents(eventMessageMap), MessageMode.USER);
-                }
-            );
+        request.sendResponse(EmbedBuilderFactory.listEvents(eventMessageMap), MessageMode.USER);
     }
 }

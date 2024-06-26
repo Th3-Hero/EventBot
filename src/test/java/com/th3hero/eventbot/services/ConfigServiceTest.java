@@ -107,7 +107,7 @@ class ConfigServiceTest {
     @Test
     void updateConfig() {
         final var configJpa = TestEntities.configJpa();
-        final var configUpdate = new ConfigUpdate(69420L, 69, 420);
+        final var configUpdate = new ConfigUpdate(69420L, 52L, 69, 420);
 
         when(configRepository.findAll())
             .thenReturn(List.of(configJpa));
@@ -117,6 +117,7 @@ class ConfigServiceTest {
         final var result = configService.updateConfig(configUpdate);
 
         verify(configRepository, times(2)).save(argThat(config ->
+            config.getServerId().equals(configUpdate.serverId()) &&
             config.getEventChannel().equals(configUpdate.eventChannel()) &&
             config.getDeletedEventCleanupDelay().equals(configUpdate.deletedEventCleanupDelay()) &&
             config.getDraftCleanupDelay().equals(configUpdate.draftCleanupDelay())
@@ -125,8 +126,25 @@ class ConfigServiceTest {
     }
 
     @Test
+    void updateConfig_updatingServerId() {
+        final var configUpdate = new ConfigUpdate(69420L, null, null, null);
+
+        when(configRepository.findAll())
+            .thenReturn(List.of(TestEntities.configJpa()));
+        when(configRepository.save(any(ConfigJpa.class)))
+            .thenReturn(TestEntities.configJpa());
+
+        final var result = configService.updateConfig(configUpdate);
+
+        verify(configRepository).save(argThat(config ->
+            config.getServerId().equals(configUpdate.serverId())
+        ));
+        assertThat(result).isNotNull();
+    }
+
+    @Test
     void updateConfig_updatingEventChannel() {
-        final var configUpdate = new ConfigUpdate(69420L, null, null);
+        final var configUpdate = new ConfigUpdate(null, 69420L, null, null);
 
         when(configRepository.findAll())
             .thenReturn(List.of(TestEntities.configJpa()));
@@ -143,7 +161,7 @@ class ConfigServiceTest {
 
     @Test
     void updateConfig_updatingDeletedEventCleanupDelay() {
-        final var configUpdate = new ConfigUpdate(null, 128, null);
+        final var configUpdate = new ConfigUpdate(null, null, 128, null);
 
         when(configRepository.findAll())
             .thenReturn(List.of(TestEntities.configJpa()));
@@ -160,7 +178,7 @@ class ConfigServiceTest {
 
     @Test
     void updateConfig_updatingDraftCleanupDelay() {
-        final var configUpdate = new ConfigUpdate(null, null, 128);
+        final var configUpdate = new ConfigUpdate(null, null, null, 128);
 
         when(configRepository.findAll())
             .thenReturn(List.of(TestEntities.configJpa()));

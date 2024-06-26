@@ -25,6 +25,10 @@ public class ConfigJpa implements Serializable {
     @Column(name = "id")
     private Integer id;
 
+    @NonNull
+    @Column
+    private Long serverId;
+
     @NotNull
     @Column
     private Long eventChannel;
@@ -46,6 +50,7 @@ public class ConfigJpa implements Serializable {
     public Config toDto() {
         return new Config(
             this.getId(),
+            this.getServerId(),
             this.getEventChannel(),
             this.getDeletedEventCleanupDelay(),
             this.getDraftCleanupDelay()
