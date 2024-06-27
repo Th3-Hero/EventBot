@@ -1,6 +1,7 @@
 package com.th3hero.eventbot.factories;
 
 import com.th3hero.eventbot.commands.actions.Command;
+import com.th3hero.eventbot.dto.management.Announcement;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
@@ -240,6 +241,24 @@ public final class EmbedBuilderFactory {
         }
 
         return embedBuilder.build();
+    }
+
+    public static MessageEmbed announcementEmbed(Announcement announcement) {
+        final var builder = new EmbedBuilder()
+            .setTitle(announcement.title())
+            .setColor(RED);
+
+        if (announcement.description() != null) {
+            builder.setDescription(announcement.description());
+        }
+
+        if (announcement.fields() != null) {
+            for (var field : announcement.fields()) {
+                builder.addField(field.title(), field.content(), false);
+            }
+        }
+
+        return builder.build();
     }
 
     private static MessageEmbed eventLayout(String title, String note, String date, String type, List<CourseJpa> courses, String authorMention) {

@@ -70,7 +70,7 @@ public class ConfigService {
 
         ConfigJpa configJpa = getConfigJpa();
 
-        if(configUpload.serverId() != null) {
+        if (configUpload.serverId() != null) {
             configJpa.setServerId(configUpload.serverId());
         }
         if (configUpload.deletedEventCleanupDelay() != null) {
