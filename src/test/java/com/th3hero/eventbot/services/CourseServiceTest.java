@@ -1,7 +1,6 @@
 package com.th3hero.eventbot.services;
 
 import com.th3hero.eventbot.TestEntities;
-import com.th3hero.eventbot.commands.requests.InteractionRequest;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.commands.requests.SelectionRequest;
 import com.th3hero.eventbot.dto.course.CourseUpdate;

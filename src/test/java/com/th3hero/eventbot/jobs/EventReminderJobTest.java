@@ -4,6 +4,7 @@ import com.th3hero.eventbot.TestEntities;
 import com.th3hero.eventbot.exceptions.MissingEventChannelException;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
+import com.th3hero.eventbot.utils.DiscordUtils;
 import jakarta.persistence.EntityNotFoundException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -54,9 +55,6 @@ class EventReminderJobTest {
         dataMap.put(EventReminderJob.EVENT_ID, event.getId());
         dataMap.put(EventReminderJob.STUDENT_ID, studentId);
         dataMap.put(EventReminderJob.OFFSET_ID, offset);
-        final var channel = mock(TextChannel.class);
-        final RestAction<Message> messageRestAction = mock(RestAction.class);
-        final var message = mock(Message.class);
         final var user = mock(User.class);
         final CacheRestAction<PrivateChannel> privateChannelRestAction = mock(CacheRestAction.class);
         final var privateChannel = mock(PrivateChannel.class);
@@ -70,10 +68,6 @@ class EventReminderJobTest {
             .thenReturn(Optional.of(event));
         when(configService.getConfigJpa())
             .thenReturn(config);
-        when(jda.getTextChannelById(config.getEventChannel()))
-            .thenReturn(channel);
-        when(channel.retrieveMessageById(event.getMessageId()))
-            .thenReturn(messageRestAction);
         when(jda.getUserById(studentId))
             .thenReturn(user);
         when(user.openPrivateChannel())
@@ -81,21 +75,13 @@ class EventReminderJobTest {
         when(privateChannel.sendMessage(anyString()))
             .thenReturn(messageCreateAction);
 
-
         eventReminderJob.execute(executionContext);
-
-        final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
-        verify(channel.retrieveMessageById(event.getMessageId()))
-            .queue(messageCaptor.capture(), any(Consumer.class));
-        final Consumer<Message> messageConsumer = messageCaptor.getValue();
-        messageConsumer.accept(message);
-        verify(message).getJumpUrl();
 
         final ArgumentCaptor<Consumer<PrivateChannel>> privateChannelCaptor = ArgumentCaptor.forClass(Consumer.class);
         verify(privateChannelRestAction).queue(privateChannelCaptor.capture());
         final Consumer<PrivateChannel> privateChannelConsumer = privateChannelCaptor.getValue();
         privateChannelConsumer.accept(privateChannel);
-        verify(privateChannel).sendMessage(anyString());
+        verify(privateChannel).sendMessage("%d hour reminder for event: %s".formatted(offset, DiscordUtils.generateJumpUrl(configService.getConfigJpa(), event.getMessageId())));
     }
 
     @Test
@@ -114,30 +100,6 @@ class EventReminderJobTest {
             .thenReturn(Optional.empty());
 
         assertThatExceptionOfType(EntityNotFoundException.class)
-            .isThrownBy(() -> eventReminderJob.execute(executionContext));
-    }
-
-    @Test
-    void execute_missingEventChannel() {
-        final Trigger trigger = mock(Trigger.class);
-        final var event = TestEntities.eventJpaWithId(1);
-        final var config = TestEntities.configJpa();
-        final JobExecutionContext executionContext = mock(JobExecutionContext.class);
-        final JobDataMap dataMap = new JobDataMap();
-        dataMap.put(EventReminderJob.EVENT_ID, event.getId());
-
-        when(executionContext.getTrigger())
-            .thenReturn(trigger);
-        when(trigger.getJobDataMap())
-            .thenReturn(dataMap);
-        when(eventRepository.findById(event.getId()))
-            .thenReturn(Optional.of(event));
-        when(configService.getConfigJpa())
-            .thenReturn(config);
-        when(jda.getTextChannelById(config.getEventChannel()))
-            .thenReturn(null);
-
-        assertThatExceptionOfType(MissingEventChannelException.class)
             .isThrownBy(() -> eventReminderJob.execute(executionContext));
     }
 }

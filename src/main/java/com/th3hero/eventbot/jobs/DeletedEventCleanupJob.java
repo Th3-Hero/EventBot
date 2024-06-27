@@ -2,7 +2,6 @@ package com.th3hero.eventbot.jobs;
 
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.EventJpa;
-import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.exceptions.MissingEventChannelException;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;

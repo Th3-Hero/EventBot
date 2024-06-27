@@ -2,17 +2,14 @@ package com.th3hero.eventbot.jobs;
 
 
 import com.th3hero.eventbot.entities.EventJpa;
-import com.th3hero.eventbot.exceptions.ConfigErrorException;
-import com.th3hero.eventbot.exceptions.MissingEventChannelException;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
-import com.th3hero.eventbot.utils.DiscordActionUtils;
+import com.th3hero.eventbot.utils.DiscordUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -38,19 +35,12 @@ public class EventReminderJob implements Job {
         final EventJpa eventJpa = eventRepository.findById(eventId)
             .orElseThrow(() -> new EntityNotFoundException("Failed to find event in the database when trying to send a reminder. Event id: %d".formatted(eventId)));
 
-        TextChannel channel = Optional.ofNullable(jda.getTextChannelById(configService.getConfigJpa().getEventChannel()))
-            .orElseThrow(() -> new MissingEventChannelException("Failed to retrieve the event channel for the event bot. Make sure the config is setup correctly."));
-
         Long userId = executionContext.getTrigger().getJobDataMap().getLong(STUDENT_ID);
         int offset = executionContext.getTrigger().getJobDataMap().getInt(OFFSET_ID);
 
-        // Get the event message and send the reminder to the user with the link to the message
-        DiscordActionUtils.retrieveMessage(
-            channel,
-            eventJpa.getMessageId(),
-            message -> sendUserReminder(userId, offset, message.getJumpUrl()),
-            err -> log.warn("Failed to find message for event {}", eventId)
-        );
+        String eventJumpUrl = DiscordUtils.generateJumpUrl(configService.getConfigJpa(), eventJpa.getMessageId());
+
+        sendUserReminder(userId, offset, eventJumpUrl);
     }
 
     private void sendUserReminder(Long userId, int offset, String jumpUrl) {
