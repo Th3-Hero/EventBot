@@ -34,7 +34,7 @@ public final class ButtonFactory {
      */
     public static ActionRow eventButtons(Long eventId) {
         return ActionRow.of(
-            Button.success(InteractionArguments.createInteractionIdString(ButtonAction.MARK_COMPLETE, eventId), "Mark Complete"),
+            Button.success(InteractionArguments.createInteractionIdString(ButtonAction.TOGGLE_COMPLETED, eventId), "Toggle Completed"),
             Button.primary(InteractionArguments.createInteractionIdString(ButtonAction.EDIT_EVENT, eventId), "Edit Event"),
             Button.danger(InteractionArguments.createInteractionIdString(ButtonAction.DELETE_EVENT, eventId), "Delete Event")
         );

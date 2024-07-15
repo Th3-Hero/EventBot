@@ -140,14 +140,25 @@ public class EventService {
 
     }
 
-    public void markEventComplete(ButtonRequest request) {
-        Long eventId = request.getArguments().get(EVENT_ID);
-        if (!eventRepository.existsByIdAndDeletedIsFalse(eventId)) {
-            request.sendResponse(FAILED_TO_FIND_EVENT.formatted(eventId), MessageMode.USER);
-            log.error("User tried to mark a deleted event as complete (id: {})", eventId);
+    public void toggleEventCompleted(ButtonRequest request) {
+        StudentJpa studentJpa = studentService.fetchStudent(request.getRequester().getIdLong());
+        EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
+            .orElseThrow(() -> new EntityNotFoundException(FAILED_TO_FIND_EVENT.formatted(request.getArguments().get(EVENT_ID))));
+        if (eventJpa.getDeleted()) {
+            request.sendResponse("This event has been deleted, actions cannot be preformed on it.", MessageMode.USER);
+            log.error("User tried to mark a deleted event as complete (id: {})", eventJpa.getId());
             return;
         }
-        studentService.unscheduleStudentRemindersForEvent(request, eventId);
+
+        if (studentJpa.getCompletedEvents().contains(eventJpa)) {
+            request.sendResponse("Reminders have been re-enabled for this event.", MessageMode.USER);
+            studentJpa.getCompletedEvents().remove(eventJpa);
+            studentService.scheduleStudentForEvent(eventJpa, studentJpa);
+            return;
+        }
+
+        studentService.unscheduleStudentRemindersForEvent(request, eventJpa.getId());
+        studentJpa.getCompletedEvents().add(eventJpa);
     }
 
     public void sendEventEditOptions(ButtonRequest request) {

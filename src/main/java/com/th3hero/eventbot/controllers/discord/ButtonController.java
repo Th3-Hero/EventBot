@@ -58,7 +58,7 @@ public class ButtonController extends ListenerAdapter {
             case EDIT_EVENT_COURSES -> eventService.sendEventEditCourses(request);
             case DELETE_EVENT -> eventService.sendDeleteConformation(request);
             case UNDO_EVENT_DELETION -> eventService.undoEventDeletion(request);
-            case MARK_COMPLETE -> eventService.markEventComplete(request);
+            case TOGGLE_COMPLETED -> eventService.toggleEventCompleted(request);
             default ->
                 log.error("Received an unsupported button action: {}", request.getEvent().getButton().getId());
         }

@@ -440,37 +440,112 @@ class EventServiceTest {
     }
 
     @Test
-    void markEventComplete() {
+    void toggleEventCompleted_notCompleted() {
         final var request = mock(ButtonRequest.class);
+        final var requester = TestEntities.member();
         final var event = TestEntities.eventJpaWithId(1);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
+        final var student = TestEntities.studentJpa(1, List.of(event.getCourses().getFirst()));
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventRepository.existsByIdAndDeletedIsFalse(event.getId()))
-            .thenReturn(true);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(requester.getIdLong())
+            .thenReturn(student.getId());
+        when(studentService.fetchStudent(student.getId()))
+            .thenReturn(student);
+        when(eventRepository.findById(event.getId()))
+            .thenReturn(Optional.of(event));
 
-        eventService.markEventComplete(request);
+        eventService.toggleEventCompleted(request);
 
         verify(studentService).unscheduleStudentRemindersForEvent(request, event.getId());
+        verify(studentService, never()).scheduleStudentForEvent(event, student);
     }
 
     @Test
-    void markEventComplete_missingEvent() {
+    void toggleEventCompleted_alreadyCompleted() {
         final var request = mock(ButtonRequest.class);
-        final var eventId = 1234L;
+        final var requester = TestEntities.member();
+        final var event = TestEntities.eventJpaWithId(1);
         final Map<String, Long> arguments = new HashMap<>();
-        arguments.put(InteractionArguments.EVENT_ID, eventId);
+        arguments.put(InteractionArguments.EVENT_ID, event.getId());
+        final var student = TestEntities.studentJpa(1, List.of(event.getCourses().getFirst()));
+        student.getCompletedEvents().add(event);
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventRepository.existsByIdAndDeletedIsFalse(eventId))
-            .thenReturn(false);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(requester.getIdLong())
+            .thenReturn(student.getId());
+        when(studentService.fetchStudent(student.getId()))
+            .thenReturn(student);
+        when(eventRepository.findById(event.getId()))
+            .thenReturn(Optional.of(event));
 
-        eventService.markEventComplete(request);
+        eventService.toggleEventCompleted(request);
 
-        verify(request).sendResponse("Failed to find event %s".formatted(eventId), MessageMode.USER);
+        verify(studentService).scheduleStudentForEvent(event, student);
+        verify(request).sendResponse("Reminders have been re-enabled for this event.", MessageMode.USER);
+        verify(studentService, never()).unscheduleStudentRemindersForEvent(request, event.getId());
+    }
+
+    @Test
+    void toggleEventComplete_missingEvent() {
+        final var request = mock(ButtonRequest.class);
+        final var requester = TestEntities.member();
+        final var eventId = 1234L;
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(InteractionArguments.EVENT_ID, eventId);
+        final var student = TestEntities.studentJpa(1, List.of());
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(requester.getIdLong())
+            .thenReturn(student.getId());
+        when(studentService.fetchStudent(student.getId()))
+            .thenReturn(student);
+        when(eventRepository.findById(eventId))
+            .thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(EntityNotFoundException.class)
+            .isThrownBy(() -> eventService.toggleEventCompleted(request));
+
+        verify(studentService, never()).scheduleStudentForEvent(any(), any());
+        verify(studentService, never()).unscheduleStudentRemindersForEvent(any(), any());
+    }
+
+    @Test
+    void toggleEventCompleted_eventDeleted() {
+        final var request = mock(ButtonRequest.class);
+        final var requester = TestEntities.member();
+        final var event = TestEntities.eventJpaWithId(1);
+        event.setDeleted(true);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(InteractionArguments.EVENT_ID, event.getId());
+        final var student = TestEntities.studentJpa(1, List.of());
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(requester.getIdLong())
+            .thenReturn(student.getId());
+        when(studentService.fetchStudent(student.getId()))
+            .thenReturn(student);
+        when(eventRepository.findById(event.getId()))
+            .thenReturn(Optional.of(event));
+
+        eventService.toggleEventCompleted(request);
+
+        verify(request).sendResponse("This event has been deleted, actions cannot be preformed on it.", MessageMode.USER);
+        verify(studentService, never()).scheduleStudentForEvent(any(), any());
+        verify(studentService, never()).unscheduleStudentRemindersForEvent(any(), any());
     }
 
     @Test

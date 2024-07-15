@@ -131,7 +131,7 @@ class EventDraftServiceTest {
         when(eventDraftRepository.findById(1L))
             .thenReturn(Optional.of(draft));
         when(request.getAction())
-            .thenReturn(ButtonAction.MARK_COMPLETE);
+            .thenReturn(ButtonAction.TOGGLE_COMPLETED);
 
         assertThatExceptionOfType(IllegalInteractionException.class)
             .isThrownBy(() -> eventDraftService.handleEventDraftActions(request));

@@ -15,7 +15,7 @@ import java.util.Objects;
 @Setter
 @Entity
 @Builder
-@ToString(exclude = "courses")
+@ToString(exclude = {"courses", "completedEvents"})
 @Table(name = "student")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -32,6 +32,11 @@ public class StudentJpa implements Serializable {
     @OrderBy("code ASC")
     @ManyToMany
     private List<CourseJpa> courses = new ArrayList<>();
+
+    @Setter(AccessLevel.NONE)
+    @Builder.Default
+    @ManyToMany
+    private List<EventJpa> completedEvents = new ArrayList<>();
 
     @Setter(AccessLevel.NONE)
     @Builder.Default

@@ -124,7 +124,6 @@ public class TestEntities {
 
     public static EventJpa eventJpa(int seed, List<CourseJpa> courses) {
         return EventJpa.builder()
-//            .id(1234L + seed)
             .authorId(1234L + seed)
             .messageId(1234L + seed)
             .title("Test Event%s".formatted(seed))

@@ -21,7 +21,7 @@ public enum ButtonAction implements DiscordActionArguments {
     EDIT_EVENT_COURSES(List.of(EVENT_ID)),
     DELETE_EVENT(List.of(EVENT_ID)),
     UNDO_EVENT_DELETION(List.of(EVENT_ID)),
-    MARK_COMPLETE(List.of(EVENT_ID));
+    TOGGLE_COMPLETED(List.of(EVENT_ID));
 
 
     /**

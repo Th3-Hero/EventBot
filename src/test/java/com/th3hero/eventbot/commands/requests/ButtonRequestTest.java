@@ -26,7 +26,7 @@ class ButtonRequestTest {
         when(interactionEvent.getButton())
             .thenReturn(button);
         when(button.getId())
-            .thenReturn("MARK_COMPLETE-1234");
+            .thenReturn("TOGGLE_COMPLETED-1234");
         when(interactionEvent.getMember())
             .thenReturn(member);
         when(interactionEvent.getGuild())
@@ -37,7 +37,7 @@ class ButtonRequestTest {
         assertThat(request.getEvent()).isEqualTo(interactionEvent);
         assertThat(request.getRequester()).isEqualTo(member);
         assertThat(request.getServer()).isEqualTo(guild);
-        assertThat(request.getAction()).isEqualTo(ButtonAction.MARK_COMPLETE);
+        assertThat(request.getAction()).isEqualTo(ButtonAction.TOGGLE_COMPLETED);
         assertThat(request.getArguments()).containsEntry(InteractionArguments.EVENT_ID, 1234L);
     }
 
@@ -65,7 +65,7 @@ class ButtonRequestTest {
         when(interactionEvent.getButton())
             .thenReturn(button);
         when(button.getId())
-            .thenReturn("MARK_COMPLETE-not_a_number");
+            .thenReturn("TOGGLE_COMPLETED-not_a_number");
         when(interactionEvent.getMember())
             .thenReturn(member);
         when(interactionEvent.getGuild())
