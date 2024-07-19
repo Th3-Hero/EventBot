@@ -110,7 +110,8 @@ public class StudentService {
                 eventJpa.getId(),
                 studentJpa.getId(),
                 offset,
-                eventJpa.getEventDate().minusSeconds(offset)
+                eventJpa.getEventDate().minusSeconds(offset),
+                eventJpa.getEventDate()
             );
         }
     }
@@ -175,7 +176,8 @@ public class StudentService {
                 event.getId(),
                 studentJpa.getId(),
                 newOffset,
-                event.getEventDate().minusHours(newOffset)
+                event.getEventDate().minusHours(newOffset),
+                event.getEventDate()
             ));
         request.sendResponse("You will now be reminded %d hours before an event.".formatted(newOffset), MessageMode.USER);
     }

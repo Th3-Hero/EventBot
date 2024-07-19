@@ -37,6 +37,10 @@ public class DeletedEventCleanupJob implements Job {
         final EventJpa eventJpa = eventRepository.findById(eventId)
             .orElseThrow(() -> new EntityNotFoundException("Attempted to clean up deleted event that does not exist. Event id: %d".formatted(eventId)));
 
+        if (!eventJpa.getStatus().equals(EventJpa.EventStatus.DELETED)) {
+            throw new IllegalStateException("Attempted to cleanup an event that was no longer deleted. Cleanup trigger should have been removed. Event id: %d".formatted(eventId));
+        }
+
         final ConfigJpa config = configService.getConfigJpa();
 
         eventRepository.delete(eventJpa);

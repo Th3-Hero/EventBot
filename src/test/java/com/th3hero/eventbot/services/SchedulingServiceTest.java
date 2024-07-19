@@ -1,6 +1,7 @@
 package com.th3hero.eventbot.services;
 
 import com.th3hero.eventbot.TestEntities;
+import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.jobs.DeletedEventCleanupJob;
 import com.th3hero.eventbot.jobs.DraftCleanupJob;
 import com.th3hero.eventbot.jobs.EventReminderJob;
@@ -98,16 +99,19 @@ class SchedulingServiceTest {
         final var eventId = 1L;
         final var studentId = 2L;
         final var offset = 3;
-        final var eventTime = LocalDateTime.now();
+        final var eventEndTime = LocalDateTime.now();
+        final var triggerTime = eventEndTime.minusHours(24);
 
-        schedulingService.addEventReminderTrigger(eventId, studentId, offset, eventTime);
+        schedulingService.addEventReminderTrigger(eventId, studentId, offset, triggerTime, eventEndTime);
 
         verify(scheduler).scheduleJob(any(Trigger.class));
         verify(scheduler).scheduleJob(argThat(
             trigger ->
                 trigger.getJobDataMap().get(EventReminderJob.STUDENT_ID).equals(studentId) &&
                     trigger.getJobDataMap().get(EventReminderJob.EVENT_ID).equals(eventId) &&
-                    trigger.getJobDataMap().get(EventReminderJob.OFFSET_ID).equals(offset)
+                    trigger.getJobDataMap().get(EventReminderJob.OFFSET_ID).equals(offset) &&
+                    trigger.getEndTime().equals(DateFormatter.toDate(eventEndTime)) &&
+                    trigger.getStartTime().equals(DateFormatter.toDate(triggerTime))
         ));
     }
 
@@ -116,14 +120,15 @@ class SchedulingServiceTest {
         final var eventId = 1L;
         final var studentId = 2L;
         final var offset = 3;
-        final var eventTime = LocalDateTime.now();
+        final var eventEndTime = LocalDateTime.now();
+        final var triggerTime = eventEndTime.minusHours(24);
 
         when(scheduler.checkExists(any(JobKey.class)))
             .thenReturn(true);
         when(scheduler.checkExists(any(TriggerKey.class)))
             .thenReturn(true);
 
-        schedulingService.addEventReminderTrigger(eventId, studentId, offset, eventTime);
+        schedulingService.addEventReminderTrigger(eventId, studentId, offset, triggerTime, eventEndTime);
 
         verify(scheduler, never()).scheduleJob(any(Trigger.class));
     }
@@ -133,13 +138,14 @@ class SchedulingServiceTest {
         final var eventId = 1L;
         final var studentId = 2L;
         final var offset = 3;
-        final var eventTime = LocalDateTime.now();
+        final var eventEndTime = LocalDateTime.now();
+        final var triggerTime = eventEndTime.minusHours(24);
 
         when(scheduler.scheduleJob(any(Trigger.class)))
             .thenThrow(SchedulerException.class);
 
         assertThatExceptionOfType(SchedulingException.class)
-            .isThrownBy(() -> schedulingService.addEventReminderTrigger(eventId, studentId, offset, eventTime));
+            .isThrownBy(() -> schedulingService.addEventReminderTrigger(eventId, studentId, offset, triggerTime, eventEndTime));
     }
 
     @Test
@@ -355,5 +361,71 @@ class SchedulingServiceTest {
 
         assertThatNoException()
             .isThrownBy(() -> schedulingService.removeDeletedEventCleanupTrigger(eventId));
+    }
+
+    @Test
+    void addEventCompletedTrigger() throws SchedulerException {
+        final var eventId = 1L;
+        final var completedTime = LocalDateTime.now();
+
+        when(scheduler.checkExists(any(JobKey.class)))
+            .thenReturn(false);
+        when(scheduler.checkExists(any(TriggerKey.class)))
+            .thenReturn(false);
+
+        schedulingService.addEventCompletedTrigger(eventId, completedTime);
+
+        verify(scheduler).scheduleJob(any(Trigger.class));
+        verify(scheduler).scheduleJob(argThat(trigger ->
+            trigger.getJobDataMap().get(DeletedEventCleanupJob.EVENT_ID).equals(eventId) &&
+            trigger.getStartTime().equals(DateFormatter.toDate(completedTime))
+        ));
+    }
+
+    @Test
+    void addEventCompletedTrigger_existingTrigger() throws SchedulerException {
+        final var eventId = 1L;
+        final var completedTime = LocalDateTime.now();
+
+        when(scheduler.checkExists(any(JobKey.class)))
+            .thenReturn(true);
+        when(scheduler.checkExists(any(TriggerKey.class)))
+            .thenReturn(true);
+
+        schedulingService.addEventCompletedTrigger(eventId, completedTime);
+
+        verify(scheduler, never()).scheduleJob(any());
+    }
+
+    @Test
+    void addEventCompletedTrigger_schedulerFail() throws SchedulerException {
+        final var eventId = 1L;
+        final var completedTime = LocalDateTime.now();
+
+        when(scheduler.scheduleJob(any()))
+            .thenThrow(SchedulerException.class);
+
+        assertThatExceptionOfType(SchedulingException.class)
+            .isThrownBy(() -> schedulingService.addEventCompletedTrigger(eventId, completedTime));
+    }
+
+    @Test
+    void removeEventCompletedTrigger() throws SchedulerException {
+        final Long eventId = 1L;
+
+        schedulingService.removeEventCompleteTrigger(eventId);
+
+        verify(scheduler).unscheduleJob(argThat(triggerKey -> triggerKey.getName().equals(eventId.toString())));
+    }
+
+    @Test
+    void removeEventCompletedTrigger_schedulerFail() throws SchedulerException {
+        final Long eventId = 1L;
+
+        when(scheduler.unscheduleJob(any()))
+            .thenThrow(SchedulerException.class);
+
+        assertThatExceptionOfType(SchedulingException.class)
+            .isThrownBy(() -> schedulingService.removeEventCompleteTrigger(eventId));
     }
 }

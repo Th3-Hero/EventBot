@@ -1,7 +1,6 @@
 package com.th3hero.eventbot.factories;
 
 import com.th3hero.eventbot.commands.actions.ModalAction;
-import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.formatting.InteractionArguments;
@@ -49,12 +48,8 @@ public final class ModalFactory {
             .build();
     }
 
-    public static Modal editDetails(EventDraftJpa eventDraft) {
-        return editDetails("Edit Draft Information", ModalAction.EDIT_DRAFT_DETAILS, eventDraft.getId(), eventDraft.getTitle(), eventDraft.getNote(), eventDraft.getEventDate());
-    }
-
-    public static Modal editDetails(EventJpa eventJpa) {
-        return editDetails("Edit Event Information", ModalAction.EDIT_EVENT_DETAILS, eventJpa.getId(), eventJpa.getTitle(), eventJpa.getNote(), eventJpa.getEventDate());
+    public static Modal editDetails(EventJpa eventJpa, ModalAction action) {
+        return editDetails(action, eventJpa.getId(), eventJpa.getTitle(), eventJpa.getNote(), eventJpa.getEventDate());
     }
 
     public static Modal deleteDraftReason(EventJpa eventJpa) {
@@ -72,7 +67,6 @@ public final class ModalFactory {
     }
 
     private static Modal editDetails(
-        String modalTitle,
         ModalAction modalType,
         Long id,
         String title,
@@ -104,7 +98,7 @@ public final class ModalFactory {
             .setRequired(true)
             .build();
 
-        return Modal.create(InteractionArguments.createInteractionIdString(modalType, id), modalTitle)
+        return Modal.create(InteractionArguments.createInteractionIdString(modalType, id), "Edit Event Information")
             .addComponents(
                 ActionRow.of(titleInput),
                 ActionRow.of(noteInput),

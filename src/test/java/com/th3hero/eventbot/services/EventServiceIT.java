@@ -7,6 +7,7 @@ import com.th3hero.eventbot.config.SlashCommandConfig;
 import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.EventJpa.EventStatus;
 import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.repositories.ConfigRepository;
 import com.th3hero.eventbot.repositories.CourseRepository;
@@ -389,6 +390,7 @@ class EventServiceIT {
             .eventDate(TEST_DATE)
             .type(EventJpa.EventType.ASSIGNMENT)
             .courses(new ArrayList<>(List.of(course)))
+            .status(EventStatus.ACTIVE)
             .build();
     }
 }

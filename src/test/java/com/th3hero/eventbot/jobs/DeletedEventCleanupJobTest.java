@@ -1,6 +1,8 @@
 package com.th3hero.eventbot.jobs;
 
 import com.th3hero.eventbot.TestEntities;
+import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.EventJpa.EventStatus;
 import com.th3hero.eventbot.exceptions.MissingEventChannelException;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
@@ -44,6 +46,7 @@ class DeletedEventCleanupJobTest {
         final Trigger trigger = mock(Trigger.class);
         final var config = TestEntities.configJpa();
         final var event = TestEntities.eventJpaWithId(1);
+        event.setStatus(EventStatus.DELETED);
         final JobExecutionContext executionContext = mock(JobExecutionContext.class);
         final var deletionMessageId = 5678L;
         final JobDataMap dataMap = new JobDataMap();
@@ -117,6 +120,7 @@ class DeletedEventCleanupJobTest {
         final Trigger trigger = mock(Trigger.class);
         final var config = TestEntities.configJpa();
         final var event = TestEntities.eventJpaWithId(1);
+        event.setStatus(EventStatus.DELETED);
         final JobExecutionContext executionContext = mock(JobExecutionContext.class);
         final var deletionMessageId = 5678L;
         final JobDataMap dataMap = new JobDataMap();
@@ -136,5 +140,29 @@ class DeletedEventCleanupJobTest {
 
         assertThatExceptionOfType(MissingEventChannelException.class)
             .isThrownBy(() -> deletedEventCleanupJob.execute(executionContext));
+    }
+
+    @Test
+    void execute_eventNotDeleted() {
+        final Trigger trigger = mock(Trigger.class);
+        final var event = TestEntities.eventJpaWithId(1);
+        event.setStatus(EventStatus.ACTIVE);
+        final JobExecutionContext executionContext = mock(JobExecutionContext.class);
+        final var deletionMessageId = 5678L;
+        final JobDataMap dataMap = new JobDataMap();
+        dataMap.put(DeletedEventCleanupJob.EVENT_ID, event.getId());
+        dataMap.put(DeletedEventCleanupJob.DELETION_MESSAGE_ID, deletionMessageId);
+
+        when(executionContext.getTrigger())
+            .thenReturn(trigger);
+        when(trigger.getJobDataMap())
+            .thenReturn(dataMap);
+        when(eventRepository.findById(event.getId()))
+            .thenReturn(Optional.of(event));
+
+        assertThatExceptionOfType(IllegalStateException.class)
+            .isThrownBy(() -> deletedEventCleanupJob.execute(executionContext));
+
+        verify(eventRepository, never()).delete(any(EventJpa.class));
     }
 }

@@ -19,14 +19,16 @@ public interface EventRepository extends JpaRepository<EventJpa, Long>, JpaSpeci
      * @param courses list of courses
      * @return List of events
      */
-    @Query("select e from EventJpa e join e.courses c where c in :courses and e.deleted = false")
+    @Query("select e from EventJpa e join e.courses c where c in :courses and e.status = 'ACTIVE'")
     List<EventJpa> findAllByCourse(List<CourseJpa> courses);
 
     /**
-     * Find all events that are not deleted
-     * @return List of all events that are not deleted
+     * Find all events that are active. No deleted, draft, or completed events are returned
+     *
+     * @return List of active events
      */
-    List<EventJpa> findAllByDeletedIsFalse();
+    @Query("select e from EventJpa e where e.status = 'ACTIVE'")
+    List<EventJpa> findAllActive();
 
     /**
      * Find an event by its discord message id
@@ -34,12 +36,5 @@ public interface EventRepository extends JpaRepository<EventJpa, Long>, JpaSpeci
      * @return {@link Optional} of the event with the given message id
      */
     Optional<EventJpa> findByMessageId(Long messageId);
-
-    /**
-     * Check if an event with the given id exists and is not deleted
-     * @param id the id of the event
-     * @return true if an event with the given id exists and is not deleted
-     */
-    boolean existsByIdAndDeletedIsFalse(Long id);
 
 }

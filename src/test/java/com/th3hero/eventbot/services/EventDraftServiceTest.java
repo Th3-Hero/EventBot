@@ -8,13 +8,11 @@ import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.commands.requests.ModalRequest;
 import com.th3hero.eventbot.commands.requests.SelectionRequest;
 import com.th3hero.eventbot.entities.CourseJpa;
-import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.formatting.DateFormatter;
-import com.th3hero.eventbot.repositories.CourseRepository;
-import com.th3hero.eventbot.repositories.EventDraftRepository;
+import com.th3hero.eventbot.repositories.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -45,7 +43,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class EventDraftServiceTest {
     @Mock
-    private EventDraftRepository eventDraftRepository;
+    private EventRepository eventRepository;
     @Mock
     private CourseService courseService;
     @Mock
@@ -54,8 +52,6 @@ class EventDraftServiceTest {
     private EventService eventService;
     @Mock
     private ConfigService configService;
-    @Mock
-    private CourseRepository courseRepository;
 
     @InjectMocks
     private EventDraftService eventDraftService;
@@ -64,11 +60,11 @@ class EventDraftServiceTest {
     void handleEventDraftActions_editDraftDetails() {
         final var request = mock(ButtonRequest.class);
         final Map<String, Long> arguments = Map.of(DRAFT_ID, 1L);
-        final var draft = TestEntities.eventDraftJpa(1);
+        final var draft = TestEntities.eventDraft(1);
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(1L))
+        when(eventRepository.findById(1L))
             .thenReturn(Optional.of(draft));
         when(request.getAction())
             .thenReturn(ButtonAction.EDIT_DRAFT_DETAILS);
@@ -83,12 +79,12 @@ class EventDraftServiceTest {
         final var draftId = 1L;
         final var request = mock(ButtonRequest.class);
         final Map<String, Long> arguments = Map.of(DRAFT_ID, draftId);
-        final var draft = TestEntities.eventDraftJpa(1);
+        final var draft = TestEntities.eventDraft(1);
         final var menu = TestEntities.courseSelectMenu();
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getAction())
             .thenReturn(ButtonAction.EDIT_DRAFT_COURSES);
@@ -105,11 +101,11 @@ class EventDraftServiceTest {
         final var draftId = 1L;
         final var request = mock(ButtonRequest.class);
         final Map<String, Long> arguments = Map.of(DRAFT_ID, draftId);
-        final var draft = TestEntities.eventDraftJpa(1);
+        final var draft = TestEntities.eventDraft(1);
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(1L))
+        when(eventRepository.findById(1L))
             .thenReturn(Optional.of(draft));
         when(request.getAction())
             .thenReturn(ButtonAction.CONFIRM_DRAFT);
@@ -124,11 +120,11 @@ class EventDraftServiceTest {
         final var draftId = 1L;
         final var request = mock(ButtonRequest.class);
         final Map<String, Long> arguments = Map.of(DRAFT_ID, draftId);
-        final var draft = TestEntities.eventDraftJpa(1);
+        final var draft = TestEntities.eventDraft(1);
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(1L))
+        when(eventRepository.findById(1L))
             .thenReturn(Optional.of(draft));
         when(request.getAction())
             .thenReturn(ButtonAction.TOGGLE_COMPLETED);
@@ -153,12 +149,12 @@ class EventDraftServiceTest {
             .thenReturn(member);
         when(member.getIdLong())
             .thenReturn(memberId);
-        when(eventDraftRepository.save(any(EventDraftJpa.class)))
-            .thenAnswer(invocation -> addIdToDraft(invocation.getArgument(0), 54321L));
+        when(eventRepository.save(any(EventJpa.class)))
+            .thenAnswer(invocation -> addIdToDraft(invocation.getArgument(0)));
 
         eventDraftService.createEventDraft(request);
 
-        verify(eventDraftRepository).save(argThat(draft ->
+        verify(eventRepository).save(argThat(draft ->
             draft.getType().equals(EventJpa.EventType.ASSIGNMENT) &&
                 draft.getEventDate().isEqual(LocalDateTime.of(2025, 5, 5, 14, 30))
         ));
@@ -244,7 +240,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -276,7 +272,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -304,7 +300,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -337,7 +333,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -357,6 +353,7 @@ class EventDraftServiceTest {
         verify(request, never()).sendResponse(any(String.class), eq(MessageMode.USER));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void setCoursesOnDraft_missingDraft() {
         final var draftId = 1234L;
@@ -369,7 +366,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.empty());
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -405,7 +402,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -447,7 +444,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -481,7 +478,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -527,7 +524,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -564,7 +561,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -603,7 +600,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.findById(draftId))
+        when(eventRepository.findById(draftId))
             .thenReturn(Optional.of(draft));
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -622,6 +619,7 @@ class EventDraftServiceTest {
         verify(request, never()).sendResponse(any(MessageCreateData.class), eq(MessageMode.USER));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void deleteDraft() {
         final var draftId = 1234L;
@@ -634,7 +632,7 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.existsById(draftId))
+        when(eventRepository.existsById(draftId))
             .thenReturn(true);
         when(request.getEvent())
             .thenReturn(jdaEvent);
@@ -645,7 +643,7 @@ class EventDraftServiceTest {
 
         eventDraftService.deleteDraft(request);
 
-        verify(eventDraftRepository).deleteById(draftId);
+        verify(eventRepository).deleteById(draftId);
         verify(schedulingService).removeDraftCleanupTrigger(draftId);
         verify(request).sendResponse("Draft has been deleted.", MessageMode.USER);
         verify(message).delete();
@@ -661,27 +659,28 @@ class EventDraftServiceTest {
 
         when(request.getArguments())
             .thenReturn(arguments);
-        when(eventDraftRepository.existsById(draftId))
+        when(eventRepository.existsById(draftId))
             .thenReturn(false);
 
         assertThatExceptionOfType(EntityNotFoundException.class)
             .isThrownBy(() -> eventDraftService.deleteDraft(request));
 
-        verify(eventDraftRepository, never()).deleteById(draftId);
+        verify(eventRepository, never()).deleteById(draftId);
         verify(schedulingService, never()).removeDraftCleanupTrigger(draftId);
 
     }
 
-    private EventDraftJpa addIdToDraft(EventDraftJpa draft, Long id) {
-        return EventDraftJpa.builder()
-            .id(id)
+    private EventJpa addIdToDraft(EventJpa draft) {
+        return EventJpa.builder()
+            .id(54321L)
             .authorId(draft.getAuthorId())
             .title(draft.getTitle())
             .note(draft.getNote())
             .eventDate(draft.getEventDate())
             .courses(draft.getCourses())
             .type(draft.getType())
-            .draftCreationDate(draft.getDraftCreationDate())
+            .creationDate(draft.getCreationDate())
+            .status(draft.getStatus())
             .build();
     }
 }

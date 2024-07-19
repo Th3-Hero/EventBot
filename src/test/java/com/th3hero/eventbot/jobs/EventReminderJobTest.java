@@ -1,17 +1,14 @@
 package com.th3hero.eventbot.jobs;
 
 import com.th3hero.eventbot.TestEntities;
-import com.th3hero.eventbot.exceptions.MissingEventChannelException;
+import com.th3hero.eventbot.entities.EventJpa.EventStatus;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.services.ConfigService;
 import com.th3hero.eventbot.utils.DiscordUtils;
 import jakarta.persistence.EntityNotFoundException;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.CacheRestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import org.junit.jupiter.api.Test;
@@ -101,5 +98,27 @@ class EventReminderJobTest {
 
         assertThatExceptionOfType(EntityNotFoundException.class)
             .isThrownBy(() -> eventReminderJob.execute(executionContext));
+    }
+
+    @Test
+    void execute_eventNotActive() {
+        final Trigger trigger = mock(Trigger.class);
+        final var event = TestEntities.eventJpaWithId(1);
+        event.setStatus(EventStatus.DRAFT);
+
+        final JobExecutionContext executionContext = mock(JobExecutionContext.class);
+        final JobDataMap dataMap = new JobDataMap();
+        dataMap.put(EventReminderJob.EVENT_ID, event.getId());
+
+        when(executionContext.getTrigger())
+            .thenReturn(trigger);
+        when(trigger.getJobDataMap())
+            .thenReturn(dataMap);
+        when(eventRepository.findById(event.getId()))
+            .thenReturn(Optional.of(event));
+
+        assertThatExceptionOfType(IllegalStateException.class)
+            .isThrownBy(() -> eventReminderJob.execute(executionContext));
+
     }
 }

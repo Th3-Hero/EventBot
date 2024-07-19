@@ -1,11 +1,12 @@
 package com.th3hero.eventbot.services;
 
+import com.th3hero.eventbot.commands.actions.ModalAction;
 import com.th3hero.eventbot.commands.actions.SelectionAction;
 import com.th3hero.eventbot.commands.requests.*;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.entities.CourseJpa;
-import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.EventJpa.EventType;
 import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.factories.EmbedBuilderFactory;
@@ -13,7 +14,7 @@ import com.th3hero.eventbot.factories.ModalFactory;
 import com.th3hero.eventbot.factories.ResponseFactory;
 import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.formatting.InteractionArguments;
-import com.th3hero.eventbot.repositories.EventDraftRepository;
+import com.th3hero.eventbot.repositories.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ import static com.th3hero.eventbot.utils.DiscordFieldsUtils.*;
 @Transactional
 @RequiredArgsConstructor
 public class EventDraftService {
-    private final EventDraftRepository eventDraftRepository;
+    private final EventRepository eventRepository;
     private final CourseService courseService;
     private final SchedulingService schedulingService;
     private final EventService eventService;
@@ -43,7 +44,7 @@ public class EventDraftService {
 
 
     public void handleEventDraftActions(ButtonRequest request) {
-        EventDraftJpa draftJpa = fetchDraft(request.getArguments().get(DRAFT_ID));
+        EventJpa draftJpa = fetchDraft(request.getArguments().get(DRAFT_ID));
 
         switch (request.getAction()) {
             case EDIT_DRAFT_DETAILS -> sendEditDraftDetailsModal(request, draftJpa);
@@ -57,8 +58,8 @@ public class EventDraftService {
         String dateString = request.getArguments().get(DATE);
         String timeString = request.getArguments().get(TIME);
 
-        EventJpa.EventType eventType = EnumUtils.getEnumIgnoreCase(
-            EventJpa.EventType.class,
+        EventType eventType = EnumUtils.getEnumIgnoreCase(
+            EventType.class,
             request.getArguments().get(TYPE)
         );
         if (eventType == null) {
@@ -86,13 +87,13 @@ public class EventDraftService {
             return;
         }
 
-        EventDraftJpa eventDraft = EventDraftJpa.create(
+        EventJpa eventDraft = EventJpa.create(
             request.getRequester().getIdLong(),
             eventDate,
             eventType
         );
 
-        eventDraft = eventDraftRepository.save(eventDraft);
+        eventDraft = eventRepository.save(eventDraft);
 
         schedulingService.addDraftCleanupTrigger(eventDraft.getId(), eventDraft.getEventDate());
 
@@ -104,7 +105,7 @@ public class EventDraftService {
     }
 
     public void addDraftDetails(ModalRequest request) {
-        EventDraftJpa eventDraftJpa = fetchDraft(request.getArguments().get(DRAFT_ID));
+        EventJpa eventDraft = fetchDraft(request.getArguments().get(DRAFT_ID));
 
         String title = Optional.ofNullable(request.getEvent().getValue(TITLE))
             .map(ModalMapping::getAsString)
@@ -116,25 +117,25 @@ public class EventDraftService {
             .filter(StringUtils::isNotBlank)
             .orElse(null);
 
-        eventDraftJpa.setTitle(title);
-        eventDraftJpa.setNote(note);
+        eventDraft.setTitle(title);
+        eventDraft.setNote(note);
 
         request.sendResponse(
             ResponseFactory.createResponse(
                 EmbedBuilderFactory.courseSelectionHeader("Select any courses the event is for(Eg. multiple sections)"),
                 courseService.createCourseSelectionMenu(
-                    InteractionArguments.createInteractionIdString(SelectionAction.DRAFT_CREATION, eventDraftJpa.getId()),
-                    eventDraftJpa.getCourses()
+                    InteractionArguments.createInteractionIdString(SelectionAction.DRAFT_CREATION, eventDraft.getId()),
+                    eventDraft.getCourses()
                 )
             ),
             MessageMode.USER
         );
-        log.debug("Added details to draft {}", eventDraftJpa.getId());
+        log.debug("Added details to draft {}", eventDraft.getId());
     }
 
     public void setCoursesOnDraft(SelectionRequest request) {
-        Optional<EventDraftJpa> eventDraftJpa = eventDraftRepository.findById(request.getArguments().get(DRAFT_ID));
-        if (eventDraftJpa.isEmpty()) {
+        Optional<EventJpa> eventJpa = eventRepository.findById(request.getArguments().get(DRAFT_ID));
+        if (eventJpa.isEmpty()) {
             request.sendResponse("Failed to find draft. It may have already been deleted.", MessageMode.USER);
             request.getEvent().getMessage().delete().queue();
             log.warn("Failed to find draft with id {} when choosing courses for the draft", request.getArguments().get(DRAFT_ID));
@@ -143,15 +144,15 @@ public class EventDraftService {
 
         List<CourseJpa> selectedCourses = courseService.coursesFromCourseCodes(request.getEvent().getValues());
 
-        eventDraftJpa.get().getCourses().clear();
-        eventDraftJpa.get().getCourses().addAll(selectedCourses);
+        eventJpa.get().getCourses().clear();
+        eventJpa.get().getCourses().addAll(selectedCourses);
 
-        sendDraft(request, eventDraftJpa.get());
-        log.debug("Added courses to draft {}", eventDraftJpa.get().getId());
+        sendDraft(request, eventJpa.get());
+        log.debug("Added courses to draft {}", eventJpa.get().getId());
     }
 
     public void updateDraftDetails(ModalRequest request) {
-        EventDraftJpa eventDraftJpa = fetchDraft(request.getArguments().get(DRAFT_ID));
+        EventJpa eventDraft = fetchDraft(request.getArguments().get(DRAFT_ID));
 
         String title = Optional.ofNullable(request.getEvent().getValue(TITLE))
             .map(ModalMapping::getAsString)
@@ -178,21 +179,21 @@ public class EventDraftService {
             return;
         }
 
-        eventDraftJpa.setTitle(title);
-        eventDraftJpa.setNote(StringUtils.isBlank(note) ? null : note);
-        eventDraftJpa.setEventDate(eventDate);
+        eventDraft.setTitle(title);
+        eventDraft.setNote(StringUtils.isBlank(note) ? null : note);
+        eventDraft.setEventDate(eventDate);
 
-        sendDraft(request, eventDraftJpa);
-        log.debug("Updated details for draft {}", eventDraftJpa.getId());
+        sendDraft(request, eventDraft);
+        log.debug("Updated details for draft {}", eventDraft.getId());
     }
 
     public void deleteDraft(ButtonRequest request) {
         Long draftId = request.getArguments().get(DRAFT_ID);
-        if (!eventDraftRepository.existsById(draftId)) {
+        if (!eventRepository.existsById(draftId)) {
             throw new EntityNotFoundException("Could not find an existing draft. Draft may have already been deleted.");
         }
 
-        eventDraftRepository.deleteById(draftId);
+        eventRepository.deleteById(draftId);
         schedulingService.removeDraftCleanupTrigger(draftId);
 
         request.sendResponse("Draft has been deleted.", MessageMode.USER);
@@ -200,15 +201,15 @@ public class EventDraftService {
         log.debug("Deleted draft {}", draftId);
     }
 
-    private EventDraftJpa fetchDraft(Long draftId) {
-        return eventDraftRepository.findById(draftId)
+    private EventJpa fetchDraft(Long draftId) {
+        return eventRepository.findById(draftId)
             .orElseThrow(() -> new EntityNotFoundException("Failed to find draft %s".formatted(draftId)));
     }
 
-    private void sendDraft(InteractionRequest request, EventDraftJpa eventDraftJpa) {
+    private void sendDraft(InteractionRequest request, EventJpa eventDraft) {
         request.sendResponse(
             ResponseFactory.draftPost(
-                eventDraftJpa,
+                eventDraft,
                 configService.getConfigJpa().getDraftCleanupDelay(),
                 request.getRequester().getAsMention()
             ),
@@ -216,11 +217,11 @@ public class EventDraftService {
         );
     }
 
-    private void sendEditDraftDetailsModal(ButtonRequest request, EventDraftJpa draftJpa) {
-        request.sendResponse(ModalFactory.editDetails(draftJpa), MessageMode.USER);
+    private void sendEditDraftDetailsModal(ButtonRequest request, EventJpa eventDraft) {
+        request.sendResponse(ModalFactory.editDetails(eventDraft, ModalAction.EDIT_DRAFT_DETAILS), MessageMode.USER);
     }
 
-    private void editDraftCourses(ButtonRequest request, EventDraftJpa draftJpa) {
+    private void editDraftCourses(ButtonRequest request, EventJpa draftJpa) {
         request.sendResponse(
             ResponseFactory.createResponse(
                 EmbedBuilderFactory.courseSelectionHeader("Select any courses the event is for(Eg. multiple sections)"),

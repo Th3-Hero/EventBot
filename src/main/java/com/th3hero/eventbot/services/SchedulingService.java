@@ -1,6 +1,7 @@
 package com.th3hero.eventbot.services;
 
 import com.th3hero.eventbot.formatting.DateFormatter;
+import com.th3hero.eventbot.jobs.CompleteEventsJob;
 import com.th3hero.eventbot.jobs.DeletedEventCleanupJob;
 import com.th3hero.eventbot.jobs.DraftCleanupJob;
 import com.th3hero.eventbot.jobs.EventReminderJob;
@@ -24,6 +25,7 @@ public class SchedulingService {
 
     private static final String DRAFT_CLEANUP_GROUP = "DRAFT_CLEANUP";
     private static final String DELETE_EVENT_CLEANUP_GROUP = "DELETED_EVENT_CLEANUP";
+    private static final String COMPLETED_EVENT_GROUP = "COMPLETED_EVENT";
 
     private static final String REMINDER_TRIGGER_GROUP_FORMAT = "%d-%d";
 
@@ -77,7 +79,7 @@ public class SchedulingService {
      * @param eventTime The date/time of the event
      * @throws SchedulingException If the trigger cannot be added
      */
-    public void addEventReminderTrigger(Long eventId, Long studentId, Integer offset, LocalDateTime eventTime) {
+    public void addEventReminderTrigger(Long eventId, Long studentId, Integer offset, LocalDateTime eventTime, LocalDateTime endDate) {
         try {
             createJobIfNone(EventReminderJob.JOB_KEY, EventReminderJob.class, "Reminder notifications for events");
 
@@ -95,6 +97,7 @@ public class SchedulingService {
                 .usingJobData(EventReminderJob.OFFSET_ID, offset)
                 .forJob(EventReminderJob.JOB_KEY)
                 .startAt(DateFormatter.toDate(eventTime))
+                .endAt(DateFormatter.toDate(endDate))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                     .withMisfireHandlingInstructionFireNow()
                     .withRepeatCount(0))
@@ -226,6 +229,44 @@ public class SchedulingService {
             log.debug("Removed cleanup trigger for deleted event with id: {}", eventId);
         } catch (SchedulerException e) {
             log.error("Failed to remove cleanup trigger for deleted event id: {}", eventId, e);
+        }
+    }
+
+    public void addEventCompletedTrigger(Long eventId, LocalDateTime eventTime) {
+        try {
+            createJobIfNone(CompleteEventsJob.JOB_KEY, CompleteEventsJob.class, "Mark events as completed once they have reached the event date.");
+
+            TriggerKey triggerKey = TriggerKey.triggerKey(eventId.toString(), COMPLETED_EVENT_GROUP);
+
+            if (scheduler.checkExists(triggerKey)) {
+                return;
+            }
+
+            Trigger reminderTrigger = TriggerBuilder.newTrigger()
+                .withIdentity(triggerKey)
+                .usingJobData(CompleteEventsJob.EVENT_ID, eventId)
+                .forJob(CompleteEventsJob.JOB_KEY)
+                .startAt(DateFormatter.toDate(eventTime))
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                    .withMisfireHandlingInstructionFireNow()
+                    .withRepeatCount(0))
+                .build();
+            scheduler.scheduleJob(reminderTrigger);
+            log.debug("Added new completed event trigger for event: {}", eventId);
+
+        } catch (SchedulerException e) {
+            log.error("Failed to add trigger for event reminder: {}", eventId, e);
+            throw new SchedulingException("Failed to schedule event reminder.");
+        }
+    }
+
+    public void removeEventCompleteTrigger(Long eventId) {
+        try {
+            scheduler.unscheduleJob(TriggerKey.triggerKey(eventId.toString(), COMPLETED_EVENT_GROUP));
+            log.debug("Removed completed event trigger for event: {}", eventId);
+        } catch (SchedulerException e) {
+            log.error("Failed to remove completed event trigger for event: {}", eventId, e);
+            throw new SchedulingException("Failed to remove event reminder.");
         }
     }
 

@@ -35,6 +35,10 @@ public class EventReminderJob implements Job {
         final EventJpa eventJpa = eventRepository.findById(eventId)
             .orElseThrow(() -> new EntityNotFoundException("Failed to find event in the database when trying to send a reminder. Event id: %d".formatted(eventId)));
 
+        if (!eventJpa.getStatus().equals(EventJpa.EventStatus.ACTIVE)) {
+            throw new IllegalStateException("Attempted to send a reminder for an event that is not active. Event id: %s, Status: %s".formatted(eventId, eventJpa.getStatus().toString()));
+        }
+
         Long userId = executionContext.getTrigger().getJobDataMap().getLong(STUDENT_ID);
         int offset = executionContext.getTrigger().getJobDataMap().getInt(OFFSET_ID);
 

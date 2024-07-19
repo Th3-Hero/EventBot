@@ -1,7 +1,6 @@
 package com.th3hero.eventbot.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -35,7 +34,6 @@ public class EventJpa implements Serializable {
     @Column
     private Long messageId;
 
-    @NotNull
     @Column
     private String title;
 
@@ -53,14 +51,47 @@ public class EventJpa implements Serializable {
     private List<CourseJpa> courses = new ArrayList<>();
 
     @NonNull
+    @Builder.Default
+    @Column
+    private LocalDateTime creationDate = LocalDateTime.now();
+
+    @NonNull
     @Enumerated(EnumType.STRING)
     @Column
     private EventType type;
 
     @NonNull
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     @Column
-    private Boolean deleted = false;
+    private EventStatus status = EventStatus.DRAFT;
+
+    public enum EventType {
+        ASSIGNMENT,
+        LAB,
+        MIDTERM,
+        EXAM,
+        OTHER;
+
+        public String displayName() {
+            return this.name().substring(0, 1).toUpperCase() + this.name().substring(1).toLowerCase();
+        }
+    }
+
+    public enum EventStatus {
+        DRAFT,
+        ACTIVE,
+        COMPLETED,
+        DELETED
+    }
+
+    public static EventJpa create(Long authorId, LocalDateTime eventDate, EventType type) {
+        return EventJpa.builder()
+            .authorId(authorId)
+            .eventDate(eventDate)
+            .type(type)
+            .build();
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -77,28 +108,5 @@ public class EventJpa implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
-    }
-
-    public enum EventType {
-        ASSIGNMENT,
-        LAB,
-        MIDTERM,
-        EXAM,
-        OTHER;
-
-        public String displayName() {
-            return this.name().substring(0, 1).toUpperCase() + this.name().substring(1).toLowerCase();
-        }
-    }
-
-    public static EventJpa create(EventDraftJpa draftJpa) {
-        return EventJpa.builder()
-            .authorId(draftJpa.getAuthorId())
-            .title(draftJpa.getTitle())
-            .note(draftJpa.getNote())
-            .eventDate(draftJpa.getEventDate())
-            .courses(new ArrayList<>(draftJpa.getCourses()))
-            .type(draftJpa.getType())
-            .build();
     }
 }

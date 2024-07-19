@@ -2,10 +2,15 @@ package com.th3hero.eventbot.services;
 
 import com.th3hero.eventbot.commands.actions.ButtonAction;
 import com.th3hero.eventbot.commands.actions.Command;
+import com.th3hero.eventbot.commands.actions.ModalAction;
 import com.th3hero.eventbot.commands.actions.SelectionAction;
 import com.th3hero.eventbot.commands.requests.*;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
-import com.th3hero.eventbot.entities.*;
+import com.th3hero.eventbot.entities.ConfigJpa;
+import com.th3hero.eventbot.entities.CourseJpa;
+import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.EventJpa.EventStatus;
+import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.factories.ButtonFactory;
@@ -14,7 +19,6 @@ import com.th3hero.eventbot.factories.ModalFactory;
 import com.th3hero.eventbot.factories.ResponseFactory;
 import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.formatting.InteractionArguments;
-import com.th3hero.eventbot.repositories.EventDraftRepository;
 import com.th3hero.eventbot.repositories.EventRepository;
 import com.th3hero.eventbot.utils.DiscordActionUtils;
 import com.th3hero.eventbot.utils.DiscordUtils;
@@ -54,7 +58,6 @@ public class EventService {
     private final EventRepository eventRepository;
     private final CourseService courseService;
     private final ConfigService configService;
-    private final EventDraftRepository eventDraftRepository;
     private final SchedulingService schedulingService;
     private final StudentService studentService;
 
@@ -63,10 +66,32 @@ public class EventService {
 
     private static final String EVENT_DATE = "eventDate";
 
-    public void publishEvent(ButtonRequest request, EventDraftJpa draftJpa) {
-        // Publish event via draft conformation
-        publishEvent(request, eventRepository.save(EventJpa.create(draftJpa)));
-        eventDraftRepository.deleteById(draftJpa.getId());
+    public void publishEvent(ButtonRequest request, EventJpa draftJpa) {
+        if (!draftJpa.getStatus().equals(EventStatus.DRAFT)) {
+            throw new DataAccessException("Attempted to publish an event that is not a draft");
+        }
+
+        draftJpa.setStatus(EventStatus.ACTIVE);
+
+        EventJpa eventJpa = eventRepository.save(draftJpa);
+
+        scheduleEventReminders(eventJpa);
+        schedulingService.addEventCompletedTrigger(eventJpa.getId(), eventJpa.getEventDate());
+
+        Long eventChannel = configService.getConfigJpa().getEventChannel();
+        TextChannel channel = Optional.ofNullable(request.getEvent().getJDA().getTextChannelById(eventChannel))
+            .orElseThrow(() -> new ConfigErrorException("The event channel could not be found. Please contact a bot administrator."));
+
+        channel.sendMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa, request.getRequester().getAsMention()))
+            .addComponents(ButtonFactory.eventButtons(eventJpa.getId()))
+            .queue(success -> {
+                // Save the new message id to the event
+                eventJpa.setMessageId(success.getIdLong());
+                eventRepository.save(eventJpa);
+                request.sendResponse("Event has been posted to the event channel. %s".formatted(success.getJumpUrl()), MessageMode.USER);
+                log.info("New event published (id:{}) in channel {}", eventJpa.getId(), success.getChannel().getName());
+            });
+
         schedulingService.removeDraftCleanupTrigger(draftJpa.getId());
     }
 
@@ -91,7 +116,7 @@ public class EventService {
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
             .orElseThrow(() -> new EntityNotFoundException("Failed to find an event within the database from modal %s".formatted(request.getEvent().getModalId())));
 
-        if (eventJpa.getDeleted()) {
+        if (eventJpa.getStatus().equals(EventStatus.DELETED)) {
             request.sendResponse("Event is already deleted.", MessageMode.USER);
             return;
         }
@@ -119,8 +144,9 @@ public class EventService {
     public void undoEventDeletion(ButtonRequest request) {
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
             .orElseThrow(() -> new EntityNotFoundException(FAILED_TO_FIND_EVENT.formatted(request.getArguments().get(EVENT_ID))));
-        eventJpa.setDeleted(false);
+        eventJpa.setStatus(EventStatus.DELETED);
         schedulingService.removeDeletedEventCleanupTrigger(eventJpa.getId());
+        schedulingService.addEventCompletedTrigger(eventJpa.getId(), eventJpa.getEventDate());
 
         scheduleEventReminders(eventJpa);
 
@@ -144,7 +170,7 @@ public class EventService {
         StudentJpa studentJpa = studentService.fetchStudent(request.getRequester().getIdLong());
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
             .orElseThrow(() -> new EntityNotFoundException(FAILED_TO_FIND_EVENT.formatted(request.getArguments().get(EVENT_ID))));
-        if (eventJpa.getDeleted()) {
+        if (eventJpa.getStatus().equals(EventStatus.DELETED)) {
             request.sendResponse("This event has been deleted, actions cannot be preformed on it.", MessageMode.USER);
             log.error("User tried to mark a deleted event as complete (id: {})", eventJpa.getId());
             return;
@@ -187,7 +213,7 @@ public class EventService {
             return;
         }
 
-        request.sendResponse(ModalFactory.editDetails(eventJpa), MessageMode.USER);
+        request.sendResponse(ModalFactory.editDetails(eventJpa, ModalAction.EDIT_EVENT_DETAILS), MessageMode.USER);
     }
 
     public void sendEventEditCourses(ButtonRequest request) {
@@ -236,7 +262,7 @@ public class EventService {
             return;
         }
 
-        MessageEmbed embed = EmbedBuilderFactory.editedEventDetailsChangelog(title, eventJpa, note, eventDate);
+        MessageEmbed embed = EmbedBuilderFactory.editedEventDetailsChangelog(title, eventJpa, note, eventDate, request.getRequester().getAsMention());
 
         if (!eventDate.equals(eventJpa.getEventDate())) {
             eventJpa.setEventDate(eventDate);
@@ -262,7 +288,7 @@ public class EventService {
 
         List<CourseJpa> selectedCourses = courseService.coursesFromCourseCodes(request.getEvent().getValues());
 
-        MessageEmbed embed = EmbedBuilderFactory.editedEventCoursesChangelog(eventJpa, selectedCourses);
+        MessageEmbed embed = EmbedBuilderFactory.editedEventCoursesChangelog(eventJpa, selectedCourses, request.getRequester().getAsMention());
 
         eventJpa.getCourses().clear();
         eventJpa.getCourses().addAll(selectedCourses);
@@ -321,7 +347,7 @@ public class EventService {
         LocalDateTime minDate = LocalDateTime.now();
         LocalDateTime maxDate = timePeriodField != null ? minDate.plusDays(timePeriodField) : null;
 
-        Specification<EventJpa> spec = getEventsByCourseAndDateRange(courses, minDate, maxDate);
+        Specification<EventJpa> spec = getActiveEventsByCourseAndDateRange(courses, minDate, maxDate);
         int maxEvents = upcomingField != null ? upcomingField : MessageEmbed.MAX_FIELD_AMOUNT;
 
         List<EventJpa> events = eventRepository.findBy(
@@ -342,7 +368,7 @@ public class EventService {
 
         eventChannel.sendMessage("This channel is now the event channel. All events will be posted here going forward.").queue();
 
-        List<EventJpa> events = eventRepository.findAllByDeletedIsFalse();
+        List<EventJpa> events = eventRepository.findAllActive();
         for (EventJpa event : events) {
             String author = Optional.ofNullable(jda.getUserById(event.getAuthorId()))
                 .map(User::getAsMention)
@@ -380,11 +406,12 @@ public class EventService {
     }
 
     private static void updateMessage(InteractionRequest request, MessageChannel channel, EventJpa eventJpa, MessageEmbed embed, String requesterMention) {
+        MessageEmbed editEmbed = EmbedBuilderFactory.eventEmbed(eventJpa, requesterMention);
         DiscordActionUtils.retrieveMessage(
             channel,
             eventJpa.getMessageId(),
             message -> {
-                message.editMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa, requesterMention)).queue();
+                message.editMessageEmbeds(editEmbed).queue();
                 message.replyEmbeds(embed).queue();
                 request.sendResponse(UPDATED_EVENT_MESSAGE.formatted(message.getJumpUrl()), MessageMode.USER);
             },
@@ -397,7 +424,8 @@ public class EventService {
 
         // remove all the reminders and soft delete the event
         schedulingService.removeReminderTriggers(eventJpa.getId());
-        eventJpa.setDeleted(true);
+        schedulingService.removeEventCompleteTrigger(eventJpa.getId());
+        eventJpa.setStatus(EventStatus.DELETED);
         eventRepository.save(eventJpa);
 
         // Send the recovery message
@@ -435,26 +463,8 @@ public class EventService {
             );
     }
 
-    private void publishEvent(ButtonRequest request, EventJpa eventJpa) {
-        scheduleEventReminders(eventJpa);
-
-        Long eventChannel = configService.getConfigJpa().getEventChannel();
-        TextChannel channel = Optional.ofNullable(request.getEvent().getJDA().getTextChannelById(eventChannel))
-            .orElseThrow(() -> new ConfigErrorException("The event channel could not be found. Please contact a bot administrator."));
-
-        channel.sendMessageEmbeds(EmbedBuilderFactory.eventEmbed(eventJpa, request.getRequester().getAsMention()))
-            .addComponents(ButtonFactory.eventButtons(eventJpa.getId()))
-            .queue(success -> {
-                // Save the new message id to the event
-                eventJpa.setMessageId(success.getIdLong());
-                eventRepository.save(eventJpa);
-                request.sendResponse("Event has been posted to the event channel. %s".formatted(success.getJumpUrl()), MessageMode.USER);
-                log.info("New event published (id:{}) in channel {}", eventJpa.getId(), success.getChannel().getName());
-            });
-    }
-
     private static boolean eventDeleted(ButtonRequest request, EventJpa eventJpa) {
-        if (eventJpa.getDeleted()) {
+        if (eventJpa.getStatus().equals(EventStatus.DELETED)) {
             request.sendResponse("This event has been deleted, actions cannot be preformed on it.", MessageMode.USER);
             log.error("Attempted to preform actions (action: {}) on a deleted event (id: {}). Deleted events shouldn't have buttons to action even.", request.getAction(), eventJpa.getId());
             return true;
@@ -462,7 +472,7 @@ public class EventService {
         return false;
     }
 
-    private static Specification<EventJpa> getEventsByCourseAndDateRange(List<CourseJpa> courses, LocalDateTime minDate, LocalDateTime maxDate) {
+    private static Specification<EventJpa> getActiveEventsByCourseAndDateRange(List<CourseJpa> courses, LocalDateTime minDate, LocalDateTime maxDate) {
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (courses != null) {
@@ -475,7 +485,7 @@ public class EventService {
             if (maxDate != null) {
                 predicates.add(builder.lessThanOrEqualTo(root.get(EVENT_DATE), maxDate));
             }
-            predicates.add(builder.not(root.get("deleted")));
+            predicates.add(builder.equal(root.get("status"), EventStatus.ACTIVE));
             return builder.and(predicates.toArray(new Predicate[0]));
         };
     }

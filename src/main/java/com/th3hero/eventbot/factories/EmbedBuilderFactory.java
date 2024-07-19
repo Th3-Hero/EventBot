@@ -3,7 +3,6 @@ package com.th3hero.eventbot.factories;
 import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.dto.management.Announcement;
 import com.th3hero.eventbot.entities.CourseJpa;
-import com.th3hero.eventbot.entities.EventDraftJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.exceptions.IllegalInteractionException;
 import com.th3hero.eventbot.formatting.DateFormatter;
@@ -81,7 +80,7 @@ public final class EmbedBuilderFactory {
         return embedBuilder.build();
     }
 
-    public static List<MessageEmbed> displayEventDraft(EventDraftJpa eventDraftJpa, int draftCleanupDelay, String authorMention) {
+    public static List<MessageEmbed> displayEventDraft(EventJpa eventDraft, int draftCleanupDelay, String authorMention) {
         MessageEmbed header = new EmbedBuilder()
             .setColor(BLUE)
             .setTitle("Event Draft Preview")
@@ -89,18 +88,18 @@ public final class EmbedBuilderFactory {
             .setFooter("Note: Drafts that are not confirmed within %d hours will be deleted.".formatted(draftCleanupDelay))
             .build();
 
-        String date = DateFormatter.formattedDateTimeWithTimestamp(eventDraftJpa.getEventDate());
+        String date = DateFormatter.formattedDateTimeWithTimestamp(eventDraft.getEventDate());
 
-        MessageEmbed eventDraft = eventLayout(
-            eventDraftJpa.getTitle(),
-            eventDraftJpa.getNote(),
+        MessageEmbed eventDraftEmbed = eventLayout(
+            eventDraft.getTitle(),
+            eventDraft.getNote(),
             date,
-            eventDraftJpa.getType().displayName(),
-            eventDraftJpa.getCourses(),
+            eventDraft.getType().displayName(),
+            eventDraft.getCourses(),
             authorMention
         );
 
-        return List.of(header, eventDraft);
+        return List.of(header, eventDraftEmbed);
     }
 
     public static MessageEmbed reminderOffsets(List<Integer> offsets) {
@@ -168,8 +167,8 @@ public final class EmbedBuilderFactory {
             .build();
     }
 
-    public static MessageEmbed editedEventDetailsChangelog(String title, EventJpa eventJpa, String note, LocalDateTime eventDate) {
-        EmbedBuilder embedBuilder = editedEventChangelogStarted();
+    public static MessageEmbed editedEventDetailsChangelog(String title, EventJpa eventJpa, String note, LocalDateTime eventDate, String editorMention) {
+        EmbedBuilder embedBuilder = editedEventChangelogStarted(editorMention);
 
         if (!title.equals(eventJpa.getTitle())) {
             embedBuilder.addField(
@@ -184,11 +183,12 @@ public final class EmbedBuilderFactory {
                 embedBuilder.addField(
                     "Added Note", note, false
                 );
-            } else {
+            } else if (StringUtils.isNoneBlank(eventJpa.getNote())) {
+                String updatedNode = StringUtils.isBlank(note) ? "*Note was removed*" : note;
                 embedBuilder.addField(
                     "Original Note", eventJpa.getNote(), false
                 ).addField(
-                    "Updated Note", StringUtils.isBlank(note) ? "*Note was removed*" : note, false
+                    "Updated Note", updatedNode, false
                 );
             }
             eventJpa.setNote(StringUtils.isBlank(note) ? null : note);
@@ -208,8 +208,8 @@ public final class EmbedBuilderFactory {
         return embedBuilder.build();
     }
 
-    public static MessageEmbed editedEventCoursesChangelog(EventJpa eventJpa, List<CourseJpa> selectedCourses) {
-        EmbedBuilder embedBuilder = editedEventChangelogStarted();
+    public static MessageEmbed editedEventCoursesChangelog(EventJpa eventJpa, List<CourseJpa> selectedCourses, String editorMention) {
+        EmbedBuilder embedBuilder = editedEventChangelogStarted(editorMention);
 
         embedBuilder.addField(
             "Original Courses",
@@ -301,10 +301,10 @@ public final class EmbedBuilderFactory {
                 """.formatted(MarkdownUtil.bold("Date"), date, MarkdownUtil.bold("Link"), jumpUrl);
     }
 
-    private static EmbedBuilder editedEventChangelogStarted() {
+    private static EmbedBuilder editedEventChangelogStarted(String editorMention) {
         return new EmbedBuilder()
             .setColor(BLUE)
             .setTitle("Event has been edited.")
-            .setDescription("Find the changes below.");
+            .setDescription("Event edited by %s. Find the changes below.".formatted(editorMention));
     }
 }

@@ -6,12 +6,12 @@ import com.th3hero.eventbot.commands.requests.*;
 import com.th3hero.eventbot.commands.requests.InteractionRequest.MessageMode;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.EventJpa.EventStatus;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.exceptions.DataAccessException;
 import com.th3hero.eventbot.factories.ButtonFactory;
 import com.th3hero.eventbot.formatting.InteractionArguments;
-import com.th3hero.eventbot.repositories.EventDraftRepository;
 import com.th3hero.eventbot.repositories.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
 import net.dv8tion.jda.api.JDA;
@@ -60,8 +60,7 @@ class EventServiceTest {
     private CourseService courseService;
     @Mock
     private ConfigService configService;
-    @Mock
-    private EventDraftRepository eventDraftRepository;
+
     @Mock
     private SchedulingService schedulingService;
     @Mock
@@ -74,7 +73,7 @@ class EventServiceTest {
     @Test
     void publishEvent() {
         final var request = mock(ButtonRequest.class);
-        final var draft = TestEntities.eventDraftJpa(1);
+        final var draft = TestEntities.eventDraft(1);
         final var event = TestEntities.eventJpaWithId(1);
         final var config = TestEntities.configJpa();
         final var jpaEvent = mock(ButtonInteractionEvent.class);
@@ -109,8 +108,8 @@ class EventServiceTest {
 
         eventService.publishEvent(request, draft);
 
-        verify(eventDraftRepository).deleteById(draft.getId());
         verify(schedulingService).removeDraftCleanupTrigger(draft.getId());
+        verify(schedulingService).addEventCompletedTrigger(event.getId(), event.getEventDate());
 
         verify(studentService, times(9)).scheduleStudentForEvent(eq(event), any(StudentJpa.class));
 
@@ -123,6 +122,7 @@ class EventServiceTest {
         verify(eventRepository, times(2)).save(jpaCaptor.capture());
         final EventJpa savedEvent = jpaCaptor.getValue();
         assertThat(savedEvent.getMessageId()).isEqualTo(messageId);
+        assertThat(savedEvent.getStatus()).isEqualTo(EventStatus.ACTIVE);
 
         verify(request).sendResponse("Event has been posted to the event channel. null", MessageMode.USER);
     }
@@ -130,7 +130,7 @@ class EventServiceTest {
     @Test
     void publishEvent_failedToGetChannel() {
         final var request = mock(ButtonRequest.class);
-        final var draft = TestEntities.eventDraftJpa(1);
+        final var draft = TestEntities.eventDraft(1);
         final var event = TestEntities.eventJpaWithId(1);
         final var config = TestEntities.configJpa();
         final var jpaEvent = mock(ButtonInteractionEvent.class);
@@ -150,7 +150,7 @@ class EventServiceTest {
         assertThatExceptionOfType(ConfigErrorException.class)
             .isThrownBy(() -> eventService.publishEvent(request, draft));
 
-        verify(eventDraftRepository, never()).deleteById(draft.getId());
+        verify(eventRepository, never()).deleteById(draft.getId());
         verify(schedulingService, never()).removeDraftCleanupTrigger(draft.getId());
     }
 
@@ -224,7 +224,7 @@ class EventServiceTest {
         final var request = mock(ButtonRequest.class);
         final var requester = TestEntities.member();
         final var event = TestEntities.eventJpaWithId(1);
-        event.setDeleted(true);
+        event.setStatus(EventStatus.DELETED);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
 
@@ -296,7 +296,8 @@ class EventServiceTest {
         verify(messageEditAction).queue();
 
         verify(schedulingService).removeReminderTriggers(event.getId());
-        verify(eventRepository).save(argThat(EventJpa::getDeleted));
+        verify(schedulingService).removeEventCompleteTrigger(event.getId());
+        verify(eventRepository).save(argThat(e -> e.getStatus().equals(EventStatus.DELETED)));
 
         final ArgumentCaptor<Consumer<Message>> recoveryMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
         verify(messageCreateAction).queue(recoveryMessageCaptor.capture());
@@ -332,7 +333,7 @@ class EventServiceTest {
     void handleDeleteConformation_eventAlreadyDeleted() {
         final var request = mock(ModalRequest.class);
         final var event = TestEntities.eventJpaWithId(1);
-        event.setDeleted(true);
+        event.setStatus(EventStatus.DELETED);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
 
@@ -409,6 +410,7 @@ class EventServiceTest {
         eventService.undoEventDeletion(request);
 
         verify(schedulingService).removeDeletedEventCleanupTrigger(event.getId());
+        verify(schedulingService).addEventCompletedTrigger(event.getId(), event.getEventDate());
         verify(request).sendResponse("Event has been restored.", MessageMode.USER);
 
         final ArgumentCaptor<Consumer<Message>> messageCaptor = ArgumentCaptor.forClass(Consumer.class);
@@ -525,7 +527,7 @@ class EventServiceTest {
         final var request = mock(ButtonRequest.class);
         final var requester = TestEntities.member();
         final var event = TestEntities.eventJpaWithId(1);
-        event.setDeleted(true);
+        event.setStatus(EventStatus.DELETED);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
         final var student = TestEntities.studentJpa(1, List.of());
@@ -600,7 +602,7 @@ class EventServiceTest {
     void sendEventEditOptions_eventDeleted() {
         final var request = mock(ButtonRequest.class);
         final var event = TestEntities.eventJpaWithId(1);
-        event.setDeleted(true);
+        event.setStatus(EventStatus.DELETED);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
 
@@ -655,7 +657,7 @@ class EventServiceTest {
     void sendEditEventDetails_deletedEvent() {
         final var request = mock(ButtonRequest.class);
         final var event = TestEntities.eventJpaWithId(1);
-        event.setDeleted(true);
+        event.setStatus(EventStatus.DELETED);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
 
@@ -712,7 +714,7 @@ class EventServiceTest {
     void sendEventEditCourses_deletedEvent() {
         final var request = mock(ButtonRequest.class);
         final var event = TestEntities.eventJpaWithId(1);
-        event.setDeleted(true);
+        event.setStatus(EventStatus.DELETED);
         final Map<String, Long> arguments = new HashMap<>();
         arguments.put(InteractionArguments.EVENT_ID, event.getId());
 
@@ -802,6 +804,7 @@ class EventServiceTest {
         verify(request).sendResponse("The event has been updated. null", MessageMode.USER);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void editEventDetails_dateNotChanged() {
         final var request = mock(ModalRequest.class);
@@ -900,6 +903,7 @@ class EventServiceTest {
         verify(request, never()).sendResponse(any(), any());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void editEventDetails_missingNote() {
         final var request = mock(ModalRequest.class);
@@ -1168,7 +1172,7 @@ class EventServiceTest {
             .thenReturn(channel);
         when(channel.sendMessage(anyString()))
             .thenReturn(messageCreateAction);
-        when(eventRepository.findAllByDeletedIsFalse())
+        when(eventRepository.findAllActive())
             .thenReturn(events);
         when(channel.sendMessageEmbeds(any(MessageEmbed.class)))
             .thenReturn(messageCreateAction);
@@ -1207,7 +1211,7 @@ class EventServiceTest {
 
         eventService.sendAllEventsToEventChannel(jda);
 
-        verify(eventRepository, never()).findAllByDeletedIsFalse();
+        verify(eventRepository, never()).findAllActive();
     }
 
     private void adminMocks(InteractionRequest request) {
@@ -1230,23 +1234,6 @@ class EventServiceTest {
 
     private void nonAdminVerify(InteractionRequest request) {
         verify(request).sendResponse("This action requires administrator permissions", MessageMode.USER);
-    }
-
-    private List<EventJpa> filterTestList(CourseJpa course, LocalDateTime minTime) {
-        // before min
-        final var eventOne = createEvent(1, course);
-        eventOne.setEventDate(minTime.minusDays(1));
-        // after min and before max
-        final var eventTwo = createEvent(2, course);
-        eventTwo.setEventDate(minTime.plusDays(1));
-        final var eventThree = createEvent(3, course);
-        eventThree.setEventDate(minTime.plusDays(3));
-        final var eventFour = createEvent(4, course);
-        eventFour.setEventDate(minTime.plusDays(5));
-        // after min and max
-        final var eventFive = createEvent(5, course);
-        eventFive.setEventDate(minTime.plusDays(20));
-        return List.of(eventOne, eventTwo, eventThree, eventFour, eventFive);
     }
 
     private EventJpa createEvent(int seed, CourseJpa course) {

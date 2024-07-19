@@ -238,7 +238,7 @@ class StudentServiceTest {
 
         verify(request).sendResponse(anyString(), eq(InteractionRequest.MessageMode.USER));
         verify(request, never()).sendResponse("You already have an offset for 48", InteractionRequest.MessageMode.USER);
-        verify(schedulingService, times(events.size())).addEventReminderTrigger(any(), any(), any(), any());
+        verify(schedulingService, times(events.size())).addEventReminderTrigger(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -333,6 +333,7 @@ class StudentServiceTest {
             eq(eventJpa.getId()),
             eq(studentJpa.getId()),
             argThat(i -> studentJpa.getReminderOffsetTimes().contains(i)),
+            any(LocalDateTime.class),
             any(LocalDateTime.class)
         );
     }
@@ -345,7 +346,7 @@ class StudentServiceTest {
 
         studentService.scheduleStudentForEvent(eventJpa, studentJpa);
 
-        verify(schedulingService, never()).addEventReminderTrigger(any(), any(), any(), any());
+        verify(schedulingService, never()).addEventReminderTrigger(any(), any(), any(), any(), any());
     }
 
     @Test

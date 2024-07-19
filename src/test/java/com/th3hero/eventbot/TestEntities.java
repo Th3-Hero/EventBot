@@ -3,7 +3,11 @@ package com.th3hero.eventbot;
 import com.th3hero.eventbot.dto.config.ConfigUpload;
 import com.th3hero.eventbot.dto.course.CourseUpdate;
 import com.th3hero.eventbot.dto.course.CourseUpload;
-import com.th3hero.eventbot.entities.*;
+import com.th3hero.eventbot.entities.ConfigJpa;
+import com.th3hero.eventbot.entities.CourseJpa;
+import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.EventJpa.EventStatus;
+import com.th3hero.eventbot.entities.StudentJpa;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -73,24 +77,26 @@ public class TestEntities {
         return new CourseUpdate("TEST%s".formatted(seed), "Test Course%s".formatted(seed));
     }
 
-    public static EventDraftJpa draftMissingDetailsAndCourses() {
-        return EventDraftJpa.builder()
+    public static EventJpa draftMissingDetailsAndCourses() {
+        return EventJpa.builder()
             .authorId(1234L)
             .eventDate(LocalDateTime.now())
             .type(EventJpa.EventType.ASSIGNMENT)
+            .status(EventStatus.DRAFT)
             .build();
     }
 
-    public static EventDraftJpa eventDraftJpa(int seed) {
-        return EventDraftJpa.builder()
+    public static EventJpa eventDraft(int seed) {
+        return EventJpa.builder()
             .id(1234L + seed)
             .authorId(1234L + seed)
             .title("Test Event%s".formatted(seed))
             .note("Test Note%s".formatted(seed))
             .eventDate(TEST_DATE)
-            .draftCreationDate(TEST_DATE)
+            .creationDate(TEST_DATE)
             .type(EventJpa.EventType.ASSIGNMENT)
             .courses(new ArrayList<>(List.of()))
+            .status(EventStatus.DRAFT)
             .build();
     }
 
@@ -119,6 +125,7 @@ public class TestEntities {
             .eventDate(TEST_DATE)
             .type(EventJpa.EventType.ASSIGNMENT)
             .courses(new ArrayList<>(courses))
+            .status(EventStatus.ACTIVE)
             .build();
     }
 
@@ -131,6 +138,7 @@ public class TestEntities {
             .eventDate(TEST_DATE)
             .type(EventJpa.EventType.ASSIGNMENT)
             .courses(new ArrayList<>(courses))
+            .status(EventStatus.ACTIVE)
             .build();
     }
 
