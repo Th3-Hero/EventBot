@@ -38,7 +38,7 @@ public class ConfigJpa implements Serializable {
      */
     @Builder.Default
     @Column
-    private Integer deletedEventCleanupDelay = 48;
+    private Integer deletedEventCleanupDelay = 72;
 
     /**
      * The number of hours to wait before cleaning up an unconfirmed draft event.

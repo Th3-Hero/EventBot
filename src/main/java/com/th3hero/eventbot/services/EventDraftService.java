@@ -95,7 +95,7 @@ public class EventDraftService {
 
         eventDraft = eventRepository.save(eventDraft);
 
-        schedulingService.addDraftCleanupTrigger(eventDraft.getId(), eventDraft.getEventDate());
+        schedulingService.addDraftCleanupTrigger(eventDraft.getId(), eventDraft.getCreationDate());
 
         request.sendResponse(
             ModalFactory.draftCreationData(eventDraft.getId()),

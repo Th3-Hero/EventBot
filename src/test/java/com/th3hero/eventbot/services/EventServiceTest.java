@@ -442,7 +442,7 @@ class EventServiceTest {
     }
 
     @Test
-    void toggleEventCompleted_notCompleted() {
+    void toggleEventCompleted_userNotCompleted() {
         final var request = mock(ButtonRequest.class);
         final var requester = TestEntities.member();
         final var event = TestEntities.eventJpaWithId(1);
@@ -468,7 +468,7 @@ class EventServiceTest {
     }
 
     @Test
-    void toggleEventCompleted_alreadyCompleted() {
+    void toggleEventCompleted_userAlreadyCompleted() {
         final var request = mock(ButtonRequest.class);
         final var requester = TestEntities.member();
         final var event = TestEntities.eventJpaWithId(1);
@@ -492,6 +492,62 @@ class EventServiceTest {
 
         verify(studentService).scheduleStudentForEvent(event, student);
         verify(request).sendResponse("Reminders have been re-enabled for this event.", MessageMode.USER);
+        verify(studentService, never()).unscheduleStudentRemindersForEvent(request, event.getId());
+    }
+
+    @Test
+    void toggleEventCompleted_eventHasFinished() {
+        final var request = mock(ButtonRequest.class);
+        final var requester = TestEntities.member();
+        final var event = TestEntities.eventJpaWithId(1);
+        event.setStatus(EventStatus.COMPLETED);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(InteractionArguments.EVENT_ID, event.getId());
+        final var student = TestEntities.studentJpa(1, List.of(event.getCourses().getFirst()));
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(requester.getIdLong())
+            .thenReturn(student.getId());
+        when(studentService.fetchStudent(student.getId()))
+            .thenReturn(student);
+        when(eventRepository.findById(event.getId()))
+            .thenReturn(Optional.of(event));
+
+        eventService.toggleEventCompleted(request);
+
+        verify(request).sendResponse("This event has already passed. It cannot be marked as completed.", MessageMode.USER);
+        verify(studentService, never()).scheduleStudentForEvent(event, student);
+        verify(studentService, never()).unscheduleStudentRemindersForEvent(request, event.getId());
+    }
+
+    @Test
+    void toggleEventCompleted_userNotAssociatedWithEvent() {
+        final var request = mock(ButtonRequest.class);
+        final var requester = TestEntities.member();
+        final var event = TestEntities.eventJpaWithId(1);
+        final var randomCourse = TestEntities.courseJpa(1);
+        final Map<String, Long> arguments = new HashMap<>();
+        arguments.put(InteractionArguments.EVENT_ID, event.getId());
+        final var student = TestEntities.studentJpa(1, List.of(randomCourse));
+
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(requester.getIdLong())
+            .thenReturn(student.getId());
+        when(studentService.fetchStudent(student.getId()))
+            .thenReturn(student);
+        when(eventRepository.findById(event.getId()))
+            .thenReturn(Optional.of(event));
+
+        eventService.toggleEventCompleted(request);
+
+        verify(request).sendResponse("You are not signed up for any courses associated with this event.", MessageMode.USER);
+        verify(studentService, never()).scheduleStudentForEvent(event, student);
         verify(studentService, never()).unscheduleStudentRemindersForEvent(request, event.getId());
     }
 

@@ -19,6 +19,6 @@ import jakarta.validation.constraints.NotNull;
 public record ConfigUpload(
     @Schema(description = "The id of the server the event channel is within") @NotNull Long serverId,
     @Schema(description = "The id for the discord channel in which the bot will post events (Required)") @NotNull Long eventChannel,
-    @Schema(description = "The delay in which events will be deleted and unrecoverable after", defaultValue = "48") Integer deletedEventCleanupDelay,
+    @Schema(description = "The delay in which events will be deleted and unrecoverable after", defaultValue = "72") Integer deletedEventCleanupDelay,
     @Schema(description = "The delay in which unconfirmed drafts will be cleaned up", defaultValue = "24") Integer draftCleanupDelay
 ) {}

@@ -144,7 +144,7 @@ public class EventService {
     public void undoEventDeletion(ButtonRequest request) {
         EventJpa eventJpa = eventRepository.findById(request.getArguments().get(EVENT_ID))
             .orElseThrow(() -> new EntityNotFoundException(FAILED_TO_FIND_EVENT.formatted(request.getArguments().get(EVENT_ID))));
-        eventJpa.setStatus(EventStatus.DELETED);
+        eventJpa.setStatus(EventStatus.ACTIVE);
         schedulingService.removeDeletedEventCleanupTrigger(eventJpa.getId());
         schedulingService.addEventCompletedTrigger(eventJpa.getId(), eventJpa.getEventDate());
 
@@ -163,7 +163,6 @@ public class EventService {
             },
             e -> log.warn("Failed to retrieved deleted event message")
         );
-
     }
 
     public void toggleEventCompleted(ButtonRequest request) {
@@ -173,6 +172,16 @@ public class EventService {
         if (eventJpa.getStatus().equals(EventStatus.DELETED)) {
             request.sendResponse("This event has been deleted, actions cannot be preformed on it.", MessageMode.USER);
             log.error("User tried to mark a deleted event as complete (id: {})", eventJpa.getId());
+            return;
+        }
+        if (eventJpa.getStatus().equals(EventStatus.COMPLETED)) {
+            request.sendResponse("This event has already passed. It cannot be marked as completed.", MessageMode.USER);
+            return;
+        }
+        boolean userHasCourseOnEvent = eventJpa.getCourses().stream()
+            .anyMatch(course -> studentJpa.getCourses().contains(course));
+        if (!userHasCourseOnEvent) {
+            request.sendResponse("You are not signed up for any courses associated with this event.", MessageMode.USER);
             return;
         }
 

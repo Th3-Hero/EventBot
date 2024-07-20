@@ -94,7 +94,6 @@ public class StudentService {
         }
     }
 
-
     /**
      * Schedules a student for reminders on an event.
      *
@@ -103,14 +102,14 @@ public class StudentService {
      */
     public void scheduleStudentForEvent(EventJpa eventJpa, StudentJpa studentJpa) {
         for (Integer offset : studentJpa.getReminderOffsetTimes()) {
-            if (eventJpa.getEventDate().minusSeconds(offset).isBefore(LocalDateTime.now())) {
+            if (eventJpa.getEventDate().minusHours(offset).isBefore(LocalDateTime.now())) {
                 continue;
             }
             schedulingService.addEventReminderTrigger(
                 eventJpa.getId(),
                 studentJpa.getId(),
                 offset,
-                eventJpa.getEventDate().minusSeconds(offset),
+                eventJpa.getEventDate().minusHours(offset),
                 eventJpa.getEventDate()
             );
         }
