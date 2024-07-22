@@ -2,6 +2,7 @@ package com.th3hero.eventbot.config;
 
 import com.th3hero.eventbot.commands.actions.Command;
 import com.th3hero.eventbot.entities.EventJpa;
+import com.th3hero.eventbot.entities.EventJpa.EventType;
 import com.th3hero.eventbot.formatting.DateFormatter;
 import com.th3hero.eventbot.services.StudentService;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class SlashCommandConfig {
                     .setRequiredLength(MIN_TIME_LENGTH, MAX_TIME_LENGTH),
                 new OptionData(OptionType.STRING, TYPE, "Type of event. Assignment, Quiz, Midterm, etc.", true)
                     .addChoices(
-                        Arrays.stream(EventJpa.EventType.values())
+                        Arrays.stream(EventType.values())
                             .map(type -> new Choice(type.displayName(), type.name()))
                             .toList()
                     )
@@ -69,7 +70,13 @@ public class SlashCommandConfig {
                 new OptionData(OptionType.INTEGER, TIME_PERIOD, "Filter events to a certain time period in the next X days.", false)
                     .setMinValue(MIN_FILTER_VALUE),
                 new OptionData(OptionType.STRING, COURSE, "Filter events for a certain course.", false)
-                    .setAutoComplete(true)
+                    .setAutoComplete(true),
+                new OptionData(OptionType.STRING, TYPE, "Filter events by event type", false)
+                    .addChoices(
+                        Arrays.stream(EventType.values())
+                            .map(type -> new Choice(type.displayName(), type.name()))
+                            .toList()
+                    )
             )
         ).queue();
     }

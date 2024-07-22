@@ -10,6 +10,7 @@ import com.th3hero.eventbot.entities.ConfigJpa;
 import com.th3hero.eventbot.entities.CourseJpa;
 import com.th3hero.eventbot.entities.EventJpa;
 import com.th3hero.eventbot.entities.EventJpa.EventStatus;
+import com.th3hero.eventbot.entities.EventJpa.EventType;
 import com.th3hero.eventbot.entities.StudentJpa;
 import com.th3hero.eventbot.exceptions.ConfigErrorException;
 import com.th3hero.eventbot.exceptions.DataAccessException;
@@ -39,6 +40,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -351,12 +353,25 @@ public class EventService {
             }
         }
 
+        String eventTypeString = request.getArguments().get(TYPE);
+        EventType eventType = null;
+        if (eventTypeString != null) {
+            eventType = EnumUtils.getEnumIgnoreCase(
+                EventType.class,
+                request.getArguments().get(TYPE)
+            );
+            if (eventType == null) {
+                request.sendResponse("Something unexpected went wrong. Failed to parse event type.", MessageMode.USER);
+                throw new IllegalArgumentException("Failed to parse event type %s when viewing events".formatted(request.getArguments().get(TYPE)));
+            }
+        }
+
         // We don't want to list events that have already passed and
         // if they haven't specified a time period we don't limit how far in the future we show events for
         LocalDateTime minDate = LocalDateTime.now();
         LocalDateTime maxDate = timePeriodField != null ? minDate.plusDays(timePeriodField) : null;
 
-        Specification<EventJpa> spec = getActiveEventsByCourseAndDateRange(courses, minDate, maxDate);
+        Specification<EventJpa> spec = getActiveEventsByCourseAndDateRange(courses, minDate, maxDate, eventType);
         int maxEvents = upcomingField != null ? upcomingField : MessageEmbed.MAX_FIELD_AMOUNT;
 
         List<EventJpa> events = eventRepository.findBy(
@@ -481,7 +496,7 @@ public class EventService {
         return false;
     }
 
-    private static Specification<EventJpa> getActiveEventsByCourseAndDateRange(List<CourseJpa> courses, LocalDateTime minDate, LocalDateTime maxDate) {
+    private static Specification<EventJpa> getActiveEventsByCourseAndDateRange(List<CourseJpa> courses, LocalDateTime minDate, LocalDateTime maxDate, EventType eventType) {
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (courses != null) {
@@ -493,6 +508,9 @@ public class EventService {
             }
             if (maxDate != null) {
                 predicates.add(builder.lessThanOrEqualTo(root.get(EVENT_DATE), maxDate));
+            }
+            if (eventType != null) {
+                predicates.add(builder.equal(root.get("type"), eventType));
             }
             predicates.add(builder.equal(root.get("status"), EventStatus.ACTIVE));
             return builder.and(predicates.toArray(new Predicate[0]));

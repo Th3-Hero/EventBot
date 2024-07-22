@@ -21,6 +21,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -42,6 +43,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static com.th3hero.eventbot.TestEntities.TEST_DATE;
@@ -1208,6 +1210,40 @@ class EventServiceTest {
             MessageMode.USER
         );
         verify(request, never()).deferReply(any());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void filterViewEvents_invalidTypeSpecified() {
+        final var courseOne = TestEntities.courseJpa(1);
+        final var student = TestEntities.studentJpa(1, List.of(courseOne));
+
+        final var request = mock(CommandRequest.class);
+        final var requester = TestEntities.member();
+        final Map<String, String> arguments = new HashMap<>();
+        arguments.put(TIME_PERIOD, "15");
+        arguments.put(UPCOMING, "2");
+        arguments.put(COURSE, courseOne.getCode());
+        arguments.put(TYPE, "not_an_event_type");
+
+        when(request.getRequester())
+            .thenReturn(requester);
+        when(requester.getIdLong())
+            .thenReturn(student.getId());
+        when(studentService.fetchStudent(student.getId()))
+            .thenReturn(student);
+        when(request.getArguments())
+            .thenReturn(arguments);
+        when(courseService.coursesFromCourseCodes(List.of(courseOne.getCode())))
+            .thenReturn(List.of(courseOne));
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> eventService.filterViewEvents(request));
+
+        verify(request).deferReply(MessageMode.USER);
+        verify(request).sendResponse("Something unexpected went wrong. Failed to parse event type.", MessageMode.USER);
+        verify(eventRepository, never()).findBy(any(Specification.class), any());
+
     }
 
     @SuppressWarnings("unchecked")
