@@ -69,6 +69,7 @@ public class EventJpa implements Serializable {
     public enum EventType {
         ASSIGNMENT,
         LAB,
+        QUIZ,
         MIDTERM,
         EXAM,
         OTHER;

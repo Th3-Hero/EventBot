@@ -29,6 +29,7 @@ const getCourseInfo = (table, sections) => {
     return courses;
 };
 
+const sections = 3;
 
 // can change number of sections
-JSON.stringify(getCourseInfo(table, 4), null, 4);
+JSON.stringify(getCourseInfo(table, sections), null, 4);
